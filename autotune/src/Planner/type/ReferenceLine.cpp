@@ -8,15 +8,25 @@ ReferenceLine::ReferenceLine()
     for (double &i : _priority)
         i = 1;
     _drivable = true;
-    _stopPoint = Real::MAX;
+    _target.s = Real::MAX;
+    _target.v = 0;
 }
+
+ReferenceLine::ReferenceLine(const type::Lane &lane)
+    : ReferenceLine()
+{
+    path = AddressOf(lane.path);
+    laneID = lane.id;
+    width = 3.5; // TODO
+}
+
 
 void ReferenceLine::AddCost(ReferenceLine::Priority priority, double cost)
 {
     _priority[size_t(priority)] = cost;
 }
 
-bool ReferenceLine::PriorThan(const ReferenceLine &other) const
+bool ReferenceLine::IsPriorThan(const ReferenceLine &other) const
 {
     for(size_t i = 0, size = _priority.size(); i < size; i++)
     {
@@ -36,13 +46,39 @@ void ReferenceLine::SetDrivable(bool drivable)
 
 void ReferenceLine::SetStopPoint(double s)
 {
-    _stopPoint = std::min(_stopPoint, s);
+    _target.s = std::min(_target.s, s);
+    _target.v = 0;
 }
 
 bool ReferenceLine::IsReachedEnd(Ptr<type::Vehicle> vehicle) const
 {
-    // TODO: 通过车的大小、以及相关参数进行判断
-    return false;
+    auto nearest_index = path->QueryNearest(vehicle->pose.t);
+    auto nearest_point = path->at(nearest_index);
+
+    return (path->Back().s - nearest_point.s) < vehicle->param.length.x * 1.5;
 }
 
+math::Frenet ReferenceLine::CalculateFrenet(double x, double y, double theta) const
+{
+    size_t nearest_index = path->QueryNearest({x, y});
+    const auto nearest_point = path->operator[](nearest_index);
 
+    Frenet frenet;
+    math::Cartesian2Frenet(
+        Cartesian(x, y, theta),
+        Cartesian(nearest_point.pose.x, nearest_point.pose.y, nearest_point.pose.theta),
+        nearest_point.s,
+        frenet);
+
+    return frenet;
+}
+
+ReferenceLine::Target ReferenceLine::GetTarget() const
+{
+    return _target;
+}
+
+bool ReferenceLine::Target::IsStop() const
+{
+    return v == 0;
+}

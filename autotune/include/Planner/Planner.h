@@ -16,10 +16,10 @@
 #pragma once
 
 #include ".PlannerModule.h"
-#include "type/Frame.h"
 #include "type/ReferenceLine.h"
 #include "tool/TrajectoryStitcher.h"
 #include "tool/TrafficDecider.h"
+#include <Planner/impl/PlannerBase.h>
 #include <memory>
 #include <vector>
 
@@ -36,7 +36,8 @@ namespace nox::app
         enum ErrorCode
         {
             Success,
-            LackOfInformation
+            LackOfInformation,
+            PlanningFail
         };
 
         using Result = container::Result<ErrorCode, ErrorCode::Success>;
@@ -44,11 +45,21 @@ namespace nox::app
     public:
         void InitializeDeciders();
 
+    public:
+        /**
+         * 进行规划流程处理
+         * @param vehicle 车
+         * @param scene  场景（包含车道线、障碍物、红绿灯灯物件）
+         * @param result 传入的是空轨迹，或上一条轨迹，再使用之返回规划结果
+         */
+        Result Process(Ptr<type::Vehicle> vehicle, Ptr<type::Scene> scene, type::Trajectory & result);
+
     private:
-        Ptr<type::Vehicle> _vehicle;
-        Ptr<type::Scene>     _scene;
+        type::Vehicle _vehicle;
+        type::Scene   _scene;
 
         vector< Ptr<DecisionMaker> > _deciders;
-        Ptr<TrajectoryStitcher>    _trajectoryStitcher;
+        Ptr<TrajectoryStitcher>      _trajectoryStitcher;
+        Ptr<PlannerBase>             _algorithm;
     };
 }

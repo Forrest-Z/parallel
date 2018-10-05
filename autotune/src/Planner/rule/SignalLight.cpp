@@ -13,10 +13,11 @@ void SignalLight::Apply(TrafficDecider *decider, ReferenceLine &referenceLine) c
 
     if(!next_junction) return; // 没有路口时，不进行红绿灯决策
 
-    for(auto & i : decider->scene->signalLights())
+    for(auto & it : decider->scene->signalLights)
     {
+        auto i = it.second;
         /// 当红绿灯位于下一个路口时，才进行决策
-        if(i.junctionID == next_junction->ID)
+        if(i->junctionID == next_junction->id)
         {
             /// 引导线是否位于进入路口的目标车道线
             bool is_junction_in_lane = next_junction ? next_junction->from == referenceLine.laneID : false;
@@ -27,27 +28,11 @@ void SignalLight::Apply(TrafficDecider *decider, ReferenceLine &referenceLine) c
             {
                 if(is_junction_in_lane)
                 {
-                    bool need_stop = false;
-
-                    if(lane->direction & lane->FORWARD and i.direction & i.FORWARD)
-                    {
-                        need_stop = true;
-                    }
-
-                    if(lane->direction & lane->LEFTWARD and i.direction & i.LEFTWARD)
-                    {
-                        need_stop = true;
-                    }
-
-                    if(lane->direction & lane->RIGHTWARD and i.direction & i.RIGHTWARD)
-                    {
-                        need_stop = true;
-                    }
-
-                    if(need_stop)
+                    /// 目前假设道路只有一个方向（由全局规划来负责）
+                    if(!(lane->direction & i->direction))
                     {
                         /// 当灯为黄灯时，且车子已经接近车道线末端，则一脚油门带走
-                        if(i.color == i.RED or (i.color == i.YELLOW and !referenceLine.IsReachedEnd(decider->vehicle) ))
+                        if(i->color == scene::Red or (i->color == scene::Yellow and !referenceLine.IsReachedEnd(decider->vehicle) ))
                             referenceLine.SetStopPoint(referenceLine.path->Back().s);
                     }
                 }

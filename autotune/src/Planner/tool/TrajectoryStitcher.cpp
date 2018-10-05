@@ -5,7 +5,7 @@ USING_NAMESPACE_NOX;
 
 type::Trajectory TrajectoryStitcher::InitialTrajectory(const type::Vehicle &vehicle)
 {
-    return ComputeTrajectory(vehicle.position(), vehicle.theta(), vehicle.kappa(), vehicle.vx(), param.initial_stitch_time);
+    return ComputeTrajectory(vehicle.pose.t, vehicle.pose.theta, vehicle.kappa, vehicle.v.x, param.initial_stitch_time);
 }
 
 type::Trajectory TrajectoryStitcher::FromLastTrajectory(
@@ -27,7 +27,7 @@ type::Trajectory TrajectoryStitcher::FromLastTrajectory(
     }
 
     /// 按时间匹配当前位置在旧轨迹上的位置
-    size_t matched_index = last_trajectory.QueryNearest(last_cycle_time);
+    size_t matched_index = last_trajectory.QueryNearestByTime(last_cycle_time);
     auto   matched_point = last_trajectory[matched_index];
 
     /// 时间最近点不在旧轨迹上，则返回初始化轨迹
@@ -39,10 +39,10 @@ type::Trajectory TrajectoryStitcher::FromLastTrajectory(
     }
 
     /// 检查时间最近点的位移是否过大
-    size_t nearest_index = last_trajectory.QueryNearest(vehicle.position());
+    size_t nearest_index = last_trajectory.QueryNearestByPosition(vehicle.pose.t);
     auto   nearest_point = last_trajectory[nearest_index];
-    double lateral_offset      = matched_point.LateralFrom(nearest_point);
-    double longitudinal_offset = matched_point.LongitudinalFrom(nearest_point);
+    double lateral_offset      = matched_point.LateralTo(nearest_point);
+    double longitudinal_offset = matched_point.LongitudinalTo(nearest_point);
 
     if(lateral_offset > param.threshold.replan.lateral_offset
             or
@@ -52,8 +52,8 @@ type::Trajectory TrajectoryStitcher::FromLastTrajectory(
     }
 
     /// 取出缝合轨迹（可能旧轨迹不够长，后边会延长）
-    size_t forward_index  = last_trajectory.QueryNearest(matched_point.t + param.stitch_time);
-    size_t backward_index = last_trajectory.QueryNearest(matched_point.t - param.stitch_time);
+    size_t forward_index  = last_trajectory.QueryNearestByTime(matched_point.t + param.stitch_time);
+    size_t backward_index = last_trajectory.QueryNearestByTime(matched_point.t - param.stitch_time);
     type::Trajectory result = last_trajectory.SubTrajectory(backward_index, forward_index);
 
     const auto forward_point = last_trajectory[forward_index];
@@ -61,8 +61,8 @@ type::Trajectory TrajectoryStitcher::FromLastTrajectory(
     if(!Real::IsZero(rest_forward_time))
     {
         type::Trajectory rest_trajectory = ComputeTrajectory(
-            forward_point.position(),
-            forward_point.theta(),
+            forward_point.pose.t,
+            forward_point.pose.theta,
             vehicle.kappa(),
             forward_point.v,
             rest_forward_time);
@@ -82,18 +82,18 @@ type::Trajectory TrajectoryStitcher::ComputeTrajectory(type::Position position, 
         time_step = time_sum / (distance_sum / param.density);
 
     TrajectoryPoint point;
-    point.theta() = theta;
+    point.pose.theta = theta;
     point.v = v;
     point.a = 0;
-    point.kappa() = kappa;
+    point.kappa = kappa;
 
     type::Trajectory result;
     while (distance <= distance_sum) // 最后一个点可能被抛弃，现在暂时不管
     {
-        point.x() = position.x;
-        point.y() = position.y;
-        point.z() = position.z;
-        point.s() = distance;
+        point.pose.x = position.x;
+        point.pose.y = position.y;
+        point.pose.z = position.z;
+        point.s = distance;
         point.t = time;
 
         result.Add(point);
