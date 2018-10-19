@@ -47,25 +47,25 @@ namespace nox::app
          */
         double Evaluate(
             const Target & target,
-            const Ptr<math::Parametric> & lon_traj,
-            const Ptr<math::Parametric> & lat_traj,
+            const Ptr<math::Parametric<1>> & lon_traj,
+            const Ptr<math::Parametric<1>> & lat_traj,
             std::vector<double> & costs
         ) const;
 
         void Evaluate(const Target & target, lattice::Combination & candidate) const;
 
     private:
-        double LonObjectiveCost(const Ptr <math::Parametric> &lon_traj, const Target &target) const;
+        double LonObjectiveCost(const Ptr <math::Parametric<1>> &lon_traj, const Target &target) const;
 
-        double LonComfortCost(const Ptr<math::Parametric> & lon_traj) const;
+        double LonComfortCost(const Ptr<math::Parametric<1>> & lon_traj) const;
 
-        double LonCollisionCost(const Ptr<math::Parametric> & lon_traj) const;
+        double LonCollisionCost(const Ptr<math::Parametric<1>> & lon_traj) const;
 
-        double CentripetalAccelerationCost(const Ptr<math::Parametric> & lon_traj) const;
+        double CentripetalAccelerationCost(const Ptr<math::Parametric<1>> & lon_traj) const;
 
-        double LatOffsetCost(const Ptr<math::Parametric> & lat_traj, double evaluation_horizon) const;
+        double LatOffsetCost(const Ptr<math::Parametric<1>> & lat_traj, double evaluation_horizon) const;
 
-        double LatComfortCost(const Ptr<math::Parametric> & lon_traj, const Ptr<math::Parametric> & lat_traj) const;
+        double LatComfortCost(const Ptr<math::Parametric<1>> & lon_traj, const Ptr<math::Parametric<1>> & lat_traj) const;
 
     private:
         struct

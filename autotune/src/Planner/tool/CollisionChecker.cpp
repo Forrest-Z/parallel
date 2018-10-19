@@ -1,5 +1,6 @@
 #include <Planner/tool/CollisionChecker.h>
 #include <nox>
+#include <Planner/PlannerConfig.h>
 USING_NAMESPACE_NOX;
 using namespace nox;
 using namespace nox::app;
@@ -66,13 +67,12 @@ math::Frenet CollisionChecker::GetFrenetCoordinate(const Pose & pose, const Refe
 
 bool CollisionChecker::InCollision(const type::Trajectory &trajectory) const
 {
-    auto vehicle = type::Vehicle::Instance();
-
+    auto vehicle = cache::ReadEgoVehicle();
 
     for(size_t i = 0, end = trajectory.Size(); i != end; ++i)
     {
         auto & point = trajectory[i];
-        Box box(point.pose, vehicle->param.length.x, vehicle->param.length.y);
+        Box box(point.pose, vehicle.param.length.x, vehicle.param.length.y);
 
         for(auto & obstacle_box : _predicted_bouding_boxes[i])
         {

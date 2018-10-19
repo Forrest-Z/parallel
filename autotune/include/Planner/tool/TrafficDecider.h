@@ -19,10 +19,10 @@ namespace nox::app
         };
 
     public:
-        TrafficDecider(Ptr<type::Scene> & scene, Ptr<type::Vehicle> & vehicle);
+        TrafficDecider(Ptr<type::Scene> scene, Ptr<type::Vehicle> vehicle);
 
     public:
-        const Ptr<type::Vehicle> & vehicle;
-        const Ptr<type::Scene> & scene;
+        Ptr<type::Vehicle> vehicle;
+        Ptr<type::Scene> scene;
     };
 }

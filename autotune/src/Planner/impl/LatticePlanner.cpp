@@ -15,8 +15,8 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
     Ptr<type::Trajectory> & result)
 {
     /// 1. 匹配起点在轨迹上的最近点
-    size_t matched_index = reference.path->QueryNearest(init_point.pose.t);
-    const auto matched_point = reference.path->operator[](matched_index);
+    size_t matched_index = reference.path->QueryNearestByPosition(init_point.pose.t);
+    const auto matched_point = reference.path->at(matched_index);
 
     /// 2. 计算起点与最近点的Frenet坐标
     math::Derivative<3> s, l;
@@ -25,7 +25,7 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
     /// 3. 计算障碍物时空分布图
     auto st_graph = New<STGraph>
     (
-        frame.scene->obstacles,             // 所有障碍物
+        frame.scene,                          // 所有障碍物
         reference,                            // 沿着当前参考线建立图
         s[0], s[0] + param.planning_distance, // 图的距离范围
         0,    param.planning_temporal_length, // 图的时间范围

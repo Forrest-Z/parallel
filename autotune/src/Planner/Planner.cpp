@@ -2,9 +2,24 @@
 #include <Planner/rule/Junction.h>
 #include <Planner/rule/Overtake.h>
 #include <Planner/rule/SignalLight.h>
+#include <Planner/impl/LatticePlanner.h>
+#include <Planner/PlannerConfig.h>
+
 using namespace nox::app;
 USING_NAMESPACE_NOX;
 
+void Planner::Initialize()
+{
+    _trajectoryStitcher = New<TrajectoryStitcher>(); // TODO: 参数初始化
+    _algorithm = New<LatticePlanner>();
+    _scene.SetVehicle(AddressOf(_vehicle));
+
+    InitializeDeciders();
+
+    _scene_server.SetReceiver({"scene"});
+
+    cache::WriteEgoVehicle(AddressOf(_vehicle));
+}
 
 void Planner::InitializeDeciders()
 {
@@ -16,11 +31,28 @@ void Planner::InitializeDeciders()
     _deciders.push_back(traffic_decider);
 }
 
+void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Trajectory> &trajectory)
+{
+    _vehicle.From(vehicle_state);
+
+    nox_msgs::GetSceneRequest request_for_scene;
+    _vehicle.pose.To(request_for_scene.location.pose);
+    request_for_scene.location.header = vehicle_state.header;
+
+    _scene_server.SendRequest(request_for_scene); // TODO: 超时处理
+    _scene.From(_scene_server.GetResponse().scene);
+
+    Trajectory planning_trajectory;
+    Process(AddressOf(_vehicle), AddressOf(_scene), planning_trajectory);
+    planning_trajectory.To(trajectory.value());
+}
+
+
 Planner::Result Planner::Process(Ptr<type::Vehicle> vehicle, Ptr<type::Scene> scene, type::Trajectory &trajectory)
 {
     /// 1. 计算缝合轨迹
     bool is_replan = false;
-    trajectory = _trajectoryStitcher->FromLastTrajectory(*vehicle, GetPeriod(), trajectory, is_replan);
+    trajectory = _trajectoryStitcher->FromLastTrajectory(*vehicle, GetPeriod(), trajectory, &is_replan);
 
     /// 2. 封装车道线为reference_line
     vector<ReferenceLine> references;
@@ -51,3 +83,6 @@ Planner::Result Planner::Process(Ptr<type::Vehicle> vehicle, Ptr<type::Scene> sc
         return Result(ErrorCode::PlanningFail, "Unable to plan");
     }
 }
+
+
+

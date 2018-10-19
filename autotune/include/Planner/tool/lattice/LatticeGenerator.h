@@ -30,8 +30,8 @@ namespace nox::app
 
         void Combine(
             const ReferenceLine & reference,
-            const math::Parametric & lon,
-            const math::Parametric & lat,
+            const math::Parametric<1> & lon,
+            const math::Parametric<1> & lat,
             type::Trajectory & result
         ) const;
 

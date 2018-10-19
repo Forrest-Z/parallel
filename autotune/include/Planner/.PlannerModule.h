@@ -9,29 +9,28 @@
 #include <nox>
 #include "../../../.param/template/Parameter.h"
 #include "../../../.plugin/Plugin.h"
+#include "PlannerConfig.h"
 #include <memory>
+#include <optional>
+
+using std::optional;
 
 namespace nox::app
 {
     class PlannerModule
         : public manage::Module
     {
-    public:
-        template <class T> using PtrIn = in<Ptr<T>>;
-        template <class T> using PtrOut = out<Ptr<T>>;
-
     protected: /// 用户处理代码，默认空实现
         virtual void Initialize();
 
         virtual void Terminate();
 
-        virtual void Process( PtrIn<type::Position> localization  );
+        virtual void Process( nav_msgs::Odometry vehicle_state,  optional<nox_msgs::Trajectory> & trajectory );
 
         
-        bool ProcessOnlocalization( PtrIn<type::Position> localization   );
 
         
-        void OnlocalizationFail(  );
+        void Onvehicle_stateFail( optional<nox_msgs::Trajectory> & trajectory );
 
     protected: /// 参数成员、插件成员、信道成员
         struct
@@ -47,7 +46,8 @@ namespace nox::app
         struct
         {
             
-            mailbox::NOXTopic<type::Position> localization;
+            mailbox::Topic<nav_msgs::Odometry> vehicle_state;
+            mailbox::Topic<nox_msgs::Trajectory> trajectory;
         } mailboxes;
 
     protected: /// 框架生命周期管理代码
@@ -70,7 +70,7 @@ namespace nox::app
 
         void TerminatePlugin();
 
-        void ProcessOutput(  );
+        void ProcessOutput( optional<nox_msgs::Trajectory> & trajectory );
 
     private: /// 框架成员
         struct

@@ -52,7 +52,7 @@ void ReferenceLine::SetStopPoint(double s)
 
 bool ReferenceLine::IsReachedEnd(Ptr<type::Vehicle> vehicle) const
 {
-    auto nearest_index = path->QueryNearest(vehicle->pose.t);
+    auto nearest_index = path->QueryNearestByPosition(vehicle->pose.t);
     auto nearest_point = path->at(nearest_index);
 
     return (path->Back().s - nearest_point.s) < vehicle->param.length.x * 1.5;
@@ -60,8 +60,8 @@ bool ReferenceLine::IsReachedEnd(Ptr<type::Vehicle> vehicle) const
 
 math::Frenet ReferenceLine::CalculateFrenet(double x, double y, double theta) const
 {
-    size_t nearest_index = path->QueryNearest({x, y});
-    const auto nearest_point = path->operator[](nearest_index);
+    size_t nearest_index = path->QueryNearestByPosition({x, y});
+    const auto nearest_point = path->at(nearest_index);
 
     Frenet frenet;
     math::Cartesian2Frenet(

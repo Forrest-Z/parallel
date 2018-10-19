@@ -16,7 +16,7 @@ State::State(double s0, double s1, double s2, double t)
     : math::Derivative<3>{s0, s1, s2}, t(t)
 {}
 
-Curve::Curve(nox::Ptr<nox::math::Parametric> curve)
+Curve::Curve(nox::Ptr<nox::math::Parametric<1>> curve)
     : _curve(curve)
 {}
 
@@ -51,7 +51,7 @@ double Curve::Boundary() const
     return _curve->Boundary();
 }
 
-Combination::Combination(nox::Ptr<nox::math::Parametric> lon, nox::Ptr<nox::math::Parametric> lat)
+Combination::Combination(nox::Ptr<nox::math::Parametric<1>> lon, nox::Ptr<nox::math::Parametric<1>> lat)
     : lon(lon), lat(lat)
 {
 

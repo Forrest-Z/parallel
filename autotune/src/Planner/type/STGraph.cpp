@@ -4,7 +4,7 @@ using namespace nox::app;
 
 
 STGraph::STGraph(
-    const nox::container::Enumerable<nox::type::Obstacle> &obstacles,
+    Ptr<type::Scene> scene,
     const ReferenceLine &referenceLine,
     double start_s, double end_s,
     double start_t, double end_t,
@@ -17,15 +17,16 @@ STGraph::STGraph(
     _t.End = end_t;
     _time_resolution = time_resolution;
     _half_path_width = 0.5 * path_width;
-    SetupObstacles(obstacles, referenceLine);
+    SetupObstacles(scene, referenceLine);
 }
 
 void STGraph::SetupObstacles(
-    const nox::container::Enumerable<nox::type::Obstacle> &obstacles,
+    Ptr<type::Scene> scene,
     const ReferenceLine &referenceLine)
 {
-    for(auto & i : obstacles)
+    for(auto & it : scene->obstacles)
     {
+        auto & i = *it.second;
         if(i.IsStatic())
             AddStaticObstacle(i, referenceLine);
         else
@@ -128,7 +129,7 @@ STPoint::STPoint(double t, nox::type::Range s)
 
 struct STPointComparator
 {
-    friend bool operator<(const STPoint & a, const STPoint & b)
+    bool operator()(const STPoint & a, const STPoint & b)
     {
         return a.t < b.t;
     }

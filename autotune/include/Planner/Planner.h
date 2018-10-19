@@ -42,8 +42,12 @@ namespace nox::app
 
         using Result = container::Result<ErrorCode, ErrorCode::Success>;
 
-    public:
+    protected:
+        void Initialize() override;
+
         void InitializeDeciders();
+
+        void Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Trajectory> &trajectory) override;
 
     public:
         /**
@@ -61,5 +65,7 @@ namespace nox::app
         vector< Ptr<DecisionMaker> > _deciders;
         Ptr<TrajectoryStitcher>      _trajectoryStitcher;
         Ptr<PlannerBase>             _algorithm;
+
+        mailbox::Service<nox_msgs::GetScene> _scene_server;
     };
 }

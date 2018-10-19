@@ -47,7 +47,7 @@ namespace nox::app
     {
     public:
         STGraph(
-            const container::Enumerable<type::Obstacle> & obstacles,
+            Ptr<type::Scene> scene,
             const ReferenceLine & referenceLine,
             double start_s, double end_s,
             double start_t, double end_t,
@@ -55,7 +55,7 @@ namespace nox::app
             double time_resolution);
 
         void SetupObstacles(
-            const container::Enumerable<type::Obstacle> & obstacles,
+            Ptr<type::Scene> scene,
             const ReferenceLine & referenceLine);
 
         void AddDynamicObstacle(
@@ -90,7 +90,7 @@ namespace nox::app
         std::unordered_map<scene::ID, Ptr<STObstacle>> _obstacles;
 
     public:
-        auto Obstacles() -> const decltype(declvalue(STGraph)._obstacles) &
+        std::unordered_map<scene::ID, Ptr<STObstacle>> & Obstacles()
         {
             return _obstacles;
         }

@@ -27,23 +27,21 @@ void PlannerModule::OnRun()
 {
     bool status = true;
     
-    Ptr<type::Position> localization_ptr;
-    
-    if(!mailboxes.localization.IsFresh())
+    if(!mailboxes.vehicle_state.IsFresh())
     {
         status = false;
         
-        OnlocalizationFail(  );
-        ProcessOutput(  );
+        optional<nox_msgs::Trajectory> trajectory_out;
+        Onvehicle_stateFail( trajectory_out );
+        ProcessOutput( trajectory_out );
     }
-    else
-        localization_ptr = std::make_shared<type::Position>(std::move( mailboxes.localization.Get(false) ));
 
     if(status)
     {
         
-        Process( localization_ptr  );
-        ProcessOutput(  );
+        optional<nox_msgs::Trajectory> trajectory_out;
+        Process( mailboxes.vehicle_state.Get(),  trajectory_out );
+        ProcessOutput( trajectory_out );
     }
 }
 
@@ -57,9 +55,10 @@ void PlannerModule::OnFinish()
 void PlannerModule::InitMailbox()
 {
     
-    mailboxes.localization.Subscribe({"localization"});
-    mailboxes.localization.SetValidity(1000);
+    mailboxes.vehicle_state.Subscribe({"vehicle_state"});
+    mailboxes.vehicle_state.SetValidity(1000);
     
+    mailboxes.trajectory.Advertise({"trajectory"});
 }
 
 void PlannerModule::InitParameter()
@@ -70,13 +69,6 @@ void PlannerModule::InitParameter()
 void PlannerModule::InitCallback()
 {
     
-    mailboxes.localization.AddCallback([&]( const type::Position & msg, const Address & address ) {
-        
-        bool result = ProcessOnlocalization( PtrIn<type::Position>(new type::Position(msg))  );
-        ProcessOutput(  );
-        return result;
-    });
-
 }
 
 void PlannerModule::InitPlugin()
@@ -87,7 +79,7 @@ void PlannerModule::InitPlugin()
 void PlannerModule::TerminateMailbox()
 {
     
-    mailboxes.localization.UnSubscribe();
+    mailboxes.vehicle_state.UnSubscribe();
 }
 
 void PlannerModule::TerminatePlugin()
@@ -95,9 +87,11 @@ void PlannerModule::TerminatePlugin()
     
 }
 
-void PlannerModule::ProcessOutput(  )
+void PlannerModule::ProcessOutput( optional<nox_msgs::Trajectory> & trajectory )
 {
     
+    if(trajectory)
+        mailboxes.trajectory.Send(trajectory.value());
 }
 
 void PlannerModule::Initialize()
@@ -110,20 +104,17 @@ void PlannerModule::Terminate()
     // Do Nothing ...
 }
 
-void PlannerModule::Process( PtrIn<type::Position> localization  )
+void PlannerModule::Process( nav_msgs::Odometry vehicle_state,  optional<nox_msgs::Trajectory> & trajectory )
 {
     
+    trajectory.reset();
 }
 
 
-void PlannerModule::OnlocalizationFail(  )
+void PlannerModule::Onvehicle_stateFail( optional<nox_msgs::Trajectory> & trajectory )
 {
     
+    trajectory.reset();
 }
 
 
-bool PlannerModule::ProcessOnlocalization( PtrIn<type::Position> localization   )
-{
-    
-    return false; /// 
-}

@@ -1,4 +1,5 @@
 #include <Planner/type/FeasibleRegion.h>
+#include <Planner/PlannerConfig.h>
 #include <nox>
 
 using namespace nox::app;
@@ -7,9 +8,9 @@ using namespace nox::app;
 FeasibleRegion::FeasibleRegion(double s, double v, double a)
     : _s(s), _v(v), _a(a)
 {
-    auto vehicle = type::Vehicle::Instance();
-    _longitudinal_acceleration.Upper = vehicle->param.limit.lon.a.Upper;
-    _longitudinal_acceleration.Lower = vehicle->param.limit.lon.a.Lower;
+    auto vehicle = cache::ReadEgoVehicle();
+    _longitudinal_acceleration.Upper = vehicle.param.limit.lon.a.Upper;
+    _longitudinal_acceleration.Lower = vehicle.param.limit.lon.a.Lower;
 
     double max_deceleration = -_longitudinal_acceleration.Lower;
     _t_at_zero_speed = v / max_deceleration;

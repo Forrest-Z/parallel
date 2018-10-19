@@ -10,6 +10,6 @@ void TrafficDecider::Rule::Apply(DecisionMaker *decider, ReferenceLine &referenc
         Apply(impl, referenceLine);
 }
 
-TrafficDecider::TrafficDecider(Ptr<nox::type::Scene> &scene, Ptr<nox::type::Vehicle> &vehicle)
+TrafficDecider::TrafficDecider(Ptr<nox::type::Scene> scene, Ptr<nox::type::Vehicle> vehicle)
     : scene(scene), vehicle(vehicle)
 {}

@@ -12,7 +12,7 @@ namespace nox::app
     public:
         ConstraintChecker(Ptr<type::Vehicle> vehicle);
 
-        bool CheckLongitudinal(Ptr<math::Parametric> lon_traj) const;
+        bool CheckLongitudinal(Ptr<math::Parametric<1>> lon_traj) const;
 
         bool CheckTrajectory(const type::Trajectory & trajectory) const;
 

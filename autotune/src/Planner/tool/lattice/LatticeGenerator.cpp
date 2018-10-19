@@ -40,7 +40,7 @@ void LatticeGenerator::GenerateLateralBundle(lattice::Bundle &result) const
 void LatticeGenerator::GenerateSpeedProfilesForCruising(double target_speed, lattice::Bundle &lon) const
 {
     auto end_states = _sampler.SampleLonStatesForCruising(target_speed);
-    if(end_states.empty())
+    if(end_states->empty())
     {
         return;
     }
@@ -79,7 +79,7 @@ void LatticeGenerator::GenerateQuarticBundle(
     for(auto & end_state : *end_states)
     {
         auto lattice_curve = std::make_shared<lattice::Curve>(
-            Ptr<math::Parametric>(new math::QuarticPolynomial(
+            Ptr<math::Parametric<1>>(new math::QuarticCurve(
                 init_state[0], init_state[1], init_state[2],
                 end_state[1], end_state[2],
                 end_state.t
@@ -101,7 +101,7 @@ void LatticeGenerator::GenerateQuinticBundle(
     for(auto & end_state : *end_states)
     {
         auto lattice_curve = std::make_shared<lattice::Curve>(
-            Ptr<math::Parametric>(new math::QuinticPolynomial(
+            Ptr<math::Parametric<1>>(new math::QuinticCurve(
                 init_state[0], init_state[1], init_state[2],
                 end_state[0], end_state[1], end_state[2],
                 end_state.t
@@ -117,8 +117,8 @@ void LatticeGenerator::GenerateQuinticBundle(
 
 void LatticeGenerator::Combine(
     const ReferenceLine &reference,
-    const nox::math::Parametric &lon,
-    const nox::math::Parametric &lat,
+    const nox::math::Parametric<1> &lon,
+    const nox::math::Parametric<1> &lat,
     nox::type::Trajectory &result) const
 {
     double s0 = lon.Calculate(0, 0);
@@ -147,7 +147,7 @@ void LatticeGenerator::Combine(
         l[1] = lat.Calculate(1, ds);
         l[2] = lat.Calculate(2, ds);
 
-        auto nearest_index = reference.path->QueryNearest(s[0]);
+        auto nearest_index = reference.path->QueryNearestByDistance(s[0]);
         auto nearest_point = reference.path->at(nearest_index);
 
         TrajectoryPoint point;

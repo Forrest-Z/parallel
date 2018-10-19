@@ -8,7 +8,7 @@
 
 namespace nox::app::lattice
 {
-    using Bundle = std::vector<Ptr<math::Parametric>>;
+    using Bundle = std::vector<Ptr<math::Parametric<1>>>;
     struct State : public math::Derivative<3>
     {
         double t;
@@ -20,7 +20,7 @@ namespace nox::app::lattice
         State(double s0, double s1, double s2, double t);
     };
 
-    class Curve : public math::Parametric
+    class Curve : public math::Parametric<1>
     {
     public:
         double target_time = 0;
@@ -28,26 +28,26 @@ namespace nox::app::lattice
         double target_position = 0;
 
     public:
-        explicit Curve(Ptr<math::Parametric> curve);
+        explicit Curve(Ptr<math::Parametric<1>> curve);
 
         double Calculate(size_t order, double param) const override;
 
         double Boundary() const override;
 
     private:
-        Ptr<math::Parametric> _curve;
+        Ptr<math::Parametric<1>> _curve;
     };
 
     struct Combination
     {
-        Ptr<math::Parametric> lon;
-        Ptr<math::Parametric> lat;
+        Ptr<math::Parametric<1>> lon;
+        Ptr<math::Parametric<1>> lat;
         double cost_sum = 0;       // 根据比例加权和的权重
         std::vector<double> costs; // 各种各样的cost
 
         Combination() = default;
 
-        Combination(Ptr<math::Parametric> lon, Ptr<math::Parametric> lat);
+        Combination(Ptr<math::Parametric<1>> lon, Ptr<math::Parametric<1>> lat);
 
         bool operator<(const Combination & other) const;
     };

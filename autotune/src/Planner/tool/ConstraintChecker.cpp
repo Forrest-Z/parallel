@@ -10,20 +10,20 @@ ConstraintChecker::ConstraintChecker(nox::Ptr<nox::type::Vehicle> vehicle)
 
 }
 
-bool ConstraintChecker::CheckLongitudinal(nox::Ptr<nox::math::Parametric> lon_traj) const
+bool ConstraintChecker::CheckLongitudinal(nox::Ptr<nox::math::Parametric<1>> lon_traj) const
 {
     for(double t : range(0, _param._time_resolution, lon_traj->Boundary()))
     {
         double v = lon_traj->Calculate(1, t);
-        if(v > _vehicle->param.longitudinal.speed)
+        if(v > _vehicle->param.limit.lon.v)
             return false;
 
         double a = lon_traj->Calculate(2, t);
-        if(a > _vehicle->param.longitudinal.acceleration)
+        if(a > _vehicle->param.limit.lon.a)
             return false;
 
         double j = lon_traj->Calculate(3, t);
-        if(j > _vehicle->param.longitudinal.jerk)
+        if(j > _vehicle->param.limit.lon.jerk)
             return false;
     }
 

@@ -149,8 +149,8 @@ void LatticeEvaluator::Evaluate(const LatticeEvaluator::Target &target, lattice:
 
 double LatticeEvaluator::Evaluate(
     const LatticeEvaluator::Target &target,
-    const nox::Ptr<nox::math::Parametric> &lon_traj,
-    const nox::Ptr<nox::math::Parametric> &lat_traj,
+    const nox::Ptr<nox::math::Parametric<1>> &lon_traj,
+    const nox::Ptr<nox::math::Parametric<1>> &lat_traj,
     std::vector<double> &costs) const
 {
     // Costs: (copy from apollo)
@@ -184,7 +184,7 @@ double LatticeEvaluator::Evaluate(
 }
 
 double LatticeEvaluator::LonObjectiveCost(
-const Ptr <math::Parametric> &lon_traj,
+const Ptr <math::Parametric<1>> &lon_traj,
 const LatticeEvaluator::Target &target) const
 {
     double t_max = lon_traj->Boundary();
@@ -210,7 +210,7 @@ const LatticeEvaluator::Target &target) const
         / (_param._weight._v_reached + _param._weight._s_travelled);
 }
 
-double LatticeEvaluator::LonCollisionCost(const nox::Ptr<nox::math::Parametric> &lon_traj) const
+double LatticeEvaluator::LonCollisionCost(const nox::Ptr<nox::math::Parametric<1>> &lon_traj) const
 {
     double cost_sqr_sum = 0;
     double cost_abs_sum = 0;
@@ -244,7 +244,7 @@ double LatticeEvaluator::LonCollisionCost(const nox::Ptr<nox::math::Parametric> 
     return cost_sqr_sum / (cost_abs_sum + type::Real::Epsilon);
 }
 
-double LatticeEvaluator::LonComfortCost(const nox::Ptr<nox::math::Parametric> &lon_traj) const
+double LatticeEvaluator::LonComfortCost(const nox::Ptr<nox::math::Parametric<1>> &lon_traj) const
 {
     double cost_sqr_sum = 0;
     double cost_abs_sum = 0;
@@ -252,7 +252,7 @@ double LatticeEvaluator::LonComfortCost(const nox::Ptr<nox::math::Parametric> &l
     for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))
     {
         double jerk = lon_traj->Calculate(3, t);
-        double cost = jerk / _vehicle->param.longitudinal.jerk.Upper;
+        double cost = jerk / _vehicle->param.limit.lon.jerk.Upper;
         cost_sqr_sum += cost * cost;
         cost_abs_sum += std::abs(cost);
     }
@@ -260,7 +260,7 @@ double LatticeEvaluator::LonComfortCost(const nox::Ptr<nox::math::Parametric> &l
     return cost_sqr_sum / (cost_abs_sum + type::Real::Epsilon);
 }
 
-double LatticeEvaluator::CentripetalAccelerationCost(const nox::Ptr<nox::math::Parametric> &lon_traj) const
+double LatticeEvaluator::CentripetalAccelerationCost(const nox::Ptr<nox::math::Parametric<1>> &lon_traj) const
 {
     // Assumes the vehicle is not obviously deviate from the reference line.
     // (copy from apollo)
@@ -282,7 +282,7 @@ double LatticeEvaluator::CentripetalAccelerationCost(const nox::Ptr<nox::math::P
     return centripetal_acc_sqr_sum / (centripetal_acc_sum + type::Real::Epsilon);
 }
 
-double LatticeEvaluator::LatOffsetCost(const nox::Ptr<nox::math::Parametric> &lat_traj, double evaluation_horizon) const
+double LatticeEvaluator::LatOffsetCost(const nox::Ptr<nox::math::Parametric<1>> &lat_traj, double evaluation_horizon) const
 {
     double lat_offset_start = lat_traj->Calculate(0, 0);
     double cost_sqr_sum = 0.0;
@@ -309,8 +309,8 @@ double LatticeEvaluator::LatOffsetCost(const nox::Ptr<nox::math::Parametric> &la
 }
 
 double LatticeEvaluator::LatComfortCost(
-    const nox::Ptr<nox::math::Parametric> &lon_traj,
-    const nox::Ptr<nox::math::Parametric> &lat_traj) const
+    const nox::Ptr<nox::math::Parametric<1>> &lon_traj,
+    const nox::Ptr<nox::math::Parametric<1>> &lat_traj) const
 {
     double max_cost = 0;
 

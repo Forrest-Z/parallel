@@ -8,7 +8,7 @@
 
 namespace nox::app
 {
-    class ConstantAccelerationCurve : public math::Parametric
+    class ConstantAccelerationCurve : public math::Parametric<1>
     {
     public:
         ConstantAccelerationCurve(double start_s, double start_v);

@@ -8,11 +8,11 @@ void Junction::Apply(TrafficDecider *decider, ReferenceLine &referenceLine) cons
     if(!referenceLine.path) return;
 
     auto next_junction = decider->scene->NextJunction();
-    auto nearest_index = referenceLine.path->QueryNearest(decider->vehicle->position());
-    auto nearest_point = referenceLine.path->operator[](nearest_index);
+    auto nearest_index = referenceLine.path->QueryNearestByPosition(decider->vehicle->pose.t);
+    auto nearest_point = referenceLine.path->at(nearest_index);
 
-    double s = nearest_point.LongitudinalFrom(referenceLine.path->Back());
-    double threshold = std::max(15.0, decider->vehicle->vx() * 3.0);
+    double s = nearest_point.LongitudinalTo(referenceLine.path->Back());
+    double threshold = std::max(15.0, decider->vehicle->v.x * 3.0);
 
     /// 车是否位于车道线末端
     bool far_away_from_junction = s > threshold;
