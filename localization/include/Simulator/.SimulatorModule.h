@@ -9,7 +9,7 @@
 #include <nox>
 #include "../../../.param/template/Parameter.h"
 #include "../../../.plugin/Plugin.h"
-#include "LoMapConfig.h"
+#include "SimulatorConfig.h"
 #include <memory>
 #include <optional>
 
@@ -17,7 +17,7 @@ using std::optional;
 
 namespace nox::app
 {
-    class LoMapModule
+    class SimulatorModule
         : public manage::Module
     {
     protected: /// 用户处理代码，默认空实现
@@ -25,12 +25,9 @@ namespace nox::app
 
         virtual void Terminate();
 
-        virtual void Process( optional<nav_msgs::Odometry> vehicle_state, optional<nox_msgs::ObstacleArray> obstacles, optional<nox_msgs::Road> old_map  );
+        virtual void Process(  optional<nav_msgs::Odometry> & vehicle_state );
 
         
-        virtual bool ProcessOnvehicle_state( nav_msgs::Odometry vehicle_state   );
-        virtual bool ProcessOnobstacles( nox_msgs::ObstacleArray obstacles   );
-        virtual bool ProcessOnold_map( nox_msgs::Road old_map   );
 
         
 
@@ -49,8 +46,6 @@ namespace nox::app
         {
             
             mailbox::Topic<nav_msgs::Odometry> vehicle_state;
-            mailbox::Topic<nox_msgs::ObstacleArray> obstacles;
-            mailbox::Topic<nox_msgs::Road> old_map;
         } mailboxes;
 
     protected: /// 框架生命周期管理代码
@@ -73,7 +68,7 @@ namespace nox::app
 
         void TerminatePlugin();
 
-        void ProcessOutput(  );
+        void ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state );
 
     private: /// 框架成员
         struct

@@ -9,7 +9,7 @@ void LoMapModule::OnStart()
 {
     /// 配置节点
     SetFrequency( 20.000000 );
-    Viewer::Instance()->SetRender(std::make_shared< None >());
+    Viewer::Instance()->SetRender(New< None >());
 
     // TODO： 看门狗
 
@@ -27,31 +27,26 @@ void LoMapModule::OnRun()
 {
     bool status = true;
     
-    if(!mailboxes.vehicle_state.IsFresh())
-    {
-        status = false;
+    optional<nav_msgs::Odometry> vehicle_state_in;
+    optional<nox_msgs::ObstacleArray> obstacles_in;
+    optional<nox_msgs::Road> old_map_in;
+    
+    if(!mailboxes.vehicle_state.IsFresh()) {} 
+    else
+        vehicle_state_in = mailboxes.vehicle_state.Get();
 
-        ProcessOutput(  );
-    }
+    if(!mailboxes.obstacles.IsFresh()) {} 
+    else
+        obstacles_in = mailboxes.obstacles.Get();
 
-    if(!mailboxes.obstacles.IsFresh())
-    {
-        status = false;
-
-        ProcessOutput(  );
-    }
-
-    if(!mailboxes.old_map.IsFresh())
-    {
-        status = false;
-
-        ProcessOutput(  );
-    }
+    if(!mailboxes.old_map.IsFresh()) {} 
+    else
+        old_map_in = mailboxes.old_map.Get();
 
     if(status)
     {
         
-        Process( mailboxes.vehicle_state.Get(), mailboxes.obstacles.Get(), mailboxes.old_map.Get()  );
+        Process( vehicle_state_in, obstacles_in, old_map_in  );
         ProcessOutput(  );
     }
 }
@@ -82,6 +77,7 @@ void LoMapModule::InitParameter()
 
 void LoMapModule::InitCallback()
 {
+    
     mailboxes.vehicle_state.AddCallback([&]( const nav_msgs::Odometry & msg, const Address & address ) {
         
         bool result = ProcessOnvehicle_state( msg  );

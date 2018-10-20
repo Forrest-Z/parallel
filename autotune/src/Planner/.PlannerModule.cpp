@@ -9,7 +9,7 @@ void PlannerModule::OnStart()
 {
     /// 配置节点
     SetFrequency( 20.000000 );
-    Viewer::Instance()->SetRender(std::make_shared< None >());
+    Viewer::Instance()->SetRender(New< None >());
 
     // TODO： 看门狗
 
@@ -27,6 +27,8 @@ void PlannerModule::OnRun()
 {
     bool status = true;
     
+    nav_msgs::Odometry vehicle_state_in;
+    
     if(!mailboxes.vehicle_state.IsFresh())
     {
         status = false;
@@ -35,12 +37,14 @@ void PlannerModule::OnRun()
         Onvehicle_stateFail( trajectory_out );
         ProcessOutput( trajectory_out );
     }
+    else
+        vehicle_state_in = mailboxes.vehicle_state.Get();
 
     if(status)
     {
         
         optional<nox_msgs::Trajectory> trajectory_out;
-        Process( mailboxes.vehicle_state.Get(),  trajectory_out );
+        Process( vehicle_state_in,  trajectory_out );
         ProcessOutput( trajectory_out );
     }
 }
