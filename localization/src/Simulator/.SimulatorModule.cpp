@@ -32,8 +32,9 @@ void SimulatorModule::OnRun()
     {
         
         optional<nav_msgs::Odometry> vehicle_state_out;
-        Process(  vehicle_state_out );
-        ProcessOutput( vehicle_state_out );
+        optional<nox_msgs::Location> Localization_out;
+        Process(  vehicle_state_out, Localization_out );
+        ProcessOutput( vehicle_state_out, Localization_out );
     }
 }
 
@@ -49,6 +50,7 @@ void SimulatorModule::InitMailbox()
     
     
     mailboxes.vehicle_state.Advertise({"vehicle_state"});
+    mailboxes.Localization.Advertise({"Localization"});
 }
 
 void SimulatorModule::InitParameter()
@@ -76,11 +78,13 @@ void SimulatorModule::TerminatePlugin()
     
 }
 
-void SimulatorModule::ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state )
+void SimulatorModule::ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization )
 {
     
     if(vehicle_state)
         mailboxes.vehicle_state.Send(vehicle_state.value());
+    if(Localization)
+        mailboxes.Localization.Send(Localization.value());
 }
 
 void SimulatorModule::Initialize()
@@ -93,10 +97,11 @@ void SimulatorModule::Terminate()
     // Do Nothing ...
 }
 
-void SimulatorModule::Process(  optional<nav_msgs::Odometry> & vehicle_state )
+void SimulatorModule::Process(  optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization )
 {
     
     vehicle_state.reset();
+    Localization.reset();
 }
 
 

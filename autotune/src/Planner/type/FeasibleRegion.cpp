@@ -14,7 +14,7 @@ FeasibleRegion::FeasibleRegion(double s, double v, double a)
 
     double max_deceleration = -_longitudinal_acceleration.Lower;
     _t_at_zero_speed = v / max_deceleration;
-    _t_at_zero_speed = s + v * v / (2.0 * max_deceleration);
+    _s_at_zero_speed = s + v * v / (2.0 * max_deceleration);
 }
 
 double FeasibleRegion::SUpper(double t) const

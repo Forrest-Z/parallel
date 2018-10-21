@@ -6,7 +6,7 @@ using namespace nox::app;
 
 
 LatticeEvaluator::LatticeEvaluator(
-    const nox::math::Derivative<3> &init_state,
+    const nox::math::Derivative<2> &init_state,
     const ReferenceLine::Target &target,
     const lattice::Bundle &lon_bundles,
     const lattice::Bundle &lat_bundles,
@@ -50,8 +50,8 @@ LatticeEvaluator::LatticeEvaluator(
 
 void LatticeEvaluator::InitParameter()
 {
-    _param._vehicle._min_lon_a = _vehicle->param.limit.lon.a.Lower;
-
+//    _param._vehicle._min_lon_a = _vehicle->param.limit.lon.a.Lower;
+    // TODO: 使用真实的数据
 }
 
 

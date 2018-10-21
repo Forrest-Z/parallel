@@ -35,7 +35,7 @@ namespace nox::app
             {
                 struct
                 {
-                    double lateral_offset = 0.5;    // 米，侧向容忍偏移上限
+                    double lateral_offset = 5;    // 米，侧向容忍偏移上限
                     double longitudinal_offset = 5; // 米，纵向容忍偏移上限
                 } replan; /// 处理重规划的参数
             } threshold; /// 阈值对象

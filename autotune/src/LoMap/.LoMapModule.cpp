@@ -65,7 +65,7 @@ void LoMapModule::InitMailbox()
     mailboxes.vehicle_state.SetValidity(1000);
     mailboxes.obstacles.Subscribe({"obstacles"});
     mailboxes.obstacles.SetValidity(1000);
-    mailboxes.old_map.Subscribe({"old_map"});
+    mailboxes.old_map.Subscribe({"RoadPlanning"});
     mailboxes.old_map.SetValidity(1000);
     
 }

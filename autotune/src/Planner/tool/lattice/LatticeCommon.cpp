@@ -1,23 +1,25 @@
+#include <utility>
+
 #include <Planner/tool/lattice/LatticeCommon.h>
 
 using namespace nox::app::lattice;
 
 
 State::State()
-    : math::Derivative<3>{0, 0, 0}, t(0)
+    : math::Derivative<2>{0, 0, 0}, t(0)
 {
 }
 
-State::State(const math::Derivative<3> &state, double t)
-    : math::Derivative<3>(state), t(t)
+State::State(const math::Derivative<2> &state, double t)
+    : math::Derivative<2>(state), t(t)
 {}
 
 State::State(double s0, double s1, double s2, double t)
-    : math::Derivative<3>{s0, s1, s2}, t(t)
+    : math::Derivative<2>{s0, s1, s2}, t(t)
 {}
 
 Curve::Curve(nox::Ptr<nox::math::Parametric<1>> curve)
-    : _curve(curve)
+    : _curve(std::move(curve))
 {}
 
 double Curve::Calculate(size_t order, double param) const
@@ -59,7 +61,7 @@ Combination::Combination(nox::Ptr<nox::math::Parametric<1>> lon, nox::Ptr<nox::m
 
 bool Combination::operator<(const Combination &other) const
 {
-    return cost_sum < other.cost_sum;
+    return cost_sum > other.cost_sum;
 }
 
 

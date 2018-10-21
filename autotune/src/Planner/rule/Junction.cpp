@@ -8,6 +8,8 @@ void Junction::Apply(TrafficDecider *decider, ReferenceLine &referenceLine) cons
     if(!referenceLine.path) return;
 
     auto next_junction = decider->scene->NextJunction();
+    if(!next_junction) return; // 没有位于路口，直接返回
+
     auto nearest_index = referenceLine.path->QueryNearestByPosition(decider->vehicle->pose.t);
     auto nearest_point = referenceLine.path->at(nearest_index);
 

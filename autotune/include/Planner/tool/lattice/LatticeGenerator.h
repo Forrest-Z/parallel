@@ -16,8 +16,8 @@ namespace nox::app
     {
     public:
         LatticeGenerator(
-            const math::Derivative<3> & s,
-            const math::Derivative<3> & l,
+            const math::Derivative<2> & s,
+            const math::Derivative<2> & l,
             Ptr<STGraph> path_time_graph,
             Ptr<PredictionQuerier> prediction_querier
         );
@@ -80,8 +80,8 @@ namespace nox::app
 
         struct
         {
-            double _time_resolution = 1.0;
-            double _planning_temporal_length = 10.0;
+            double _time_resolution = 0.1;
+            double _planning_temporal_length = 8.0;
         } _param;
     };
 }

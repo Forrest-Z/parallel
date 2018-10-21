@@ -4,6 +4,7 @@
 #include <Planner/rule/SignalLight.h>
 #include <Planner/impl/LatticePlanner.h>
 #include <Planner/PlannerConfig.h>
+#include <Planner/.PlannerModule.h>
 
 using namespace nox::app;
 USING_NAMESPACE_NOX;
@@ -19,6 +20,8 @@ void Planner::Initialize()
     _scene_server.SetReceiver({"scene"});
 
     cache::WriteEgoVehicle(AddressOf(_vehicle));
+
+    Logger::GlobalLogLevel(Logger::Debug);
 }
 
 void Planner::InitializeDeciders()
@@ -42,9 +45,26 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
     _scene_server.SendRequest(request_for_scene); // TODO: 超时处理
     _scene.From(_scene_server.GetResponse().scene);
 
+    _scene.Refresh({"scene"});
+    Logger::D("Planner") << "Scene Updated !";
+
     Trajectory planning_trajectory;
-    Process(AddressOf(_vehicle), AddressOf(_scene), planning_trajectory);
-    planning_trajectory.To(trajectory.value());
+    if(mailboxes.trajectory.SendHistoryCount() != 0)
+        planning_trajectory.From(mailboxes.trajectory.LastSend());
+
+    auto result = Process(AddressOf(_vehicle), AddressOf(_scene), planning_trajectory);
+
+    if(result.Fail())
+    {
+        Logger::W("Planner") << result.Message();
+    }
+    else
+    {
+        Logger::I("Planner") << "Planning Successfully !";
+        trajectory.emplace();
+        planning_trajectory.To(trajectory.value());
+        planning_trajectory.Refresh({"trajectory"});
+    }
 }
 
 
@@ -59,6 +79,7 @@ Planner::Result Planner::Process(Ptr<type::Vehicle> vehicle, Ptr<type::Scene> sc
     for(auto & i : scene->lanes)
     {
         references.emplace_back(*i.second);
+
     }
 
     /// 3. 运用决策器，决策信息放在ReferenceLine中

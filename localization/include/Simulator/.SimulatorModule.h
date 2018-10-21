@@ -25,7 +25,7 @@ namespace nox::app
 
         virtual void Terminate();
 
-        virtual void Process(  optional<nav_msgs::Odometry> & vehicle_state );
+        virtual void Process(  optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization );
 
         
 
@@ -46,6 +46,7 @@ namespace nox::app
         {
             
             mailbox::Topic<nav_msgs::Odometry> vehicle_state;
+            mailbox::Topic<nox_msgs::Location> Localization;
         } mailboxes;
 
     protected: /// 框架生命周期管理代码
@@ -68,7 +69,7 @@ namespace nox::app
 
         void TerminatePlugin();
 
-        void ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state );
+        void ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization );
 
     private: /// 框架成员
         struct

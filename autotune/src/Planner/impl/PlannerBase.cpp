@@ -15,6 +15,10 @@ PlannerBase::Result PlannerBase::Plan(
         }
     };
     Heap<Ptr<ReferenceLine>, PtrReferenceLineComparator> references_heap;
+    for(auto & i : *frame.references)
+    {
+        references_heap.push(AddressOf(i));
+    }
 
     while (references_heap.HasNext())
     {

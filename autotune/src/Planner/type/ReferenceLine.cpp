@@ -18,6 +18,7 @@ ReferenceLine::ReferenceLine(const type::Lane &lane)
     path = AddressOf(lane.path);
     laneID = lane.id;
     width = 3.5; // TODO
+    _target.v = lane.minSpeed / 3.6;
 }
 
 

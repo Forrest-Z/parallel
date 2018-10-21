@@ -15,7 +15,7 @@ namespace nox::app
         using Target = ReferenceLine::Target;
     public:
         LatticeEvaluator(
-            const math::Derivative<3> & init_state,
+            const math::Derivative<2> & init_state,
             const Target & target,
             const lattice::Bundle & lon_bundles,
             const lattice::Bundle & lat_bundles,
@@ -70,10 +70,10 @@ namespace nox::app
     private:
         struct
         {
-            double _time_resolution = 1.0;                // 规划时间分辨率
+            double _time_resolution = 0.1;                // 规划时间分辨率
             double _space_resolution = 1.0;               // 规划距离分辨率
             double _planning_distance = 20.0;             // 规划距离跨度
-            double _planning_temporal_length = 10.0;      // 规划时间跨度
+            double _planning_temporal_length = 8.0;      // 规划时间跨度
             double _stop_in_range_threshold = 1.0;        // 判断是否位于停止点的距离阈值
             double _lon_collision_yield_buffer = 3.0;     // 跟在障碍物后的避让距离（应该跟速度相关）
             double _lon_collision_overtake_buffer = 3.0;  // 超过障碍物的超前距离
@@ -81,29 +81,29 @@ namespace nox::app
 
             struct
             {
-                double _min_lon_a;
-                double _comfort_a_factor;
+                double _min_lon_a = -4;
+                double _comfort_a_factor = 1.0;
             } _vehicle;
 
             struct
             {
                 /// 位置与速度的权衡
-                double _s_travelled = 0.5;
-                double _v_reached = 0.5;
+                double _s_travelled = 10.0;
+                double _v_reached = 1.0;
 
                 /// 侧向偏移在不同方向的惩罚系数
-                double _opposite_side_offset = 0.5;
-                double _same_side_offset = 0.5;
+                double _opposite_side_offset = 10.0;
+                double _same_side_offset = 10.0;
 
                 /// 各代价系数
                 struct
                 {
-                    double _lon_objective;
-                    double _lon_jerk;
-                    double _lon_collision;
-                    double _centripetal_acc;
-                    double _lat_offset;
-                    double _lat_comfort;
+                    double _lon_objective = 10.0;
+                    double _lon_jerk = 1.0;
+                    double _lon_collision = 2.0;
+                    double _centripetal_acc = 1.5;
+                    double _lat_offset = 2.0;
+                    double _lat_comfort = 10.0;
                 } _cost;
             } _weight;
 

@@ -4,8 +4,8 @@ using namespace nox::app;
 
 
 LatticeGenerator::LatticeGenerator(
-    const nox::math::Derivative<3> &s,
-    const nox::math::Derivative<3> &l,
+    const nox::math::Derivative<2> &s,
+    const nox::math::Derivative<2> &l,
     nox::Ptr<nox::app::STGraph> path_time_graph,
     Ptr<PredictionQuerier> prediction_querier
 )
@@ -19,6 +19,8 @@ void LatticeGenerator::GenerateBundles(const ReferenceLine::Target &target, latt
 {
     GenerateLongitudinalBundle(target, lon);
     GenerateLateralBundle(lat);
+
+    Logger::D("LatticeGenerator") << "Lon Bundles: " << lon.size() << " ; Lat Bundles: " << lat.size();
 }
 
 void LatticeGenerator::GenerateLongitudinalBundle(const ReferenceLine::Target &target, lattice::Bundle &result) const
@@ -130,14 +132,14 @@ void LatticeGenerator::Combine(
 
     for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))
     {
-        math::Derivative<3> s, l;
+        math::Derivative<2> s, l;
         s[0] = lon.Calculate(0, t);
 
         if(last_s > 0)
             s[0] = std::max(last_s, s[0]);
         last_s = s[0];
 
-        if(s[0] > s_sum) break;
+        if(s[0] > s_max) break;
 
         s[1] = std::max(Real::Epsilon, lon.Calculate(1, t));
         s[2] = lon.Calculate(2, t);
@@ -166,6 +168,7 @@ void LatticeGenerator::Combine(
         point.pose.x = original_point.x;
         point.pose.y = original_point.y;
         point.pose.theta = original_point.theta;
+        point.t = t;
 
         result.Add(point);
     }

@@ -9,13 +9,13 @@
 namespace nox::app::lattice
 {
     using Bundle = std::vector<Ptr<math::Parametric<1>>>;
-    struct State : public math::Derivative<3>
+    struct State : public math::Derivative<2>
     {
         double t;
 
         State();
 
-        State(const math::Derivative<3> & state, double t);
+        State(const math::Derivative<2> & state, double t);
 
         State(double s0, double s1, double s2, double t);
     };

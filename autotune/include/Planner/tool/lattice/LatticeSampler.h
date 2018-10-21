@@ -14,8 +14,8 @@ namespace nox::app
     {
     public:
         LatticeSampler(
-           const math::Derivative<3> & s,
-           const math::Derivative<3> & l,
+           const math::Derivative<2> & s,
+           const math::Derivative<2> & l,
            Ptr<STGraph> path_time_graph,
            Ptr<PredictionQuerier> prediction_querier
         );
@@ -55,9 +55,10 @@ namespace nox::app
         struct
         {
             double _min_response_time = 1.0;
-            double _mps_resolution = 0.1;
+            double _mps_resolution = 1.0;
             double _sample_longitudinal_length = 5.0;
             size_t _number_of_samples = 5;
+            size_t _num_velocity_samples = 6;
 
             struct
             {

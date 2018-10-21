@@ -98,7 +98,7 @@ void StaticSceneUpdater::Update(const nox_msgs::Road &source)
         for(auto & [p, lane] : together(block.points, lanes))
         {
             PathPoint pathPoint;
-            pathPoint.pose.Set(Position(p.x, p.y, p.z), Rotation(p.yaw));
+            pathPoint.pose.Set(Position(p.x, p.y, p.z), Rotation(Degree(p.yaw + 90).Get(Angle::Radian)));
             lane->path.Add(pathPoint);
         }
     }
@@ -114,6 +114,7 @@ void StaticSceneUpdater::Update(const nox_msgs::Road &source)
 
     for(auto & it : _scene->lanes)
     {
+        Logger::D("StaticSceneUpdater") << "Lane " << it.second->id << " : " << it.second->path.Length() << "m";
         it.second->path = smoother.Smooth(it.second->path);
     }
 }

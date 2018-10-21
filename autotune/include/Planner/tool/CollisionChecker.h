@@ -37,8 +37,8 @@ namespace nox::app
     private:
         struct
         {
-            double _time_resolution = 1.0;
-            double _planning_temporal_length = 10.0;
+            double _time_resolution = 0.1;
+            double _planning_temporal_length = 8.0;
 
             struct /// 碰撞检测缓冲边界（需要跟速度挂钩？）
             {

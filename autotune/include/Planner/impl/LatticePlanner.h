@@ -19,17 +19,17 @@ namespace nox::app
     public:
         struct
         {
-            double planning_distance;
-            double planning_temporal_length;
-            double time_resolution;
-            double lane_default_width = 4.0;
+            double planning_distance = 50;
+            double planning_temporal_length = 8;
+            double time_resolution = 0.1;
+            double lane_default_width = 3.5;
         } param;
 
     private:
         void ComputeFrentState(
             const type::TrajectoryPoint &init_point,
             const type::PathPoint &matched_point,
-            OUT math::Derivative<3> &s,
-            OUT math::Derivative<3> &l);
+            OUT math::Derivative<2> &s,
+            OUT math::Derivative<2> &l);
     };
 }

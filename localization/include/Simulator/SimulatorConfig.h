@@ -9,6 +9,8 @@
 
 #include <nox>
 
+#include <old_nox_msgs.h>
+
 namespace nox::app
 {
 

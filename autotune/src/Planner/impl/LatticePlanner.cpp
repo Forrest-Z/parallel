@@ -14,15 +14,17 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
     PlannerBase::Frame frame,
     Ptr<type::Trajectory> & result)
 {
-    /// 1. 匹配起点在轨迹上的最近点
+    analyze_init(LatticePlanner);
+
+    analyze(1. 匹配起点在轨迹上的最近点);
     size_t matched_index = reference.path->QueryNearestByPosition(init_point.pose.t);
     const auto matched_point = reference.path->at(matched_index);
 
-    /// 2. 计算起点与最近点的Frenet坐标
-    math::Derivative<3> s, l;
+    analyze(2. 计算起点与最近点的Frenet坐标);
+    math::Derivative<2> s, l;
     ComputeFrentState(init_point, matched_point, s, l);
 
-    /// 3. 计算障碍物时空分布图
+    analyze(3. 计算障碍物时空分布图);
     auto st_graph = New<STGraph>
     (
         frame.scene,                          // 所有障碍物
@@ -33,7 +35,7 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
         param.time_resolution                 // 时间分辨率
     );
 
-    /// 4. 分别生成纵向和横向的候选轨迹
+    analyze(4. 分别生成纵向和横向的候选轨迹);
     auto prediction_querier = New<PredictionQuerier>
     (
         frame.scene,
@@ -56,7 +58,7 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
         lat_bundle
     );
 
-    /// 5. 评估轨迹
+    analyze(5. 评估轨迹);
     LatticeEvaluator evaluator
     (
         s, reference.GetTarget(), // 规划起点与终点
@@ -67,7 +69,7 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
         reference                 // 引导参考线
     );
 
-    /// 6. 遍历所有候选轨迹，进行碰撞检测与约束检测
+    analyze(6. 遍历所有候选轨迹，进行碰撞检测与约束检测);
     ConstraintChecker constraint_checker(frame.vehicle);
     CollisionChecker collision_checker(frame.scene, s[0], l[0], reference);
 
@@ -94,14 +96,14 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
 void LatticePlanner::ComputeFrentState(
     const TrajectoryPoint &init_point,
     const PathPoint &matched_point,
-    nox::math::Derivative<3> &s,
-    nox::math::Derivative<3> &l)
+    nox::math::Derivative<2> &s,
+    nox::math::Derivative<2> &l)
 {
     math::Cartesian2Frenet(
         math::Cartesian(init_point.pose.x, init_point.pose.y, init_point.pose.theta),
         math::Cartesian(matched_point.pose.x, matched_point.pose.y, matched_point.pose.theta),
         init_point.v, init_point.a, init_point.kappa,
-        matched_point.s, math::Derivative<2>{matched_point.kappa, matched_point.dkappa},
+        matched_point.s, math::Derivative<1>{matched_point.kappa, matched_point.dkappa},
         OUT s, OUT l
     );
 }

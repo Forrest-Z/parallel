@@ -7,8 +7,8 @@ using namespace nox::app;
 
 
 LatticeSampler::LatticeSampler(
-    const nox::math::Derivative<3> &s,
-    const nox::math::Derivative<3> &l,
+    const nox::math::Derivative<2> &s,
+    const nox::math::Derivative<2> &l,
     nox::Ptr<nox::app::STGraph> path_time_graph,
     Ptr<PredictionQuerier> prediction_querier
 )
@@ -42,9 +42,8 @@ Ptr<LatticeSampler::States> LatticeSampler::SampleLonStatesForCruising(double ta
     /// 在ST图的时间维度上，按系统的反应时间进行采样
     auto graph_t_range = _st_graph->TRange();
     double dt = _param._min_response_time;
-    double dv = _param._mps_resolution;
 
-    for(auto t : Range(graph_t_range.Start + dt, dt, graph_t_range.End))
+    for(auto t : range(graph_t_range.Start + dt, dt, graph_t_range.End))
     {
         double v_upper = std::min(_feasible_region.VUpper(t), target_speed);
         double v_lower = _feasible_region.VLower(t);
@@ -53,7 +52,13 @@ Ptr<LatticeSampler::States> LatticeSampler::SampleLonStatesForCruising(double ta
         end_states->emplace_back(0, v_lower, 0, t);
         end_states->emplace_back(0, v_upper, 0, t);
 
-        for(auto v : Range(v_lower + dv, dv, v_upper - dv))
+        double dv = std::max
+        (
+            _param._mps_resolution,
+            (v_upper - v_lower) / (_param._num_velocity_samples - 2)
+        );
+
+        for(auto v : range(v_lower + dv, dv, v_upper - dv))
         {
             end_states->emplace_back(0, v, 0, t);
         }

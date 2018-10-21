@@ -47,7 +47,7 @@ bool ConstraintChecker::CheckTrajectory(const nox::type::Trajectory &trajectory)
             return false;
     }
 
-    for(size_t i = 0, end = trajectory.Size() - 1; i != end; ++i)
+    for(int i = 0, end = trajectory.Size() - 1; i < end; ++i)
     {
         auto & p0 = trajectory[i];
         auto & p1 = trajectory[i+1];
