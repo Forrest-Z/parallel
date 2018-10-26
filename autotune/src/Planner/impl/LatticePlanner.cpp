@@ -4,9 +4,10 @@
 #include <Planner/tool/lattice/LatticeGenerator.h>
 #include <Planner/tool/lattice/LatticeEvaluator.h>
 #include <Planner/tool/CollisionChecker.h>
-
+USING_NAMESPACE_NOX;
 using namespace nox::app;
 using namespace nox::type;
+using std::endl;
 
 PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
     const type::TrajectoryPoint &init_point,
@@ -85,6 +86,20 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
 
         if(collision_checker.InCollision(*trajectory))
             continue;
+
+        auto lon = std::dynamic_pointer_cast<lattice::Curve>(candidate.lon);
+        auto lat = std::dynamic_pointer_cast<lattice::Curve>(candidate.lat);
+        Logger::D("LatticePlanner")
+            << endl
+            << "Pick lon(p, v, t) = " << lon->target_position << ", " << lon->target_speed << ", " << lon->target_time << endl
+            << "Pick lat(p, v, t) = " << lat->target_position << ", " << lat->target_speed << ", " << lat->target_time << endl
+            << "Cost: " << candidate.cost_sum << endl
+            << "1. lon objective: " << candidate.costs[0] << endl
+            << "2. lon jerk:      " << candidate.costs[1] << endl
+            << "3. lon collision: " << candidate.costs[2] << endl
+            << "4. centripetal a: " << candidate.costs[3] << endl
+            << "5. lat offset:    " << candidate.costs[4] << endl
+            << "6. lat comfort:   " << candidate.costs[5] << endl;
 
         result = trajectory;
         return Result(ErrorCode::Success);

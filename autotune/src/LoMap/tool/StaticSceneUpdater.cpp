@@ -116,6 +116,7 @@ void StaticSceneUpdater::Update(const nox_msgs::Road &source)
     {
         Logger::D("StaticSceneUpdater") << "Lane " << it.second->id << " : " << it.second->path.Length() << "m";
         it.second->path = smoother.Smooth(it.second->path);
+//        it.second->path.Refresh({"lomap_lane"});
     }
 }
 

@@ -76,6 +76,8 @@ namespace nox::app
 
         const type::Range & TRange() const;
 
+        std::vector<type::Bound> GetLateralBounds(double s_start, double s_end, double s_resolution);
+
     private:
         SLTBoundary ComputeObstacleBoundary(
             const type::Box & box,

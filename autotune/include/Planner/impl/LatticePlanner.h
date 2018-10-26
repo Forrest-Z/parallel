@@ -19,7 +19,7 @@ namespace nox::app
     public:
         struct
         {
-            double planning_distance = 50;
+            double planning_distance = 200;
             double planning_temporal_length = 8;
             double time_resolution = 0.1;
             double lane_default_width = 3.5;

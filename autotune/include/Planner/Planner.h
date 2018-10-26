@@ -67,5 +67,6 @@ namespace nox::app
         Ptr<PlannerBase>             _algorithm;
 
         mailbox::Service<nox_msgs::GetScene> _scene_server;
+        mailbox::Topic<geometry_msgs::Point> _trajectory_plotter;
     };
 }

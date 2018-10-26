@@ -17,12 +17,17 @@ namespace nox::app
 
         type::Trajectory FromLastTrajectory(
             const type::Vehicle & vehicle,
-            double last_cycle_time,
             const type::Trajectory & last_trajectory,
             OUT bool * replan = nullptr);
 
+        type::Trajectory FromLastTrajectoryByPosition(
+            const type::Vehicle & vehicle,
+            const type::Trajectory & last_trajectory,
+            OUT bool * replan = nullptr
+        );
+
     private:
-        type::Trajectory ComputeTrajectory(type::Position position, double theta, double kappa, double v, double time_sum);
+        type::Trajectory ComputeTrajectory(type::Position position, double theta, double kappa, double v, double a, double time_sum);
 
     public:
         struct
@@ -40,5 +45,8 @@ namespace nox::app
                 } replan; /// 处理重规划的参数
             } threshold; /// 阈值对象
         } param; /// 参数对象
+
+    private:
+        double _planning_time = 0;
     };
 }

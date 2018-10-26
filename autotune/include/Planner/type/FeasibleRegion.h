@@ -27,6 +27,7 @@ namespace nox::app
         double _s, _v, _a;
         double _t_at_zero_speed;
         double _s_at_zero_speed;
+        double _base_speed;
 
         type::Bound _longitudinal_acceleration;
     };

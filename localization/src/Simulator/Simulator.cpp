@@ -21,8 +21,16 @@ void Simulator::Initialize()
 
         _odometry.pose = _odometry.pose.Move(-1);
 
-    }).PrintHelp();
+    }).Add({KeyBoard::Q, KeyBoard::q}, "add speed", [&](){
 
+        ++_odometry.v.x;
+
+    }).Add({KeyBoard::e, KeyBoard::E}, "reduce speed", [&](){
+
+        if(--_odometry.v.x < 0)
+            _odometry.v.x = 0;
+
+    }).PrintHelp();
 }
 
 
@@ -36,4 +44,6 @@ void Simulator::Process(optional<nav_msgs::Odometry> &vehicle_state, optional<no
     Localization.value().x = _odometry.pose.x;
     Localization.value().y = _odometry.pose.y;
     Localization.value().yaw = (Radian(_odometry.pose.theta) + Degree(270)).Get(Angle::Degree);
+
+
 }

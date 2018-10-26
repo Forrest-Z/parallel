@@ -72,7 +72,7 @@ namespace nox::app
         {
             double _time_resolution = 0.1;                // 规划时间分辨率
             double _space_resolution = 1.0;               // 规划距离分辨率
-            double _planning_distance = 20.0;             // 规划距离跨度
+            double _planning_distance = 200.0;             // 规划距离跨度
             double _planning_temporal_length = 8.0;      // 规划时间跨度
             double _stop_in_range_threshold = 1.0;        // 判断是否位于停止点的距离阈值
             double _lon_collision_yield_buffer = 3.0;     // 跟在障碍物后的避让距离（应该跟速度相关）
@@ -93,7 +93,7 @@ namespace nox::app
 
                 /// 侧向偏移在不同方向的惩罚系数
                 double _opposite_side_offset = 10.0;
-                double _same_side_offset = 10.0;
+                double _same_side_offset = 1.0;
 
                 /// 各代价系数
                 struct
@@ -102,7 +102,7 @@ namespace nox::app
                     double _lon_jerk = 1.0;
                     double _lon_collision = 2.0;
                     double _centripetal_acc = 1.5;
-                    double _lat_offset = 2.0;
+                    double _lat_offset = 20.0; // 2.0
                     double _lat_comfort = 10.0;
                 } _cost;
             } _weight;

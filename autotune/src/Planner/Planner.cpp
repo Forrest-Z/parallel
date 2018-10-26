@@ -8,6 +8,7 @@
 
 using namespace nox::app;
 USING_NAMESPACE_NOX;
+using std::endl;
 
 void Planner::Initialize()
 {
@@ -18,10 +19,12 @@ void Planner::Initialize()
     InitializeDeciders();
 
     _scene_server.SetReceiver({"scene"});
+    _trajectory_plotter.Advertise({"planner_plot"});
 
     cache::WriteEgoVehicle(AddressOf(_vehicle));
 
     Logger::GlobalLogLevel(Logger::Debug);
+    analyze_global_enable(true);
 }
 
 void Planner::InitializeDeciders()
@@ -46,7 +49,10 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
     _scene.From(_scene_server.GetResponse().scene);
 
     _scene.Refresh({"scene"});
-    Logger::D("Planner") << "Scene Updated !";
+    Logger::D("Planner")
+        << "Scene Updated !" << endl
+        << "(x, y): " << _vehicle.pose.x << " " << _vehicle.pose.y << endl
+        << "(v, w): " << _vehicle.v.x << " " << _vehicle.w.z << endl;
 
     Trajectory planning_trajectory;
     if(mailboxes.trajectory.SendHistoryCount() != 0)
@@ -65,6 +71,22 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
         planning_trajectory.To(trajectory.value());
         planning_trajectory.Refresh({"trajectory"});
     }
+
+    if(false)
+    {
+        geometry_msgs::Point point;
+        double last_t = 0;
+        for(auto & i : planning_trajectory)
+        {
+            Clock::Sleep((i.t - last_t) * 1000);
+
+            point.x = i.v;
+            point.y = i.a;
+            _trajectory_plotter.Send(point);
+
+            last_t = i.t;
+        }
+    }
 }
 
 
@@ -72,14 +94,14 @@ Planner::Result Planner::Process(Ptr<type::Vehicle> vehicle, Ptr<type::Scene> sc
 {
     /// 1. 计算缝合轨迹
     bool is_replan = false;
-    trajectory = _trajectoryStitcher->FromLastTrajectory(*vehicle, GetPeriod(), trajectory, &is_replan);
+//     trajectory = _trajectoryStitcher->FromLastTrajectoryByPosition(*vehicle, trajectory, &is_replan);
+    trajectory = _trajectoryStitcher->InitialTrajectory(*vehicle);
 
     /// 2. 封装车道线为reference_line
     vector<ReferenceLine> references;
     for(auto & i : scene->lanes)
     {
         references.emplace_back(*i.second);
-
     }
 
     /// 3. 运用决策器，决策信息放在ReferenceLine中

@@ -37,6 +37,10 @@ void LatticeGenerator::GenerateLateralBundle(lattice::Bundle &result) const
 {
     auto end_states = _sampler.SampleLatStates();
     GenerateQuinticBundle(_init_lat_state, end_states, result);
+
+    double s_min = 0;
+    double s_max = _param._delta_s_lateral_optimization;
+
 }
 
 void LatticeGenerator::GenerateSpeedProfilesForCruising(double target_speed, lattice::Bundle &lon) const
@@ -123,14 +127,14 @@ void LatticeGenerator::Combine(
     const nox::math::Parametric<1> &lat,
     nox::type::Trajectory &result) const
 {
-    double s0 = lon.Calculate(0, 0);
+    double t0 = _param._time_resolution;
+    double s0 = lon.Calculate(0, t0);
     double s_max = reference.path->Back().s;
-    double s_sum = 0;
     double last_s = -Real::Epsilon;
 
     result.Clear();
 
-    for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))
+    for(double t : range(t0, _param._time_resolution, _param._planning_temporal_length))
     {
         math::Derivative<2> s, l;
         s[0] = lon.Calculate(0, t);

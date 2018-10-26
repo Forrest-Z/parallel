@@ -82,6 +82,7 @@ namespace nox::app
         {
             double _time_resolution = 0.1;
             double _planning_temporal_length = 8.0;
+            double _delta_s_lateral_optimization = 2.0;
         } _param;
     };
 }

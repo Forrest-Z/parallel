@@ -116,6 +116,15 @@ const nox::type::Range &STGraph::TRange() const
     return _t;
 }
 
+vector<nox::type::Bound> STGraph::GetLateralBounds(double s_start, double s_end, double s_resolution)
+{
+    vector<nox::type::Bound> bounds;
+
+
+
+    return bounds;
+}
+
 STPoint::STPoint(double t, double s_begin, double s_end)
 {
     this->t = t;

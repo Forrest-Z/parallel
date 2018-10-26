@@ -159,20 +159,34 @@ double LatticeEvaluator::Evaluate(
     // 3. Cost of logitudinal collision
     // 4. Cost of lateral offsets
     // 5. Cost of lateral comfort
+    analyze_init(LatticeEvaluator);
+    analyze_enable(false);
 
+    analyze(1. Cost of missing the objective);
     double lon_objective_cost   = LonObjectiveCost(lon_traj, target);
+
+    analyze(2. Cost of logitudinal jerk);
     double lon_jerk_cost        = LonComfortCost(lon_traj);
+
+    analyze(3. Cost of logitudinal collision)
     double lon_collision_cost   = LonCollisionCost(lon_traj);
+
+    analyze(4. Cost of centripetal acceleration);
     double centripetal_acc_cost = CentripetalAccelerationCost(lon_traj);
 
-    double evaluation_horizon = std::min(_param._planning_distance, lon_traj->Boundary());
+    analyze(5. Cost of lateral offsets);
+    double evaluation_horizon = std::min(_param._planning_distance, std::max(lon_traj->Boundary(), lat_traj->Boundary()));
     double lat_offset_cost    = LatOffsetCost(lat_traj, evaluation_horizon);
+
+    analyze(6. Cost of lateral comfort);
     double lat_comfort_cost   = LatComfortCost(lon_traj, lat_traj);
 
     costs.push_back(lon_objective_cost);
     costs.push_back(lon_jerk_cost);
     costs.push_back(lon_collision_cost);
+    costs.push_back(centripetal_acc_cost);
     costs.push_back(lat_offset_cost);
+    costs.push_back(lat_comfort_cost);
 
     return
         _param._weight._cost._lon_objective * lon_objective_cost +
@@ -275,7 +289,7 @@ double LatticeEvaluator::CentripetalAccelerationCost(const nox::Ptr<nox::math::P
         auto ref_point = _reference_line.path->PointAtDistance(s);
         double centripetal_acc = v * v * ref_point.kappa;
 
-        centripetal_acc_sum += std::abs(centripetal_acc);
+        centripetal_acc_sum += 1; // std::abs(centripetal_acc);
         centripetal_acc_sqr_sum += centripetal_acc * centripetal_acc;
     }
 
@@ -296,12 +310,12 @@ double LatticeEvaluator::LatOffsetCost(const nox::Ptr<nox::math::Parametric<1>> 
         if(lat_offset * lat_offset_start < 0)
         {
             cost_sqr_sum += cost * cost * _param._weight._opposite_side_offset;
-            cost_abs_sum += std::abs(cost) * _param._weight._opposite_side_offset;
+            cost_abs_sum += 1; //std::abs(cost); // * _param._weight._opposite_side_offset;
         }
         else
         {
             cost_sqr_sum += cost * cost * _param._weight._same_side_offset;
-            cost_abs_sum += std::abs(cost) * _param._weight._same_side_offset;
+            cost_abs_sum += 1; // std::abs(cost); // * _param._weight._same_side_offset;
         }
     }
 

@@ -11,6 +11,7 @@ FeasibleRegion::FeasibleRegion(double s, double v, double a)
     auto vehicle = cache::ReadEgoVehicle();
     _longitudinal_acceleration.Upper = vehicle.param.limit.lon.a.Upper;
     _longitudinal_acceleration.Lower = vehicle.param.limit.lon.a.Lower;
+    _base_speed = vehicle.param.baseSpeed;
 
     double max_deceleration = -_longitudinal_acceleration.Lower;
     _t_at_zero_speed = v / max_deceleration;
@@ -41,7 +42,7 @@ double FeasibleRegion::VLower(double t) const
     if(t < _t_at_zero_speed)
         return _v + _longitudinal_acceleration.Lower * t;
     else
-        return 0;
+        return _base_speed;
 }
 
 double FeasibleRegion::TLower(double s) const
