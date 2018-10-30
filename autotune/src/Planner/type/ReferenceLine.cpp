@@ -24,7 +24,7 @@ ReferenceLine::ReferenceLine(const type::Lane &lane)
 
 void ReferenceLine::AddCost(ReferenceLine::Priority priority, double cost)
 {
-    _priority[size_t(priority)] = cost;
+    _priority[size_t(priority)] += cost;
 }
 
 bool ReferenceLine::IsPriorThan(const ReferenceLine &other) const

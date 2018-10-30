@@ -10,6 +10,7 @@
 #include <nox>
 
 #include <old_nox_msgs.h>
+#include <nox_lcm.h>
 
 namespace nox::app
 {

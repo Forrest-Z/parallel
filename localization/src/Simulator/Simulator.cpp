@@ -1,4 +1,5 @@
 #include <Simulator/Simulator.h>
+#include <Simulator/tool/CoordinateConverter.h>
 using namespace nox::app;
 USING_NAMESPACE_NOX;
 
@@ -15,11 +16,11 @@ void Simulator::Initialize()
 
     }).Add({KeyBoard::w, KeyBoard::W}, "move forward", [&](){
 
-        _odometry.pose = _odometry.pose.Move(1);
+        _odometry.pose = _odometry.pose.Move(0.2);
 
     }).Add({KeyBoard::S, KeyBoard::s}, "move backward", [&](){
 
-        _odometry.pose = _odometry.pose.Move(-1);
+        _odometry.pose = _odometry.pose.Move(-0.2);
 
     }).Add({KeyBoard::Q, KeyBoard::q}, "add speed", [&](){
 
@@ -31,10 +32,14 @@ void Simulator::Initialize()
             _odometry.v.x = 0;
 
     }).PrintHelp();
+
+    CoordinateConverter::Setting(120.7752, 31.5921);
 }
 
 
-void Simulator::Process(optional<nav_msgs::Odometry> &vehicle_state, optional<nox_msgs::Location> &Localization)
+
+void Simulator::Process(optional<nav_msgs::Odometry> &vehicle_state, optional<nox_msgs::Location> &Localization,
+                        optional<nox_lcm::GPSData> &GPSDataLCM)
 {
     vehicle_state.emplace();
     vehicle_state.value().header.frame_id = "nox";
@@ -45,5 +50,9 @@ void Simulator::Process(optional<nav_msgs::Odometry> &vehicle_state, optional<no
     Localization.value().y = _odometry.pose.y;
     Localization.value().yaw = (Radian(_odometry.pose.theta) + Degree(270)).Get(Angle::Degree);
 
-
+    GPSDataLCM.emplace();
+    CoordinateConverter::xy2ll(Localization.value().x, Localization.value().y,
+                               GPSDataLCM.value().longitude, GPSDataLCM.value().latitude);
+    GPSDataLCM.value().heading = Degree(-Localization.value().yaw).Get();
+    GPSDataLCM.value().time = Clock::ms();
 }

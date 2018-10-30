@@ -11,7 +11,7 @@ PlannerBase::Result PlannerBase::Plan(
     {
         bool operator()(const Ptr<ReferenceLine> & a, const Ptr<ReferenceLine> & b)
         {
-            return a->IsPriorThan(*b);
+            return not a->IsPriorThan(*b);
         }
     };
     Heap<Ptr<ReferenceLine>, PtrReferenceLineComparator> references_heap;

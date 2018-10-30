@@ -33,8 +33,9 @@ void SimulatorModule::OnRun()
         
         optional<nav_msgs::Odometry> vehicle_state_out;
         optional<nox_msgs::Location> Localization_out;
-        Process(  vehicle_state_out, Localization_out );
-        ProcessOutput( vehicle_state_out, Localization_out );
+        optional<nox_lcm::GPSData> GPSDataLCM_out;
+        Process(  vehicle_state_out, Localization_out, GPSDataLCM_out );
+        ProcessOutput( vehicle_state_out, Localization_out, GPSDataLCM_out );
     }
 }
 
@@ -51,6 +52,7 @@ void SimulatorModule::InitMailbox()
     
     mailboxes.vehicle_state.Advertise({"vehicle_state"});
     mailboxes.Localization.Advertise({"Localization"});
+    mailboxes.GPSDataLCM.Advertise({"GPSData"});
 }
 
 void SimulatorModule::InitParameter()
@@ -78,13 +80,15 @@ void SimulatorModule::TerminatePlugin()
     
 }
 
-void SimulatorModule::ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization )
+void SimulatorModule::ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization, optional<nox_lcm::GPSData> & GPSDataLCM )
 {
     
     if(vehicle_state)
         mailboxes.vehicle_state.Send(vehicle_state.value());
     if(Localization)
         mailboxes.Localization.Send(Localization.value());
+    if(GPSDataLCM)
+        mailboxes.GPSDataLCM.Send(GPSDataLCM.value());
 }
 
 void SimulatorModule::Initialize()
@@ -97,11 +101,12 @@ void SimulatorModule::Terminate()
     // Do Nothing ...
 }
 
-void SimulatorModule::Process(  optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization )
+void SimulatorModule::Process(  optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization, optional<nox_lcm::GPSData> & GPSDataLCM )
 {
     
     vehicle_state.reset();
     Localization.reset();
+    GPSDataLCM.reset();
 }
 
 

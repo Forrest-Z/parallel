@@ -79,6 +79,9 @@ catkin_package(
 add_executable(localization_Simulator
     include/Simulator/.SimulatorModule.h src/Simulator/.SimulatorModule.cpp
     include/Simulator/Simulator.h src/Simulator/Simulator.cpp
+        include/Simulator/tool/CoordinateConverter.h
+        include/Simulator/tool/convert_coordinates.hpp
+        src/Simulator/tool/CoordinateConverter.cpp
 )
 target_link_libraries(localization_Simulator
     ${catkin_LIBRARIES}

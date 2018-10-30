@@ -14,7 +14,7 @@ void Junction::Apply(TrafficDecider *decider, ReferenceLine &referenceLine) cons
     auto nearest_point = referenceLine.path->at(nearest_index);
 
     double s = nearest_point.LongitudinalTo(referenceLine.path->Back());
-    double threshold = std::max(15.0, decider->vehicle->v.x * 3.0);
+    double threshold = std::max(50.0, decider->vehicle->v.x * 3.0);
 
     /// 车是否位于车道线末端
     bool far_away_from_junction = s > threshold;
@@ -39,4 +39,6 @@ void Junction::Apply(TrafficDecider *decider, ReferenceLine &referenceLine) cons
                 referenceLine.SetDrivable(false);
         }
     }
+    else
+        referenceLine.AddCost(ReferenceLine::Priority::_1, 1);
 }
