@@ -15,32 +15,30 @@ namespace nox::app
         class Rule
         {
         public:
-            virtual void Apply(DecisionMaker * decider, ReferenceLine & referenceLine) const = 0;
+            virtual void Apply(Ptr<DecisionMaker> decider, Ptr<ReferenceLine> referenceLine) const = 0;
             virtual ~Rule() = default;
 
         private:
             friend class DecisionMaker;
-            DecisionMaker * _decider = nullptr;
+            Ptr<DecisionMaker> _decider;
         };
-
-        using PtrRule = std::shared_ptr<Rule>;
 
         virtual ~DecisionMaker() = default;
 
     public:
-        void Execute(vector<ReferenceLine> & referenceLines) const;
+        void Execute(vector<Ptr<ReferenceLine>> & referenceLines) const;
 
-        void Execute(ReferenceLine & referenceLine) const;
+        void Execute(Ptr<ReferenceLine> referenceLine) const;
 
-        DecisionMaker * AddRule(PtrRule rule);
+        Ptr<DecisionMaker> AddRule(Ptr<Rule> rule);
 
         template <class TRule, class ... Args>
-        DecisionMaker * AddRule(Args && ... args)
+        Ptr<DecisionMaker> AddRule(Args && ... args)
         {
-            return AddRule(std::make_shared<TRule>(std::forward(args)...));
+            return AddRule(New<TRule>(std::forward(args)...));
         }
 
     private:
-        vector<PtrRule> _rules;
+        vector<Ptr<Rule>> _rules;
     };
 }

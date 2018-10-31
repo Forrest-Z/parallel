@@ -15,20 +15,20 @@ PlannerBase::Result PlannerBase::Plan(
         }
     };
     Heap<Ptr<ReferenceLine>, PtrReferenceLineComparator> references_heap;
-    for(auto & i : *frame.references)
+    for(auto & i : frame.references)
     {
-        references_heap.push(AddressOf(i));
+        references_heap.push(i);
     }
 
     while (references_heap.HasNext())
     {
         auto i = references_heap.Next();
-        Ptr<type::Trajectory> candidate;
+        type::Trajectory candidate;
 
-        auto planning_result = PlanOnReferenceLine(stitch_trajectory.Back(), *i, frame, candidate);
+        auto planning_result = PlanOnReferenceLine(stitch_trajectory.Back(), i, frame, candidate);
         if(planning_result.OK())
         {
-            result = stitch_trajectory + *candidate;
+            result = stitch_trajectory + candidate;
             return planning_result;
         }
     }

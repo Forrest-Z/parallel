@@ -22,7 +22,7 @@ namespace nox::app
 
         struct Frame
         {
-            Ptr<std::vector<ReferenceLine>> references;
+            std::vector<Ptr<ReferenceLine>> references;
             Ptr<type::Scene> scene;
             Ptr<type::Vehicle> vehicle;
         };
@@ -32,6 +32,6 @@ namespace nox::app
 
         Result Plan(const type::Trajectory & stitch_trajectory, Frame frame, type::Trajectory & result);
 
-        virtual Result PlanOnReferenceLine(const type::TrajectoryPoint & init_point, ReferenceLine & referenceLine, Frame frame, Ptr<type::Trajectory> & result) = 0;
+        virtual Result PlanOnReferenceLine(const type::TrajectoryPoint & init_point, Ptr<ReferenceLine> referenceLine, Frame frame, type::Trajectory & result) = 0;
     };
 }

@@ -12,16 +12,15 @@ namespace nox::app
 {
     class LatticeEvaluator
     {
-        using Target = ReferenceLine::Target;
+        using Target = std::optional<type::StopLine>;
     public:
         LatticeEvaluator(
             const math::Derivative<2> & init_state,
-            const Target & target,
             const lattice::Bundle & lon_bundles,
             const lattice::Bundle & lat_bundles,
             Ptr<type::Vehicle> vehicle,
             Ptr<STGraph> st_graph,
-            ReferenceLine & referenceLine
+            Ptr<ReferenceLine> referenceLine
         );
 
     public:
@@ -35,7 +34,7 @@ namespace nox::app
         /**
          * @brief 根据当前状态以及规划目标，预计算参考的速度。
          */
-        void ComputeLonGuideVelocity(const Target & target);
+        void ComputeLonGuideVelocity();
 
         /**
          * 评估该轨迹对的分数
@@ -46,16 +45,15 @@ namespace nox::app
          * @return 返回加权和的罚值
          */
         double Evaluate(
-            const Target & target,
             const Ptr<math::Parametric<1>> & lon_traj,
             const Ptr<math::Parametric<1>> & lat_traj,
             std::vector<double> & costs
         ) const;
 
-        void Evaluate(const Target & target, lattice::Combination & candidate) const;
+        void Evaluate(lattice::Combination & candidate) const;
 
     private:
-        double LonObjectiveCost(const Ptr <math::Parametric<1>> &lon_traj, const Target &target) const;
+        double LonObjectiveCost(const Ptr <math::Parametric<1>> &lon_traj) const;
 
         double LonComfortCost(const Ptr<math::Parametric<1>> & lon_traj) const;
 
@@ -113,7 +111,7 @@ namespace nox::app
         lattice::State                        _init_state;
         Ptr<type::Vehicle>                       _vehicle;
         Ptr<STGraph>                            _st_graph;
-        ReferenceLine &                   _reference_line;
+        Ptr<ReferenceLine>                _reference_line;
         std::vector<double>                  _reference_v;
         ConstraintChecker              _constaint_checker;
         container::Heap<lattice::Combination> _candidates;

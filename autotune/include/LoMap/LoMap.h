@@ -38,6 +38,8 @@ namespace nox::app
             const mailbox::Address & address,
             nox_msgs::GetScene::Response & response);
 
+        bool ProcessOnhdmap(std_msgs::String hdmap) override;
+
     private:
         mailbox::Service<nox_msgs::GetScene> _scene_server;
         Ptr<SceneMaintainer> _scene_maintainer;

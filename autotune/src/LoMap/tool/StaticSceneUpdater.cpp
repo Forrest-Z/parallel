@@ -1,4 +1,5 @@
 #include <LoMap/tool/StaticSceneUpdater.h>
+#include <tuple>
 USING_NAMESPACE_NOX;
 using namespace nox::app;
 using namespace std;
@@ -12,121 +13,330 @@ StaticSceneUpdater::StaticSceneUpdater(Ptr<Scene> scene)
 void StaticSceneUpdater::Update(const nox_msgs::Road &source)
 {
     ClearSceneObjects();
-
-    vector<Ptr<Lane>> lanes;
-    Ptr<Junction> junction = _junction_creator.Create();
-    bool last_in_junction = false;
-
-    for(auto & block : source.blocks)
-    {
-        size_t last_segment_size = lanes.size();
-        size_t next_segment_size = block.points.size();
-        assert(next_segment_size > 0);
-
-        /// 每次block里边的点前后数量不一致时，说明到了路口，或者车道汇合处
-        if(last_segment_size != next_segment_size)
-        {
-            //region 将上一个路段的路加入数据中
-            for(auto & i : lanes)
-            {
-                _scene->lanes[i->id] = i;
-            }
-            //endregion
-
-            //region 创建新的路段
-            auto lane_segment = _lane_segment_creator.Create();
-            scene::ID target_id = scene::UNDEFINED_ID;
-            lanes.clear();
-
-            for(size_t i = 0; i < next_segment_size; ++i)
-            {
-                auto lane = _lane_creator.Create();
-                lane->minSpeed = block.minSpeed;
-                lane->maxSpeed = block.maxSpeed;
-                lane->width = param.default_lane_width;
-                lane->segmentID = lane_segment->id;
-
-                lane_segment->insert(lane->id);
-                lanes.push_back(lane);
-
-                if(i == block.target_index)
-                    target_id = lane->id;
-            }
-
-            _scene->laneSegments[lane_segment->id] = lane_segment;
-
-            bool next_in_junction = block.target_index == -1;
-            if(next_in_junction) // 此为路口的状态，假设路口有且仅有一个车道
-                target_id = lanes[0]->id;
-            //endregion
-
-            //region 更新路口状态
-            if(last_segment_size == 0) /// 第一个点
-            {
-                last_in_junction = next_in_junction;
-                if(last_in_junction)
-                {
-                    junction->from = scene::Unknown; // 第一个点，没有上一个路段的信息
-                    junction->through = target_id;
-                }
-                else
-                {
-                    junction->from = target_id;
-                }
-            }
-            else if(last_in_junction) /// 如果当前处于路口，切换路段意味着结束了一个路口生成
-            {
-                junction->to = target_id;
-                _scene->junctions[junction->id] = junction;
-                junction = _junction_creator.Create();
-                junction->from = target_id;
-            }
-            else if(next_in_junction) /// 如果当前没有在路口，但是下一个点在路口，则更新路口状态，成为【在路口】
-            {
-                last_in_junction = true;
-                junction->through = target_id; // 假设在路口时，有且仅有一条车道
-            }
-            else /// 其他情况，此为非路口却发生路段切换，是为车道合并或分离
-            {
-                junction->from = target_id;
-            }
-            //endregion
-        }
-
-        /// 将当前block的路点加入到相应的Lane中
-        assert(lanes.size() == block.points.size());
-        for(auto & [p, lane] : together(block.points, lanes))
-        {
-            PathPoint pathPoint;
-            pathPoint.pose.Set(Position(p.x, p.y, p.z), Rotation(Degree(p.yaw + 90).Get(Angle::Radian)));
-            lane->path.Add(pathPoint);
-        }
-    }
-
-    /// 将最后的一段路加入scene中
-    for(auto & i : lanes)
-    {
-        _scene->lanes[i->id] = i;
-    }
-
-    /// 对路进行平滑计算，并计算出kappa，dkappa等信息
-    tool::Smoother smoother;
-
-    for(auto & it : _scene->lanes)
-    {
-        Logger::D("StaticSceneUpdater") << "Lane " << it.second->id << " : " << it.second->path.Length() << "m";
-        it.second->path = smoother.Smooth(it.second->path);
-//        it.second->path.Refresh({"lomap_lane"});
-    }
 }
 
 void StaticSceneUpdater::ClearSceneObjects()
 {
-    _scene->lanes.clear();
-    _scene->laneSegments.clear();
-    _scene->junctions.clear();
-    _scene->signalLights.clear();
+    _scene->Clear();
 }
 
+void StaticSceneUpdater::Update(const std_msgs::String &source)
+{
+    _scene->GuideLines.clear();
+    _hdmap.From(xml::Node(source.data));
+
+    // 假设高精度地图只会传来最多一个路口，路口不会有路方向的歧义
+    if(_hdmap.Junctions.empty())
+    {
+        assert(_hdmap.Roads.size() == 1);
+        auto road = _hdmap.Roads.begin()->second;
+        Update(road);
+    }
+    else
+    {
+        assert(_hdmap.Junctions.size() == 1);
+        auto junction = _hdmap.Junctions.begin()->second;
+        assert(junction->RoadLinks.size() == 1);
+        auto connection = junction->RoadLinks.begin()->first;
+        auto roadLink = junction->RoadLinks.begin()->second;
+
+        bool has_from_lane = _hdmap.Roads.find(connection.from) == _hdmap.Roads.end();
+        bool has_to_lane = _hdmap.Roads.find(connection.to) == _hdmap.Roads.end();
+
+        using tb = std::tuple<bool, bool>;
+        Switch(tb(has_from_lane, has_to_lane))
+            Case(tb(true, true))
+            {
+                Update(_hdmap.Roads[connection.from], roadLink, _hdmap.Roads[connection.to]);
+            }
+            Case(tb(true, false))
+            {
+                Update(_hdmap.Roads[connection.from], roadLink);
+            }
+            Case(tb(false, true))
+            {
+                Update(roadLink, _hdmap.Roads[connection.to]);
+            }
+            Case(tb(false, false))
+            {
+                Update(roadLink);
+            }
+        EndSwitch()
+    }
+}
+
+void StaticSceneUpdater::Update(Ptr<Road> road)
+{
+    auto guideLines = GenerateGuideLines(road);
+    AddGuideLines(guideLines);
+}
+
+void StaticSceneUpdater::Update(Ptr<RoadLink> roadLink)
+{
+    auto guideLines = GenerateGuideLines(roadLink);
+    AddGuideLines(guideLines);
+}
+
+void StaticSceneUpdater::Update(Ptr<Road> road, Ptr<RoadLink> roadLink)
+{
+    //region 选择通过第一个路段的所有车道
+    vector<int> end_index;
+    auto guideLines = GenerateGuideLines(road, {}, &end_index);
+    //endregion
+
+    for(size_t i = 0, end = end_index.size(); i < end; ++i)
+    {
+        //region 选择通过路口的所有车道
+        auto junction_guideLines = GenerateGuideLines(roadLink, end_index[i]);
+        assert(junction_guideLines.size() <= 1);
+        //endregion
+
+        if(junction_guideLines.empty())
+            guideLines[i]->passable = false; // 追加cost
+        else
+            AppendGuideLine(guideLines[i], junction_guideLines[0]);
+    }
+
+    AddGuideLines(guideLines);
+}
+
+void StaticSceneUpdater::Update(Ptr<RoadLink> roadLink, Ptr<Road> road)
+{
+    //region 选择通过路口的车道
+    vector<int> next_index;
+    auto guideLines = GenerateGuideLines(roadLink, optional<int>(), &next_index);
+    //endregion
+
+    for(size_t i = 0, end = guideLines.size(); i < end; ++i)
+    {
+        //region 选择所有通过下一个路段的所有车道
+        vector<int> path{next_index[i]};
+        auto next_guideLines = GenerateGuideLines(road, path);
+        assert(not next_guideLines.empty());
+        //endregion
+
+        //region 将上述车道与通过路口的车道各个连接成一条车道
+        for(auto & j : next_guideLines)
+        {
+            auto longer_guideLine = New<GuideLine>(*guideLines[i]);
+            AppendGuideLine(longer_guideLine, j);
+            AddGuideLine(longer_guideLine);
+        }
+        //endregion
+    }
+}
+
+void StaticSceneUpdater::Update(Ptr<Road> in_road, Ptr<RoadLink> roadLink, Ptr<Road> out_road)
+{
+    //region 产生通过第一个路段的所有车道
+    vector<int> end_index;
+    auto guideLines = GenerateGuideLines(in_road, {}, &end_index);
+    //endregion
+
+    for(size_t i = 0, end = guideLines.size(); i < end; ++i)
+    {
+        //region 选择通过路口的各个车道（可能不存在）
+        vector<int> next_index;
+        auto junction_guideLines = GenerateGuideLines(roadLink, end_index[i], &next_index);
+        assert(junction_guideLines.size() <= 1);
+        //endregion
+
+        if(junction_guideLines.empty())
+        {
+            guideLines[i]->passable = false; // 追加cost
+            AddGuideLine(guideLines[i]);
+        }
+        else
+        {
+            //region 追加通过路口的车道，并且选择从该车道通过下一个路段的所有车道
+            AppendGuideLine(guideLines[i], junction_guideLines[0]);
+
+            vector<int> path{next_index[i]};
+            auto next_guideLines = GenerateGuideLines(out_road, path);
+            assert(not next_guideLines.empty());
+            //endregion
+
+            //region 将通过下一个路段的所有车道与通过上一个路口和路段的车道全部连接起来
+            for(auto & j : next_guideLines)
+            {
+                auto longer_guideLine = New<GuideLine>(*guideLines[i]);
+                AppendGuideLine(longer_guideLine, j);
+                AddGuideLine(longer_guideLine);
+            }
+            //endregion
+        }
+    }
+}
+
+void StaticSceneUpdater::AddGuideLine(Ptr<GuideLine> guideLine)
+{
+    static scene::ID id = 0;
+    _scene->GuideLines[id++] = guideLine;
+}
+
+vector<Ptr<GuideLine>> StaticSceneUpdater::GenerateGuideLines(Ptr<Road> road, const vector<int> & path_, vector<int> * end_index)
+{
+    vector<Ptr<GuideLine>> result;
+
+    /// 重构车道序列，构造GuideLine
+    auto Reconstruct = [&](const std::vector<int> & path)
+    {
+        auto guideLine = New<GuideLine>();
+        Range s(0, 0);
+
+        //region 根据path序列追加各个车道
+        bool is_illegal = false;
+
+        for(size_t i = 0, end = path.size(); i < end; ++i)
+        {
+            auto section = road->Sections[i];
+            if(section->Lanes.find(path[i]) == section->Lanes.end())
+            {
+                is_illegal = true;
+                break;
+            }
+
+            auto lane = section->Lanes[path[i]];
+            s.End = s.Start + lane->Length();
+
+            guideLine->path += lane->Discretize(0.5);
+            guideLine->speedLimits.emplace_back(s, lane->speedLimit);
+            s.Start = s.End;
+        }
+
+        if(is_illegal) return; // 如果存在非法路径（经过不存在车道），则不添加该结果
+        //endregion
+
+        if(end_index)
+            end_index->push_back(path.back());
+        result.push_back(guideLine);
+    };
+
+    /// 搜索路径
+    function<void(std::vector<int> &)> Search = [&](std::vector<int> & path)
+    {
+        size_t index = path.size();
+
+        //region 当搜索到最后一个路段时，需重构路径
+        if(index >= road->Sections.size())
+        {
+            Reconstruct(path);
+            return;
+        }
+        //endregion
+
+        //region 追加下一个路段
+        auto section = road->Sections[index];
+        for(auto & i : section->Lanes) // 遍历当前section可走的车道
+        {
+            auto & curr_lane = i.second;
+            int curr_lane_index = i.first;
+            int last_lane_index = path.back();
+
+            if(index == 0)
+            {
+                //region 第一块路段，全追加进搜索目录
+                path.push_back(curr_lane_index);
+                Search(path);
+                path.pop_back();
+                //endregion
+            }
+            else
+            {
+                auto last_lane = road->Sections[index - 1]->Lanes[last_lane_index];
+                bool is_finished = true;
+
+                //region 遍历上下条道路的连接关系
+                for(auto & j : curr_lane->predecessors)
+                {
+                    if(j == last_lane_index)
+                    {
+                        //region 仅遍历上一条车道连接的下一条车道
+                        path.push_back(curr_lane_index);
+                        Search(path);
+                        path.pop_back();
+                        is_finished = false;
+                        break;
+                        //endregion
+                    }
+                }
+                //endregion
+
+                //region 如果找不到下一个连接车道，则重构已有车道
+                if(is_finished)
+                {
+                    Reconstruct(path);
+                }
+                //endregion
+            }
+        }
+        //endregion
+    };
+
+    vector<int> temp = path_;
+    Search(temp);
+    return result;
+}
+
+vector<Ptr<GuideLine>> StaticSceneUpdater::GenerateGuideLines(Ptr<RoadLink> roadLink, optional<int> begin_index, vector<int> *next_index)
+{
+    vector<Ptr<GuideLine>> result;
+
+    for(auto & i : roadLink->LaneLinks)
+    {
+        auto connection = i.first;
+        auto lane = i.second;
+
+        //region 如果没有指定begin_index，则遍历全部，否则只处理指定的
+        if(!begin_index or begin_index.value() == connection.from)
+        {
+            auto guideLine = New<GuideLine>();
+
+            guideLine->path = lane->Discretize(0.5);
+            guideLine->speedLimits.emplace_back(Range(0, lane->Length()), lane->speedLimit);
+
+            if(next_index)
+                next_index->push_back(connection.to);
+            result.push_back(guideLine);
+
+            if(begin_index) break; // 若有指定begin_index，则仅push此条选择
+        }
+        //endregion
+    }
+
+    return result;
+}
+
+void StaticSceneUpdater::AppendGuideLine(Ptr<GuideLine> src, Ptr<GuideLine> extra)
+{
+    //region 追加路径
+    src->path += extra->path;
+    //endregion
+
+    //region 追加速度控制
+    double s0 = 0;
+    if(not src->speedLimits.empty())
+        s0 = src->speedLimits.back().s.End;
+
+    size_t i = src->speedLimits.size();
+    src->speedLimits.insert(src->speedLimits.begin(), extra->speedLimits.begin(), extra->speedLimits.end());
+    for(size_t end = src->speedLimits.size(); i < end; ++i)
+    {
+        src->speedLimits[i].s.Start += s0;
+        src->speedLimits[i].s.End += s0;
+    }
+    //endregion
+
+    //region 更新停止线
+    if(not src->stopLine)
+        src->stopLine = extra->stopLine;
+    //endregion
+}
+
+void StaticSceneUpdater::AddGuideLines(const vector<Ptr<GuideLine>> &guideLines)
+{
+    for(auto i : guideLines)
+        AddGuideLine(i);
+}
 
 

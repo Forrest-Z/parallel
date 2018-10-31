@@ -1,23 +1,24 @@
 #include <Planner/tool/DecisionMaker.h>
-
+USING_NAMESPACE_NOX;
 using namespace nox::app;
 
 
-void DecisionMaker::Execute(vector<ReferenceLine> &referenceLines) const
+void DecisionMaker::Execute(vector<Ptr<ReferenceLine>> &referenceLines) const
 {
     for(auto & i : referenceLines)
         Execute(i);
 }
 
-void DecisionMaker::Execute(ReferenceLine &referenceLine) const
+void DecisionMaker::Execute(Ptr<ReferenceLine> referenceLine) const
 {
+    assert(referenceLine);
     for(const auto & i : _rules)
         i->Apply(i->_decider, referenceLine);
 }
 
-DecisionMaker *DecisionMaker::AddRule(DecisionMaker::PtrRule rule)
+Ptr<DecisionMaker> DecisionMaker::AddRule(Ptr<DecisionMaker::Rule> rule)
 {
-    rule->_decider = this;
+    rule->_decider = AddressOf(*this);
     _rules.push_back(rule);
-    return this;
+    return AddressOf(*this);
 }

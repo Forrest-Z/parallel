@@ -48,24 +48,17 @@ namespace nox::app
     public:
         STGraph(
             Ptr<type::Scene> scene,
-            const ReferenceLine & referenceLine,
+            Ptr<ReferenceLine> referenceLine,
             double start_s, double end_s,
             double start_t, double end_t,
             double path_width,
             double time_resolution);
 
-        void SetupObstacles(
-            Ptr<type::Scene> scene,
-            const ReferenceLine & referenceLine);
+        void SetupObstacles(Ptr<type::Scene> scene);
 
-        void AddDynamicObstacle(
-            const type::Obstacle &obstacle,
-            const ReferenceLine &referenceLine
-        );
+        void AddDynamicObstacle(const type::Obstacle &obstacle);
 
-        void AddStaticObstacle(
-            const type::Obstacle &obstacle,
-            const ReferenceLine &referenceLine);
+        void AddStaticObstacle(const type::Obstacle &obstacle);
 
     public:
         Ptr<STObstacle> GetObstacle(scene::ID id);
@@ -79,16 +72,13 @@ namespace nox::app
         std::vector<type::Bound> GetLateralBounds(double s_start, double s_end, double s_resolution);
 
     private:
-        SLTBoundary ComputeObstacleBoundary(
-            const type::Box & box,
-            const ReferenceLine & referenceLine
-        ) const;
+        SLTBoundary ComputeObstacleBoundary(const type::Box & box) const;
 
     private:
         type::Range _s, _t;
         double _half_path_width;
         double _time_resolution;
-
+        Ptr<ReferenceLine> _reference;
         std::unordered_map<scene::ID, Ptr<STObstacle>> _obstacles;
 
     public:

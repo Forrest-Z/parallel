@@ -11,15 +11,15 @@ using std::endl;
 
 PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
     const type::TrajectoryPoint &init_point,
-    ReferenceLine & reference,
+    Ptr<ReferenceLine> reference,
     PlannerBase::Frame frame,
-    Ptr<type::Trajectory> & result)
+    type::Trajectory & result)
 {
     analyze_init(LatticePlanner);
 
     analyze(1. 匹配起点在轨迹上的最近点);
-    size_t matched_index = reference.path->QueryNearestByPosition(init_point.pose.t);
-    const auto matched_point = reference.path->at(matched_index);
+    size_t matched_index = reference->path.QueryNearestByPosition(init_point.pose.t);
+    const auto matched_point = reference->path.at(matched_index);
 
     analyze(2. 计算起点与最近点的Frenet坐标);
     math::Derivative<2> s, l;
@@ -54,7 +54,7 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
     lattice::Bundle lat_bundle;
     generator.GenerateBundles
     (
-        reference.GetTarget(),
+        reference,
         lon_bundle,
         lat_bundle
     );
@@ -62,7 +62,7 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
     analyze(5. 评估轨迹);
     LatticeEvaluator evaluator
     (
-        s, reference.GetTarget(), // 规划起点与终点
+        s,                        // 规划起始状态
         lon_bundle,               // 纵向分量
         lat_bundle,               // 横向分量
         frame.vehicle,            // 车体参数与状态
@@ -78,13 +78,13 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
     {
         auto candidate = evaluator.Next();
 
-        auto trajectory = New<Trajectory>();
-        generator.Combine(reference, *candidate.lon, *candidate.lat, *trajectory);
+        Trajectory & trajectory = result;
+        generator.Combine(reference, *candidate.lon, *candidate.lat, trajectory);
 
-        if(!constraint_checker.CheckTrajectory(*trajectory))
+        if(!constraint_checker.CheckTrajectory(trajectory))
             continue;
 
-        if(collision_checker.InCollision(*trajectory))
+        if(collision_checker.InCollision(trajectory))
             continue;
 
         auto lon = std::dynamic_pointer_cast<lattice::Curve>(candidate.lon);
@@ -101,7 +101,6 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
             << "5. lat offset:    " << candidate.costs[4] << endl
             << "6. lat comfort:   " << candidate.costs[5] << endl;
 
-        result = trajectory;
         return Result(ErrorCode::Success);
     }
 

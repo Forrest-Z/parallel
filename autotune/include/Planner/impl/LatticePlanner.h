@@ -12,9 +12,9 @@ namespace nox::app
     public:
         Result PlanOnReferenceLine(
             const type::TrajectoryPoint &init_point,
-            ReferenceLine &referenceLine,
+            Ptr<ReferenceLine> referenceLine,
             Frame frame,
-            Ptr<nox::type::Trajectory> & result) final;
+            nox::type::Trajectory & result) final;
 
     public:
         struct

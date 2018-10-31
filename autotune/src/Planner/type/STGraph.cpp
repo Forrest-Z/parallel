@@ -5,7 +5,7 @@ using namespace nox::app;
 
 STGraph::STGraph(
     Ptr<type::Scene> scene,
-    const ReferenceLine &referenceLine,
+    Ptr<ReferenceLine> referenceLine,
     double start_s, double end_s,
     double start_t, double end_t,
     double path_width,
@@ -17,27 +17,26 @@ STGraph::STGraph(
     _t.End = end_t;
     _time_resolution = time_resolution;
     _half_path_width = 0.5 * path_width;
-    SetupObstacles(scene, referenceLine);
+    _reference = referenceLine;
+    SetupObstacles(scene);
 }
 
-void STGraph::SetupObstacles(
-    Ptr<type::Scene> scene,
-    const ReferenceLine &referenceLine)
+void STGraph::SetupObstacles(Ptr<type::Scene> scene)
 {
-    for(auto & it : scene->obstacles)
+    for(auto & it : scene->Obstacles)
     {
         auto & i = *it.second;
         if(i.IsStatic())
-            AddStaticObstacle(i, referenceLine);
+            AddStaticObstacle(i);
         else
-            AddDynamicObstacle(i, referenceLine);
+            AddDynamicObstacle(i);
     }
 }
 
-void STGraph::AddStaticObstacle(const nox::type::Obstacle &obstacle, const ReferenceLine &referenceLine)
+void STGraph::AddStaticObstacle(const nox::type::Obstacle &obstacle)
 {
     auto box = obstacle.BoxAtTime(0);
-    auto boundary = ComputeObstacleBoundary(box, referenceLine);
+    auto boundary = ComputeObstacleBoundary(box);
     boundary.t.Start = 0;
     boundary.t.End = _t.End;
 
@@ -47,7 +46,7 @@ void STGraph::AddStaticObstacle(const nox::type::Obstacle &obstacle, const Refer
     _obstacles[obstacle.id] = st_obstacle;
 }
 
-SLTBoundary STGraph::ComputeObstacleBoundary(const nox::type::Box &box, const ReferenceLine &referenceLine) const
+SLTBoundary STGraph::ComputeObstacleBoundary(const nox::type::Box &box) const
 {
     SLTBoundary boundary;
     boundary.s.Start = type::Real::MAX;
@@ -57,7 +56,7 @@ SLTBoundary STGraph::ComputeObstacleBoundary(const nox::type::Box &box, const Re
 
     for(auto & i : box.Corners())
     {
-        auto frenet = referenceLine.CalculateFrenet(i.x, i.y, 0);
+        auto frenet = _reference->CalculateFrenet(i.x, i.y, 0);
         boundary.s.Start = std::min(boundary.s.Start, frenet.s);
         boundary.s.End   = std::max(boundary.s.End, frenet.s);
         boundary.l.Start = std::min(boundary.l.Start, frenet.l);
@@ -67,12 +66,12 @@ SLTBoundary STGraph::ComputeObstacleBoundary(const nox::type::Box &box, const Re
     return boundary;
 }
 
-void STGraph::AddDynamicObstacle(const nox::type::Obstacle &obstacle, const ReferenceLine &referenceLine)
+void STGraph::AddDynamicObstacle(const nox::type::Obstacle &obstacle)
 {
     for (double time = _t.Start; time < _t.End; time += _time_resolution)
     {
         auto box = obstacle.BoxAtTime(time);
-        auto boundary = ComputeObstacleBoundary(box, referenceLine);
+        auto boundary = ComputeObstacleBoundary(box);
 
         if (boundary.s.End < _s.Start or
             boundary.s.Start > _s.End or

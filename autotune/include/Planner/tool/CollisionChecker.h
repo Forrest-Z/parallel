@@ -15,12 +15,12 @@ namespace nox::app
     class CollisionChecker
     {
     public:
-        CollisionChecker(Ptr<type::Scene> scene, double s, double l, const ReferenceLine & reference);
+        CollisionChecker(Ptr<type::Scene> scene, double s, double l, Ptr<ReferenceLine> reference);
 
         bool InCollision(const type::Trajectory & trajectory) const;
 
     private:
-        void BuildPredictedEnvironment(Ptr<type::Scene> scene, double s, double l, const ReferenceLine & reference);
+        void BuildPredictedEnvironment(Ptr<type::Scene> scene, double s, double l, Ptr<ReferenceLine> reference);
 
         /**
          * 忽略所有跟车同一个车道的后方障碍物
@@ -30,9 +30,9 @@ namespace nox::app
          * @param referenceLine 参考线
          * @return 障碍物是否跟车同一车道线
          */
-        bool ShouldIgnore(Ptr<type::Obstacle> obstacle, double s, double l, const ReferenceLine & referenceLine) const;
+        bool ShouldIgnore(Ptr<type::Obstacle> obstacle, double s, double l, Ptr<ReferenceLine> referenceLine) const;
 
-        math::Frenet GetFrenetCoordinate(const Pose & pose, const ReferenceLine & referenceLine) const;
+        math::Frenet GetFrenetCoordinate(const Pose & pose, Ptr<ReferenceLine> referenceLine) const;
 
     private:
         struct

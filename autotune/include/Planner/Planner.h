@@ -16,9 +16,9 @@
 #pragma once
 
 #include ".PlannerModule.h"
-#include "type/ReferenceLine.h"
-#include "tool/TrajectoryStitcher.h"
-#include "tool/TrafficDecider.h"
+#include <Planner/type/ReferenceLine.h>
+#include <Planner/tool/TrajectoryStitcher.h>
+#include <Planner/tool/DecisionMaker.h>
 #include <Planner/impl/PlannerBase.h>
 #include <memory>
 #include <vector>

@@ -25,6 +25,8 @@ namespace nox::app
 
         void UpdateState(const type::Odometry & state);
 
+        void UpdateMap(const std_msgs::String & source);
+
     private:
         Ptr<type::Scene> _scene;
         StaticSceneUpdater _static_updater;

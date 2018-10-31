@@ -7,12 +7,11 @@ using namespace nox::app;
 
 LatticeEvaluator::LatticeEvaluator(
     const nox::math::Derivative<2> &init_state,
-    const ReferenceLine::Target &target,
     const lattice::Bundle &lon_bundles,
     const lattice::Bundle &lat_bundles,
     Ptr<type::Vehicle> vehicle,
-    nox::Ptr<nox::app::STGraph> st_graph,
-    ReferenceLine &reference)
+    Ptr<STGraph> st_graph,
+    Ptr<ReferenceLine> reference)
     : _init_state(init_state, 0),
       _vehicle(vehicle),
       _st_graph(st_graph),
@@ -20,11 +19,11 @@ LatticeEvaluator::LatticeEvaluator(
       _constaint_checker(vehicle)
 {
     InitParameter();
-    ComputeLonGuideVelocity(target);
+    ComputeLonGuideVelocity();
 
     double start_time = _st_graph->TRange().Start;
     double end_time = _st_graph->TRange().End;
-    double stop_point = target.s;
+    double stop_point = reference->stopLine.value_or(real::MAX).s;
 
     for(auto & lon_traj : lon_bundles)
     {
@@ -42,7 +41,7 @@ LatticeEvaluator::LatticeEvaluator(
         {
             // TODO: 检查轨迹合法性
             lattice::Combination candidate(lon_traj, lat_traj);
-            Evaluate(target, candidate);
+            Evaluate(candidate);
             _candidates.push(std::move(candidate));
         }
     }
@@ -55,17 +54,17 @@ void LatticeEvaluator::InitParameter()
 }
 
 
-void LatticeEvaluator::ComputeLonGuideVelocity(const LatticeEvaluator::Target &target)
+void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Control的
 {
     _reference_v.clear();
 
     double brake_a = _param._vehicle._comfort_a_factor * _param._vehicle._min_lon_a;
     assert(brake_a < 0);
 
-    if(target.IsStop())
+    if(_reference_line->stopLine)
     {
         //region 有需要停止的目标，按速度为零计算
-        double ds = target.s - _init_state[0];
+        double ds = _reference_line->StopPoint() - _init_state[0];
 
         if(ds < _param._stop_in_range_threshold)
         {
@@ -131,7 +130,7 @@ void LatticeEvaluator::ComputeLonGuideVelocity(const LatticeEvaluator::Target &t
     else
     {
         //region 没有停止的目标，按轨迹巡航速度计算
-        ConstantAccelerationCurve lon_traj(_init_state[0], target.v);
+        ConstantAccelerationCurve lon_traj(_init_state[0], _reference_line->CruisingSpeed());
         lon_traj.PushSegment(0, _param._planning_temporal_length);
 
         for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))
@@ -142,13 +141,12 @@ void LatticeEvaluator::ComputeLonGuideVelocity(const LatticeEvaluator::Target &t
     }
 }
 
-void LatticeEvaluator::Evaluate(const LatticeEvaluator::Target &target, lattice::Combination &candidate) const
+void LatticeEvaluator::Evaluate(lattice::Combination &candidate) const
 {
-    candidate.cost_sum = Evaluate(target, candidate.lon, candidate.lat, candidate.costs);
+    candidate.cost_sum = Evaluate(candidate.lon, candidate.lat, candidate.costs);
 }
 
 double LatticeEvaluator::Evaluate(
-    const LatticeEvaluator::Target &target,
     const nox::Ptr<nox::math::Parametric<1>> &lon_traj,
     const nox::Ptr<nox::math::Parametric<1>> &lat_traj,
     std::vector<double> &costs) const
@@ -163,7 +161,7 @@ double LatticeEvaluator::Evaluate(
     analyze_enable(false);
 
     analyze(1. Cost of missing the objective);
-    double lon_objective_cost   = LonObjectiveCost(lon_traj, target);
+    double lon_objective_cost   = LonObjectiveCost(lon_traj);
 
     analyze(2. Cost of logitudinal jerk);
     double lon_jerk_cost        = LonComfortCost(lon_traj);
@@ -197,9 +195,7 @@ double LatticeEvaluator::Evaluate(
         _param._weight._cost._lat_comfort * lat_comfort_cost;
 }
 
-double LatticeEvaluator::LonObjectiveCost(
-const Ptr <math::Parametric<1>> &lon_traj,
-const LatticeEvaluator::Target &target) const
+double LatticeEvaluator::LonObjectiveCost(const Ptr <math::Parametric<1>> &lon_traj) const
 {
     double t_max = lon_traj->Boundary();
     double ds = lon_traj->Calculate(0, t_max) - lon_traj->Calculate(0, 0);
@@ -286,7 +282,7 @@ double LatticeEvaluator::CentripetalAccelerationCost(const nox::Ptr<nox::math::P
         double s = lon_traj->Calculate(0, t);
         double v = lon_traj->Calculate(1, t);
 
-        auto ref_point = _reference_line.path->PointAtDistance(s);
+        auto ref_point = _reference_line->path.PointAtDistance(s);
         double centripetal_acc = v * v * ref_point.kappa;
 
         centripetal_acc_sum += 1; // std::abs(centripetal_acc);

@@ -16,7 +16,7 @@ void IDProvider::Reset()
     _current = 0;
 }
 
-nox::scene::ID IDProvider::Next()
+scene::ID IDProvider::Next()
 {
     return _current++;
 }

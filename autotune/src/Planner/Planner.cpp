@@ -1,10 +1,10 @@
 #include <Planner/Planner.h>
-#include <Planner/rule/Junction.h>
-#include <Planner/rule/Overtake.h>
-#include <Planner/rule/SignalLight.h>
+#include <Planner/tool/GuideDecider.h>
 #include <Planner/impl/LatticePlanner.h>
 #include <Planner/PlannerConfig.h>
 #include <Planner/.PlannerModule.h>
+#include <Planner/rule/StopLine.h>
+#include <Planner/rule/Passable.h>
 
 using namespace nox::app;
 USING_NAMESPACE_NOX;
@@ -14,7 +14,6 @@ void Planner::Initialize()
 {
     _trajectoryStitcher = New<TrajectoryStitcher>(); // TODO: 参数初始化
     _algorithm = New<LatticePlanner>();
-    _scene.SetVehicle(AddressOf(_vehicle));
 
     InitializeDeciders();
 
@@ -29,12 +28,12 @@ void Planner::Initialize()
 
 void Planner::InitializeDeciders()
 {
-    auto traffic_decider = std::make_shared<TrafficDecider>(AddressOf(_scene), AddressOf(_vehicle));
-    traffic_decider->AddRule<rule::Junction>()
-                   ->AddRule<rule::SignalLight>()
-                   ->AddRule<rule::Overtake>();
+    auto guideDecider = New<GuideDecider>(AddressOf(_vehicle));
+    guideDecider
+        ->AddRule<rule::StopLine>()
+        ->AddRule<rule::Passable>();
 
-    _deciders.push_back(traffic_decider);
+    _deciders.push_back(guideDecider);
 }
 
 void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Trajectory> &trajectory)
@@ -98,20 +97,20 @@ Planner::Result Planner::Process(Ptr<type::Vehicle> vehicle, Ptr<type::Scene> sc
     trajectory = _trajectoryStitcher->InitialTrajectory(*vehicle);
 
     /// 2. 封装车道线为reference_line
-    vector<ReferenceLine> references;
-    for(auto & i : scene->lanes)
+    PlannerBase::Frame frame;
+    frame.scene = scene;
+    frame.vehicle = vehicle;
+
+    for(auto & i : scene->GuideLines)
     {
-        references.emplace_back(*i.second);
+        frame.references.push_back(New<ReferenceLine>(*i.second));
     }
 
     /// 3. 运用决策器，决策信息放在ReferenceLine中
     for(auto & decider : _deciders)
     {
-        decider->Execute(references);
+        decider->Execute(frame.references);
     }
-
-    /// 4. 构造Frame
-    PlannerBase::Frame frame{AddressOf(references), scene, vehicle};
 
     /// 5. 运用规划器
     auto planning_result = _algorithm->Plan(trajectory, frame, trajectory);

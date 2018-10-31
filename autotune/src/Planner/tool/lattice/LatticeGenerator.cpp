@@ -1,3 +1,7 @@
+#include <utility>
+
+#include <utility>
+
 #include <Planner/tool/lattice/LatticeGenerator.h>
 USING_NAMESPACE_NOX;
 using namespace nox::app;
@@ -6,30 +10,30 @@ using namespace nox::app;
 LatticeGenerator::LatticeGenerator(
     const nox::math::Derivative<2> &s,
     const nox::math::Derivative<2> &l,
-    nox::Ptr<nox::app::STGraph> path_time_graph,
+    Ptr<STGraph> path_time_graph,
     Ptr<PredictionQuerier> prediction_querier
 )
     : _init_lon_state(s, 0), _init_lat_state(l, 0),
-      _sampler(s, l, path_time_graph, prediction_querier)
+      _sampler(s, l, std::move(path_time_graph), std::move(prediction_querier))
 {
 
 }
 
-void LatticeGenerator::GenerateBundles(const ReferenceLine::Target &target, lattice::Bundle &lon, lattice::Bundle &lat) const
+void LatticeGenerator::GenerateBundles(Ptr<ReferenceLine> reference, lattice::Bundle &lon, lattice::Bundle &lat) const
 {
-    GenerateLongitudinalBundle(target, lon);
+    GenerateLongitudinalBundle(std::move(reference), lon);
     GenerateLateralBundle(lat);
 
     Logger::D("LatticeGenerator") << "Lon Bundles: " << lon.size() << " ; Lat Bundles: " << lat.size();
 }
 
-void LatticeGenerator::GenerateLongitudinalBundle(const ReferenceLine::Target &target, lattice::Bundle &result) const
+void LatticeGenerator::GenerateLongitudinalBundle(Ptr<ReferenceLine> reference, lattice::Bundle &result) const
 {
-    GenerateSpeedProfilesForCruising(target.v, result);
+    GenerateSpeedProfilesForCruising(reference->CruisingSpeed(), result);
     GenerateSpeedProfilesForObstacles(result);
-    if(target.IsStop())
+    if(reference->stopLine)
     {
-        GenerateSpeedProfilesForStopping(target.s, result);
+        GenerateSpeedProfilesForStopping(reference->StopPoint(), result);
     }
 }
 
@@ -122,14 +126,14 @@ void LatticeGenerator::GenerateQuinticBundle(
 }
 
 void LatticeGenerator::Combine(
-    const ReferenceLine &reference,
+    Ptr<ReferenceLine> reference,
     const nox::math::Parametric<1> &lon,
     const nox::math::Parametric<1> &lat,
     nox::type::Trajectory &result) const
 {
     double t0 = _param._time_resolution;
     double s0 = lon.Calculate(0, t0);
-    double s_max = reference.path->Back().s;
+    double s_max = reference->path.Back().s;
     double last_s = -Real::Epsilon;
 
     result.Clear();
@@ -153,8 +157,8 @@ void LatticeGenerator::Combine(
         l[1] = lat.Calculate(1, ds);
         l[2] = lat.Calculate(2, ds);
 
-        auto nearest_index = reference.path->QueryNearestByDistance(s[0]);
-        auto nearest_point = reference.path->at(nearest_index);
+        auto nearest_index = reference->path.QueryNearestByDistance(s[0]);
+        auto nearest_point = reference->path.at(nearest_index);
 
         TrajectoryPoint point;
         math::Cartesian original_point;

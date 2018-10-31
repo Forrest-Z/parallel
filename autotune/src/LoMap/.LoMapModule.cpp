@@ -30,6 +30,7 @@ void LoMapModule::OnRun()
     optional<nav_msgs::Odometry> vehicle_state_in;
     optional<nox_msgs::ObstacleArray> obstacles_in;
     optional<nox_msgs::Road> old_map_in;
+    optional<std_msgs::String> hdmap_in;
     
     if(!mailboxes.vehicle_state.IsFresh()) {} 
     else
@@ -43,10 +44,14 @@ void LoMapModule::OnRun()
     else
         old_map_in = mailboxes.old_map.Get();
 
+    if(!mailboxes.hdmap.IsFresh()) {} 
+    else
+        hdmap_in = mailboxes.hdmap.Get();
+
     if(status)
     {
         
-        Process( vehicle_state_in, obstacles_in, old_map_in  );
+        Process( vehicle_state_in, obstacles_in, old_map_in, hdmap_in  );
         ProcessOutput(  );
     }
 }
@@ -67,6 +72,8 @@ void LoMapModule::InitMailbox()
     mailboxes.obstacles.SetValidity(1000);
     mailboxes.old_map.Subscribe({"RoadPlanning"});
     mailboxes.old_map.SetValidity(1000);
+    mailboxes.hdmap.Subscribe({"hdmap"});
+    mailboxes.hdmap.SetValidity(1000);
     
 }
 
@@ -99,6 +106,13 @@ void LoMapModule::InitCallback()
         return result;
     });
 
+    mailboxes.hdmap.AddCallback([&]( const std_msgs::String & msg, const Address & address ) {
+        
+        bool result = ProcessOnhdmap( msg  );
+        ProcessOutput(  );
+        return result;
+    });
+
 }
 
 void LoMapModule::InitPlugin()
@@ -112,6 +126,7 @@ void LoMapModule::TerminateMailbox()
     mailboxes.vehicle_state.UnSubscribe();
     mailboxes.obstacles.UnSubscribe();
     mailboxes.old_map.UnSubscribe();
+    mailboxes.hdmap.UnSubscribe();
 }
 
 void LoMapModule::TerminatePlugin()
@@ -134,7 +149,7 @@ void LoMapModule::Terminate()
     // Do Nothing ...
 }
 
-void LoMapModule::Process( optional<nav_msgs::Odometry> vehicle_state, optional<nox_msgs::ObstacleArray> obstacles, optional<nox_msgs::Road> old_map  )
+void LoMapModule::Process( optional<nav_msgs::Odometry> vehicle_state, optional<nox_msgs::ObstacleArray> obstacles, optional<nox_msgs::Road> old_map, optional<std_msgs::String> hdmap  )
 {
     
 }
@@ -153,6 +168,11 @@ bool LoMapModule::ProcessOnobstacles( nox_msgs::ObstacleArray obstacles   )
     return false; /// 
 }
 bool LoMapModule::ProcessOnold_map( nox_msgs::Road old_map   )
+{
+    
+    return false; /// 
+}
+bool LoMapModule::ProcessOnhdmap( std_msgs::String hdmap   )
 {
     
     return false; /// 

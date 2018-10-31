@@ -19,7 +19,7 @@ void DynamicSceneUpdater::Update(const nox_msgs::ObstacleArray &obstacles)
     current_time.From(obstacles.header);
     Pose current_pose = _pose_estimator.Estimate(current_time);
 
-    _scene->obstacles.clear();
+    _scene->Obstacles.clear();
 
     for(auto & i : obstacles.obstacles)
     {
@@ -30,7 +30,7 @@ void DynamicSceneUpdater::Update(const nox_msgs::ObstacleArray &obstacles)
         /// 将障碍物姿态转换到全局坐标下
         obstacle->operator*=(current_pose);
 
-        _scene->obstacles[obstacle->id] = obstacle;
+        _scene->Obstacles[obstacle->id] = obstacle;
     }
 }
 

@@ -69,9 +69,27 @@ catkin_package(
 ######################
 #pragma nox_begin("build executable")
 add_executable(autotune_Planner
-    include/Planner/.PlannerModule.h src/Planner/.PlannerModule.cpp
-    include/Planner/Planner.h src/Planner/Planner.cpp
-        include/Planner/type/ReferenceLine.h include/Planner/tool/TrajectoryStitcher.h src/Planner/tool/TrajectoryStitcher.cpp include/Planner/tool/DecisionMaker.h src/Planner/tool/DecisionMaker.cpp include/Planner/tool/TrafficDecider.h src/Planner/tool/TrafficDecider.cpp include/Planner/rule/Junction.h src/Planner/rule/Junction.cpp include/Planner/rule/SignalLight.h src/Planner/rule/SignalLight.cpp include/Planner/rule/Overtake.h src/Planner/rule/Overtake.cpp src/Planner/type/ReferenceLine.cpp include/Planner/impl/PlannerBase.h src/Planner/impl/PlannerBase.cpp include/Planner/impl/LatticePlanner.h src/Planner/impl/LatticePlanner.cpp include/Planner/type/SLTBoundary.h include/Planner/type/STGraph.h src/Planner/type/STGraph.cpp include/Planner/tool/lattice/LatticeGenerator.h src/Planner/tool/lattice/LatticeGenerator.cpp include/Planner/tool/lattice/LatticeSampler.h include/Planner/tool/lattice/LatticeCommon.h src/Planner/tool/lattice/LatticeCommon.cpp src/Planner/tool/lattice/LatticeSampler.cpp include/Planner/type/FeasibleRegion.h src/Planner/type/FeasibleRegion.cpp include/Planner/PlannerConfig.h include/Planner/tool/PredictionQuerier.h src/Planner/tool/PredictionQuerier.cpp include/Planner/tool/lattice/LatticeEvaluator.h src/Planner/tool/lattice/LatticeEvaluator.cpp include/Planner/type/ConstantAccelerationCurve.h src/Planner/type/ConstantAccelerationCurve.cpp include/Planner/tool/ConstraintChecker.h src/Planner/tool/ConstraintChecker.cpp include/Planner/tool/CollisionChecker.h src/Planner/tool/CollisionChecker.cpp include/Planner/type/ConstantJerkCurve.h src/Planner/type/ConstantJerkCurve.cpp include/Planner/type/PiecewiseJerkCurve.h src/Planner/type/PiecewiseJerkCurve.cpp)
+        include/Planner/.PlannerModule.h src/Planner/.PlannerModule.cpp
+        include/Planner/Planner.h src/Planner/Planner.cpp
+        include/Planner/type/ReferenceLine.h src/Planner/type/ReferenceLine.cpp
+        include/Planner/tool/TrajectoryStitcher.h src/Planner/tool/TrajectoryStitcher.cpp
+        include/Planner/tool/DecisionMaker.h src/Planner/tool/DecisionMaker.cpp
+        include/Planner/impl/PlannerBase.h src/Planner/impl/PlannerBase.cpp
+        include/Planner/impl/LatticePlanner.h src/Planner/impl/LatticePlanner.cpp
+        include/Planner/type/SLTBoundary.h include/Planner/type/STGraph.h src/Planner/type/STGraph.cpp
+        include/Planner/tool/lattice/LatticeGenerator.h src/Planner/tool/lattice/LatticeGenerator.cpp
+        include/Planner/tool/lattice/LatticeSampler.h  src/Planner/tool/lattice/LatticeSampler.cpp
+        include/Planner/tool/lattice/LatticeCommon.h src/Planner/tool/lattice/LatticeCommon.cpp
+        include/Planner/type/FeasibleRegion.h src/Planner/type/FeasibleRegion.cpp
+        include/Planner/PlannerConfig.h
+        include/Planner/tool/PredictionQuerier.h src/Planner/tool/PredictionQuerier.cpp
+        include/Planner/tool/lattice/LatticeEvaluator.h src/Planner/tool/lattice/LatticeEvaluator.cpp
+        include/Planner/type/ConstantAccelerationCurve.h src/Planner/type/ConstantAccelerationCurve.cpp
+        include/Planner/tool/ConstraintChecker.h src/Planner/tool/ConstraintChecker.cpp
+        include/Planner/tool/CollisionChecker.h src/Planner/tool/CollisionChecker.cpp
+        include/Planner/type/ConstantJerkCurve.h src/Planner/type/ConstantJerkCurve.cpp
+        include/Planner/type/PiecewiseJerkCurve.h src/Planner/type/PiecewiseJerkCurve.cpp src/Planner/tool/GuideDecider.cpp src/Planner/rule/StopLine.cpp
+        include/Planner/tool/GuideDecider.h include/Planner/rule/StopLine.h include/Planner/rule/Passable.h src/Planner/rule/Passable.cpp)
 target_link_libraries(autotune_Planner
     ${catkin_LIBRARIES}
 )
@@ -81,7 +99,14 @@ set_target_properties(autotune_Planner PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PRO
 add_executable(autotune_LoMap
     include/LoMap/.LoMapModule.h src/LoMap/.LoMapModule.cpp
     include/LoMap/LoMap.h src/LoMap/LoMap.cpp
-        include/LoMap/tool/SceneMaintainer.h include/LoMap/tool/PoseEstimator.h src/LoMap/tool/PoseEstimator.cpp include/LoMap/tool/StaticSceneUpdater.h src/LoMap/tool/StaticSceneUpdater.cpp include/LoMap/tool/IDProvider.h src/LoMap/tool/IDProvider.cpp include/LoMap/tool/SceneObjectCreator.h include/LoMap/tool/DynamicSceneUpdater.h src/LoMap/tool/DynamicSceneUpdater.cpp src/LoMap/tool/SceneMaintainer.cpp include/LoMap/tool/SceneOverlapBuilder.h src/LoMap/tool/SceneOverlapBuilder.cpp include/LoMap/LoMapConfig.h)
+        include/LoMap/tool/SceneMaintainer.h src/LoMap/tool/SceneMaintainer.cpp
+        include/LoMap/tool/PoseEstimator.h src/LoMap/tool/PoseEstimator.cpp
+        include/LoMap/tool/StaticSceneUpdater.h src/LoMap/tool/StaticSceneUpdater.cpp
+        include/LoMap/tool/IDProvider.h src/LoMap/tool/IDProvider.cpp
+        include/LoMap/tool/SceneObjectCreator.h
+        include/LoMap/tool/DynamicSceneUpdater.h src/LoMap/tool/DynamicSceneUpdater.cpp
+        include/LoMap/tool/SceneOverlapBuilder.h src/LoMap/tool/SceneOverlapBuilder.cpp
+        include/LoMap/LoMapConfig.h )
 target_link_libraries(autotune_LoMap
     ${catkin_LIBRARIES}
 )

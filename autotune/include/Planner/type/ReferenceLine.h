@@ -8,58 +8,42 @@
 
 namespace nox::app
 {
-    class ReferenceLine
+    class ReferenceLine : public type::GuideLine
     {
-    public:
-        Ptr<const type::Path> path;
-        scene::ID laneID;
-        double width = 3.5; // 路宽，应该来自地图
-
     public:
         enum Priority
         {
-            _0 = 0, _1, _2, _3
+            _0 = 0, _1, _2, _3,
+            Definite = _0,
+            Important = _1,
+            Available = _2,
+            Insignificant = _3
         };
 
-        struct Target
-        {
-            double s; // 使用路程来表示
-            double v; // 目标速度
+        ReferenceLine() = default;
 
-            bool IsStop() const;
-        };
-
-        ReferenceLine();
-
-        explicit ReferenceLine(const type::Lane & lane);
+        ReferenceLine(const type::GuideLine & guideLine);
 
     public: /// 操作接口
-
         void AddCost(Priority priority, double cost);
 
-    public: /// 配置接口
-
-        void SetDrivable(bool drivable);
-
-        void SetStopPoint(double s);
-
-    public: /// 信息接口
-        Target GetTarget() const;
-
     public: /// 查询接口
-
         bool IsPriorThan(const ReferenceLine &other) const;
 
         bool IsReachedEnd(Ptr<type::Vehicle> vehicle) const;
 
+        double Length() const;
+
+        double CruisingSpeed() const;
+
+        double StopPoint() const;
+
     public: /// 工具接口
+        math::Frenet CalculateFrenet(Ptr<type::Vehicle> vehicle) const;
+
         math::Frenet CalculateFrenet(double x, double y, double theta) const;
 
     private:
-        std::array<double, 4> _priority;
-        bool _drivable;
-        Target _target;
-
-
+        std::array<double, 4> _priority{1, 1, 1, 1};
     };
 }

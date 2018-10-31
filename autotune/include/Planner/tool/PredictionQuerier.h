@@ -11,7 +11,7 @@ namespace nox::app
     class PredictionQuerier
     {
     public:
-        PredictionQuerier(Ptr<type::Scene> scene, ReferenceLine & reference);
+        PredictionQuerier(Ptr<type::Scene> scene, Ptr<ReferenceLine> reference);
 
         /**
          * 将目标时间点障碍物所处的速度状态，在参考线的目标距离点上作投影
@@ -28,6 +28,6 @@ namespace nox::app
 
     private:
         Ptr<type::Scene> _scene;
-        ReferenceLine & _reference;
+        Ptr<ReferenceLine> _reference;
     };
 }

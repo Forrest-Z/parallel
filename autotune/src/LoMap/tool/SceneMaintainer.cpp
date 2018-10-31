@@ -8,7 +8,7 @@ SceneMaintainer::SceneMaintainer(nox::Ptr<nox::type::Scene> scene)
     : _scene(scene), _static_updater(scene), _dynamic_updater(scene),
       _overlap_builder(scene)
 {
-    _static_updater.param.default_lane_width = 3.5;
+
 }
 
 nox_msgs::Scene SceneMaintainer::ToMsg() const
@@ -42,6 +42,15 @@ void SceneMaintainer::UpdateObstacles(const nox_msgs::ObstacleArray &obstacles)
     Synchronized(this)
     {
         _dynamic_updater.Update(obstacles);
+        _overlap_builder.Rebuild();
+    }
+}
+
+void SceneMaintainer::UpdateMap(const std_msgs::String &source)
+{
+    Synchronized(this)
+    {
+        _static_updater.Update(source);
         _overlap_builder.Rebuild();
     }
 }

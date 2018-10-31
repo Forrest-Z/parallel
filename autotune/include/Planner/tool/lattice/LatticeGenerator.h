@@ -23,13 +23,13 @@ namespace nox::app
         );
 
         void GenerateBundles(
-            const ReferenceLine::Target & target,
+            Ptr<ReferenceLine> reference,
             lattice::Bundle & lon,
             lattice::Bundle & lat
         ) const;
 
         void Combine(
-            const ReferenceLine & reference,
+            Ptr<ReferenceLine> reference,
             const math::Parametric<1> & lon,
             const math::Parametric<1> & lat,
             type::Trajectory & result
@@ -39,7 +39,7 @@ namespace nox::app
         using States = std::vector<lattice::State>;
 
         void GenerateLongitudinalBundle(
-            const ReferenceLine::Target & target,
+            Ptr<ReferenceLine> reference,
             lattice::Bundle  & result
         ) const;
 
@@ -83,6 +83,7 @@ namespace nox::app
             double _time_resolution = 0.1;
             double _planning_temporal_length = 8.0;
             double _delta_s_lateral_optimization = 2.0;
+            double _default_cruising_speed = 5.0;
         } _param;
     };
 }

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <old_nox_msgs.h>
+#include <std_msgs/String.h>
 
 namespace nox::app
 {

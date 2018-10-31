@@ -41,3 +41,9 @@ bool LoMap::ProcessOnPlannerRequest(
     return true;
 }
 
+bool LoMap::ProcessOnhdmap(std_msgs::String hdmap)
+{
+    _scene_maintainer->UpdateMap(hdmap);
+    return true;
+}
+
