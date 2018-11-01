@@ -157,8 +157,7 @@ void LatticeGenerator::Combine(
         l[1] = lat.Calculate(1, ds);
         l[2] = lat.Calculate(2, ds);
 
-        auto nearest_index = reference->path.QueryNearestByDistance(s[0]);
-        auto nearest_point = reference->path.at(nearest_index);
+        auto nearest_point = reference->path.PointAtDistance(s[0]);
 
         TrajectoryPoint point;
         math::Cartesian original_point;

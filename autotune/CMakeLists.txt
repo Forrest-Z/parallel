@@ -113,6 +113,16 @@ target_link_libraries(autotune_LoMap
 set_target_properties(autotune_LoMap PROPERTIES OUTPUT_NAME LoMap PREFIX "")
 set_target_properties(autotune_LoMap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../.bin/autotune/)
 
+add_executable(autotune_FakeHDMap
+    include/FakeHDMap/.FakeHDMapModule.h src/FakeHDMap/.FakeHDMapModule.cpp
+    include/FakeHDMap/FakeHDMap.h src/FakeHDMap/FakeHDMap.cpp
+)
+target_link_libraries(autotune_FakeHDMap
+    ${catkin_LIBRARIES}
+)
+set_target_properties(autotune_FakeHDMap PROPERTIES OUTPUT_NAME FakeHDMap PREFIX "")
+set_target_properties(autotune_FakeHDMap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../.bin/autotune/)
+
 
 #pragma nox_end()
 #################################

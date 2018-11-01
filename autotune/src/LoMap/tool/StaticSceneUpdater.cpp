@@ -23,7 +23,25 @@ void StaticSceneUpdater::ClearSceneObjects()
 void StaticSceneUpdater::Update(const std_msgs::String &source)
 {
     _scene->GuideLines.clear();
-    _hdmap.From(xml::Node(source.data));
+    _hdmap.From(source.data);
+
+    for(auto & i : _hdmap.Roads)
+    {
+        auto & road = i.second;
+        auto & sections = road->Sections;
+        if(road->direction == -1)
+        {
+            std::reverse(sections.begin(), sections.end());
+            for(auto & j : sections)
+            {
+                for(auto & k : j->Lanes)
+                {
+                    auto & lane = k.second;
+                    std::swap(lane->predecessors, lane->successors);
+                }
+            }
+        }
+    }
 
     // 假设高精度地图只会传来最多一个路口，路口不会有路方向的歧义
     if(_hdmap.Junctions.empty())
@@ -40,8 +58,8 @@ void StaticSceneUpdater::Update(const std_msgs::String &source)
         auto connection = junction->RoadLinks.begin()->first;
         auto roadLink = junction->RoadLinks.begin()->second;
 
-        bool has_from_lane = _hdmap.Roads.find(connection.from) == _hdmap.Roads.end();
-        bool has_to_lane = _hdmap.Roads.find(connection.to) == _hdmap.Roads.end();
+        bool has_from_lane = _hdmap.Roads.find(connection.from) != _hdmap.Roads.end();
+        bool has_to_lane = _hdmap.Roads.find(connection.to) != _hdmap.Roads.end();
 
         using tb = std::tuple<bool, bool>;
         Switch(tb(has_from_lane, has_to_lane))
@@ -63,6 +81,14 @@ void StaticSceneUpdater::Update(const std_msgs::String &source)
             }
         EndSwitch()
     }
+
+    static Smoother smoother;
+    for(auto & i : _scene->GuideLines)
+    {
+        i.second->path = smoother.Smooth(i.second->path);
+    }
+    Logger::D("LoMap") << "Generate " << _scene->GuideLines.size() << " GuideLines .";
+    _scene->Refresh({"lomap", "test", "scene"});
 }
 
 void StaticSceneUpdater::Update(Ptr<Road> road)
@@ -151,7 +177,7 @@ void StaticSceneUpdater::Update(Ptr<Road> in_road, Ptr<RoadLink> roadLink, Ptr<R
             //region 追加通过路口的车道，并且选择从该车道通过下一个路段的所有车道
             AppendGuideLine(guideLines[i], junction_guideLines[0]);
 
-            vector<int> path{next_index[i]};
+            vector<int> path{next_index[0]};
             auto next_guideLines = GenerateGuideLines(out_road, path);
             assert(not next_guideLines.empty());
             //endregion
@@ -171,6 +197,7 @@ void StaticSceneUpdater::Update(Ptr<Road> in_road, Ptr<RoadLink> roadLink, Ptr<R
 void StaticSceneUpdater::AddGuideLine(Ptr<GuideLine> guideLine)
 {
     static scene::ID id = 0;
+    guideLine->id = id;
     _scene->GuideLines[id++] = guideLine;
 }
 
@@ -227,11 +254,12 @@ vector<Ptr<GuideLine>> StaticSceneUpdater::GenerateGuideLines(Ptr<Road> road, co
 
         //region 追加下一个路段
         auto section = road->Sections[index];
+        bool is_finished = true; // 当前有的路段无法继续走为true
+
         for(auto & i : section->Lanes) // 遍历当前section可走的车道
         {
             auto & curr_lane = i.second;
             int curr_lane_index = i.first;
-            int last_lane_index = path.back();
 
             if(index == 0)
             {
@@ -239,12 +267,13 @@ vector<Ptr<GuideLine>> StaticSceneUpdater::GenerateGuideLines(Ptr<Road> road, co
                 path.push_back(curr_lane_index);
                 Search(path);
                 path.pop_back();
+                is_finished = false;
                 //endregion
             }
             else
             {
+                int last_lane_index = path.back();
                 auto last_lane = road->Sections[index - 1]->Lanes[last_lane_index];
-                bool is_finished = true;
 
                 //region 遍历上下条道路的连接关系
                 for(auto & j : curr_lane->predecessors)
@@ -261,15 +290,15 @@ vector<Ptr<GuideLine>> StaticSceneUpdater::GenerateGuideLines(Ptr<Road> road, co
                     }
                 }
                 //endregion
-
-                //region 如果找不到下一个连接车道，则重构已有车道
-                if(is_finished)
-                {
-                    Reconstruct(path);
-                }
-                //endregion
             }
         }
+
+        //region 如果找不到下一个连接车道，则重构已有车道
+        if(is_finished)
+        {
+            Reconstruct(path);
+        }
+        //endregion
         //endregion
     };
 

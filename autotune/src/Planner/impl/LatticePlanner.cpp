@@ -16,6 +16,7 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
     type::Trajectory & result)
 {
     analyze_init(LatticePlanner);
+    analyze_enable(false);
 
     analyze(1. 匹配起点在轨迹上的最近点);
     size_t matched_index = reference->path.QueryNearestByPosition(init_point.pose.t);

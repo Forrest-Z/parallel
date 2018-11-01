@@ -16,11 +16,11 @@ void Simulator::Initialize()
 
     }).Add({KeyBoard::w, KeyBoard::W}, "move forward", [&](){
 
-        _odometry.pose = _odometry.pose.Move(0.2);
+        _odometry.pose = _odometry.pose.Move(1.0);
 
     }).Add({KeyBoard::S, KeyBoard::s}, "move backward", [&](){
 
-        _odometry.pose = _odometry.pose.Move(-0.2);
+        _odometry.pose = _odometry.pose.Move(-1.0);
 
     }).Add({KeyBoard::Q, KeyBoard::q}, "add speed", [&](){
 

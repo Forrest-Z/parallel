@@ -9,7 +9,7 @@ void LoMapModule::OnStart()
 {
     /// 配置节点
     SetFrequency( 20.000000 );
-    Viewer::Instance()->SetRender(New< None >());
+    Viewer::Instance()->SetRender(New< Rviz >());
 
     // TODO： 看门狗
 

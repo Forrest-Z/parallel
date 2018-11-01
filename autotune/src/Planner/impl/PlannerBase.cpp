@@ -31,6 +31,7 @@ PlannerBase::Result PlannerBase::Plan(
             result = stitch_trajectory + candidate;
             return planning_result;
         }
+        else break;
     }
 
     return PlannerBase::Result(ErrorCode::Fail);

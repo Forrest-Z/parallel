@@ -54,6 +54,7 @@ double ReferenceLine::Length() const
 
 double ReferenceLine::CruisingSpeed() const
 {
+    return 5.0;
     if(speedLimits.empty())
         return 5.0;
     else
