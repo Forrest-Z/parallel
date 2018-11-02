@@ -123,6 +123,16 @@ target_link_libraries(autotune_FakeHDMap
 set_target_properties(autotune_FakeHDMap PROPERTIES OUTPUT_NAME FakeHDMap PREFIX "")
 set_target_properties(autotune_FakeHDMap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../.bin/autotune/)
 
+add_executable(autotune_Tracking
+    include/Tracking/.TrackingModule.h src/Tracking/.TrackingModule.cpp
+    include/Tracking/Tracking.h src/Tracking/Tracking.cpp
+)
+target_link_libraries(autotune_Tracking
+    ${catkin_LIBRARIES}
+)
+set_target_properties(autotune_Tracking PROPERTIES OUTPUT_NAME Tracking PREFIX "")
+set_target_properties(autotune_Tracking PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../.bin/autotune/)
+
 
 #pragma nox_end()
 #################################
