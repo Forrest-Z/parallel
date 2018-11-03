@@ -50,7 +50,9 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>nox</build_depend>
+
   <build_export_depend>nox</build_export_depend>
+
   <exec_depend>nox</exec_depend>
 
 

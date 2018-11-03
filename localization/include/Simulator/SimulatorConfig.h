@@ -8,7 +8,8 @@
 #pragma once
 
 #include <nox>
-
+#include "../../../.param/template/Parameter.h"
+#include "../../../.plugin/Plugin.h"
 #include <old_nox_msgs.h>
 #include <nox_lcm.h>
 

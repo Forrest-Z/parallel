@@ -89,7 +89,7 @@ add_executable(autotune_Planner
         include/Planner/tool/CollisionChecker.h src/Planner/tool/CollisionChecker.cpp
         include/Planner/type/ConstantJerkCurve.h src/Planner/type/ConstantJerkCurve.cpp
         include/Planner/type/PiecewiseJerkCurve.h src/Planner/type/PiecewiseJerkCurve.cpp src/Planner/tool/GuideDecider.cpp src/Planner/rule/StopLine.cpp
-        include/Planner/tool/GuideDecider.h include/Planner/rule/StopLine.h include/Planner/rule/Passable.h src/Planner/rule/Passable.cpp)
+        include/Planner/tool/GuideDecider.h include/Planner/rule/StopLine.h include/Planner/rule/Passable.h src/Planner/rule/Passable.cpp include/Tracking/tool/Guardian.h)
 target_link_libraries(autotune_Planner
     ${catkin_LIBRARIES}
 )
@@ -126,7 +126,7 @@ set_target_properties(autotune_FakeHDMap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${P
 add_executable(autotune_Tracking
     include/Tracking/.TrackingModule.h src/Tracking/.TrackingModule.cpp
     include/Tracking/Tracking.h src/Tracking/Tracking.cpp
-)
+        include/Tracking/tool/LongitudinalController.h include/Tracking/tool/LateralController.h include/Tracking/tool/SimpleLongitudinalController.h src/Tracking/tool/SimpleLongitudinalController.cpp include/Tracking/tool/VTF.h src/Tracking/tool/VTF.cpp)
 target_link_libraries(autotune_Tracking
     ${catkin_LIBRARIES}
 )

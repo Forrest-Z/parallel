@@ -6,12 +6,7 @@
  */
 #pragma once
 
-#include <nox>
-#include "../../../.param/template/Parameter.h"
-#include "../../../.plugin/Plugin.h"
 #include "TrackingConfig.h"
-#include <memory>
-#include <optional>
 
 using std::optional;
 
@@ -25,18 +20,20 @@ namespace nox::app
 
         virtual void Terminate();
 
-        virtual void Process( nox_msgs::Trajectory trajectory, nav_msgs::Odometry vehicle_state  );
+        virtual void Process( optional<nox_msgs::Trajectory> trajectory, nav_msgs::Odometry vehicle_state, nox_msgs::Chassis chassis,  optional<nox_msgs::DrivingCommand> & driving );
 
         
 
         
-        void OntrajectoryFail(  );
-        void Onvehicle_stateFail(  );
+        void Onvehicle_stateFail( optional<nox_msgs::DrivingCommand> & driving );
+        void OnchassisFail( optional<nox_msgs::DrivingCommand> & driving );
 
     protected: /// 参数成员、插件成员、信道成员
         struct
         {
             
+            parameter::VehicleParameter Vehicle;
+            parameter::VTFParameter VTF;
         } params;
 
         struct
@@ -49,6 +46,8 @@ namespace nox::app
             
             mailbox::Topic<nox_msgs::Trajectory> trajectory;
             mailbox::Topic<nav_msgs::Odometry> vehicle_state;
+            mailbox::Topic<nox_msgs::Chassis> chassis;
+            mailbox::Topic<nox_msgs::DrivingCommand> driving;
         } mailboxes;
 
     protected: /// 框架生命周期管理代码
@@ -71,7 +70,7 @@ namespace nox::app
 
         void TerminatePlugin();
 
-        void ProcessOutput(  );
+        void ProcessOutput( optional<nox_msgs::DrivingCommand> & driving );
 
     private: /// 框架成员
         struct

@@ -8,6 +8,8 @@
 #pragma once
 
 #include <nox>
+#include "../../../.param/template/Parameter.h"
+#include "../../../.plugin/Plugin.h"
 #include <std_msgs/String.h>
 
 namespace nox::app

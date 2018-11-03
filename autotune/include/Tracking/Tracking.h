@@ -16,12 +16,25 @@
 #pragma once
 
 #include ".TrackingModule.h"
+#include <Tracking/tool/LongitudinalController.h>
+#include <Tracking/tool/LateralController.h>
 
 namespace nox::app
 {
     class Tracking
         : public TrackingModule
     {
-        /// Override your process functions ...
+    protected:
+        void Initialize() override;
+
+        void
+        Process(optional<nox_msgs::Trajectory> trajectory, nav_msgs::Odometry vehicle_state, nox_msgs::Chassis chassis,
+                optional<nox_msgs::DrivingCommand> &driving) override;
+
+    private:
+        Ptr<LongitudinalController> _lon_controller;
+        Ptr<LateralController>      _lat_controller;
+        Trajectory                  _trajectory;
+        Vehicle                     _vehicle;
     };
 }

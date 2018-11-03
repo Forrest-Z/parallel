@@ -8,8 +8,11 @@
 #pragma once
 
 #include <nox>
+#include "../../../.param/template/Parameter.h"
+#include "../../../.plugin/Plugin.h"
 
 namespace nox::app
 {
-
+    caching(parameter::VehicleParameter, VehicleParameter);
+    caching(parameter::VTFParameter, VTFParameter);
 }
