@@ -27,7 +27,7 @@ namespace nox::app
         void Initialize() override;
 
         void Process(optional<nav_msgs::Odometry> &vehicle_state, optional<nox_msgs::Location> &Localization,
-                     optional<nox_lcm::GPSData> &GPSDataLCM) override;
+                     optional<nox_lcm::GPSData> &GPSDataLCM, optional<nox_msgs::Chassis> &chassis) override;
 
     private:
         type::Odometry _odometry;

@@ -57,7 +57,8 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
     if(mailboxes.trajectory.SendHistoryCount() != 0)
         planning_trajectory.From(mailboxes.trajectory.LastSend());
 
-    auto result = Process(AddressOf(_vehicle), AddressOf(_scene), planning_trajectory);
+
+    auto result = Process(planning_trajectory);
 
     if(result.Fail())
     {
@@ -69,8 +70,30 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
         trajectory.emplace();
         planning_trajectory.To(trajectory.value());
         planning_trajectory.Refresh({"trajectory"});
+
+        //region 规划结果接力测试
+        while (false)
+        {
+            auto nearest_index = planning_trajectory.QueryNearestByPosition(_vehicle.pose.t);
+            auto nearest_point = planning_trajectory[nearest_index];
+            auto next_index    = planning_trajectory.QueryNearestByTime(nearest_point.t + 1);
+            auto next_point    = planning_trajectory[next_index];
+
+            auto result = Process(planning_trajectory);
+            if(result.Fail())
+            {
+                Logger::W("Planner") << result.Message() << " [END LOOP]";
+                break;
+            }
+            else
+            {
+                planning_trajectory.Refresh({"trajectory"});
+            }
+        }
+        //endregion
     }
 
+    //region 打印速度、加速度到rqt上
     if(false)
     {
         geometry_msgs::Point point;
@@ -86,22 +109,36 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
             last_t = i.t;
         }
     }
+    //endregion
 }
 
 
-Planner::Result Planner::Process(Ptr<type::Vehicle> vehicle, Ptr<type::Scene> scene, type::Trajectory &trajectory)
+Planner::Result Planner::Plan(type::Trajectory &trajectory, bool enable_stitch)
 {
-    /// 1. 计算缝合轨迹
-    bool is_replan = false;
-//     trajectory = _trajectoryStitcher->FromLastTrajectoryByPosition(*vehicle, trajectory, &is_replan);
-    trajectory = _trajectoryStitcher->InitialTrajectory(*vehicle);
+    /// 1. 计算缝合轨迹，或裁短规划轨迹
+    if(enable_stitch)
+    {
+        bool is_replan = false;
+        trajectory = _trajectoryStitcher->FromLastTrajectoryByPosition(_vehicle, trajectory, &is_replan);
+//    trajectory = _trajectoryStitcher->InitialTrajectory(*vehicle);
+    }
+    else
+    {
+        auto nearest_index = trajectory.QueryNearestByPosition(_vehicle.pose.t);
+        auto nearest_point = trajectory[nearest_index];
+        auto forward_index  = trajectory.QueryNearestByTime(nearest_point.t + _param._reserve._forward_time);
+        auto backward_index = trajectory.QueryNearestByTime(nearest_point.t - _param._reserve._backward_time);
+
+        trajectory = trajectory.SubTrajectory(backward_index, forward_index);
+    }
+
 
     /// 2. 封装车道线为reference_line
     PlannerBase::Frame frame;
-    frame.scene = scene;
-    frame.vehicle = vehicle;
+    frame.scene = AddressOf(_scene);
+    frame.vehicle = AddressOf(_vehicle);
 
-    for(auto & i : scene->GuideLines)
+    for(auto & i : _scene.GuideLines)
     {
         frame.references.push_back(New<ReferenceLine>(*i.second));
     }
@@ -124,6 +161,49 @@ Planner::Result Planner::Process(Ptr<type::Vehicle> vehicle, Ptr<type::Scene> sc
     {
         return Result(ErrorCode::PlanningFail, "Unable to plan");
     }
+}
+
+Planner::Result Planner::Process(type::Trajectory &last_trajectory)
+{
+    Planner::Result result;
+    auto vehicle = AddressOf(_vehicle);
+    auto scene = AddressOf(_scene);
+
+    if (last_trajectory.Empty())
+        result = Plan(last_trajectory);
+    else
+    {
+        auto nearest_index = last_trajectory.QueryNearestByPosition(_vehicle.pose.t);
+        auto nearest_point = last_trajectory[nearest_index];
+
+        if (_vehicle.pose.t.DistanceTo(nearest_point.pose.t) > _param._threshold._replan_distance)
+            result = Plan(last_trajectory);
+        else
+        {
+            auto last_point = last_trajectory.Back();
+            PlannerBase::Frame frame;
+            frame.scene = scene;
+            frame.vehicle = vehicle;
+
+            if(last_point.t - nearest_point.t < _param._threshold._replan_time)
+                result = Plan(last_trajectory);
+            else if(auto check_result = _algorithm->Check(last_trajectory, frame); check_result.Fail())
+            {
+                Logger::W("Planner") << "Check last trajectory failed. Because of " << PlannerBase::ParseErrorCode(check_result.Code());
+                result = Plan(last_trajectory);
+            }
+            else if(last_point.t - nearest_point.t < _param._threshold._extend_time)
+            {
+                if(result = Plan(last_trajectory, false); result.Fail())
+                {
+                    Logger::W("Planner") << "Extend last trajectory failed";
+                    result = Plan(last_trajectory);
+                }
+            }
+        }
+    }
+
+    return result;
 }
 
 

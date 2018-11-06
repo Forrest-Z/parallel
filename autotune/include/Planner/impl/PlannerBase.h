@@ -15,7 +15,8 @@ namespace nox::app
         enum ErrorCode
         {
             Success,
-            Fail
+            Fail,
+            InCollision
         };
 
         using Result = container::Result<ErrorCode, ErrorCode::Success>;
@@ -33,5 +34,10 @@ namespace nox::app
         Result Plan(const type::Trajectory & stitch_trajectory, Frame frame, type::Trajectory & result);
 
         virtual Result PlanOnReferenceLine(const type::TrajectoryPoint & init_point, Ptr<ReferenceLine> referenceLine, Frame frame, type::Trajectory & result) = 0;
+
+        virtual Result Check(const type::Trajectory & trajectory, const Frame & frame) = 0;
+
+    public:
+        static string ParseErrorCode(ErrorCode code);
     };
 }

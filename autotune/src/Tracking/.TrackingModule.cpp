@@ -1,6 +1,5 @@
 #include <Tracking/.TrackingModule.h>
 #include <Tracking/Tracking.h>
-
 using namespace nox::app;
 USING_NAMESPACE_NOX;
 

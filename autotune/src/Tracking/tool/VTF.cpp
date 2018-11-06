@@ -14,10 +14,16 @@ double VTF::Calculate(const type::Trajectory &path, const type::Vehicle &vehicle
     auto & vtf_param = cache::ReadVTFParameter();
     auto nearest_index = path.QueryNearestByPosition(vehicle.pose.t);
     auto nearest_point = path[nearest_index];
+    auto nearest_frenet = path.FrenetAtPosition(vehicle.pose.t);
 
-    double dError = vehicle.pose.t.DistanceTo(nearest_point.pose.t);
-    double aError = vehicle.pose.theta - nearest_point.pose.theta;
+    double dError = nearest_frenet.l;
+
+    //vehicle.pose.t.DistanceTo(nearest_point.pose.t)
+    //    * math::PointOnLine(vehicle.pose.x, vehicle.pose.y, nearest_point.pose.x, nearest_point.pose.y, nearest_point.pose.theta);
+    double aError = vehicle.pose.theta - nearest_frenet.theta; // nearest_point.pose.theta;
     double v = vehicle.v.x;
+
+    Logger::I("VTF") << "(dError, aError, v): " << dError << " " << aError * 180.0 / M_PI << " " << v;
 
     /// -----------------------------------------------------------------------------
     /// 开始VTF参数
@@ -26,8 +32,8 @@ double VTF::Calculate(const type::Trajectory &path, const type::Vehicle &vehicle
     double vx = std::max(v, 3.5);
     double vx1 = v;
     
-    if(vx == 0) vx = 0;
-    double Kappa = nearest_point.kappa;
+    if(v == 0) vx = 0;
+    double Kappa = -nearest_point.kappa;
     double eps = real::Epsilon;
     double m = vehicle_param.Physical.Weight;
     double hc = vehicle_param.Physical.Height * 0.5;

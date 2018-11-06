@@ -32,7 +32,7 @@ namespace nox::app
     public:
         struct
         {
-            double initial_stitch_time = 0.0; // 秒，产生初始轨迹的时间长度
+            double initial_stitch_time = 1.0; // 秒，产生初始轨迹的时间长度
             double stitch_time = 1.0;         // 秒，产生缝合轨迹的时间长度
             double density = 0.2;             // 米，缝合轨迹步长
 

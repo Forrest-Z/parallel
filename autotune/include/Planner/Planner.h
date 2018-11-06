@@ -50,13 +50,17 @@ namespace nox::app
         void Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Trajectory> &trajectory) override;
 
     public:
+        Result Process(type::Trajectory & last_trajectory);
+
         /**
          * 进行规划流程处理
          * @param vehicle 车
          * @param scene  场景（包含车道线、障碍物、红绿灯灯物件）
          * @param result 传入的是空轨迹，或上一条轨迹，再使用之返回规划结果
          */
-        Result Process(Ptr<type::Vehicle> vehicle, Ptr<type::Scene> scene, type::Trajectory & result);
+        Result Plan(type::Trajectory &result, bool enable_stitch = true);
+
+
 
     private:
         type::Vehicle _vehicle;
@@ -68,5 +72,21 @@ namespace nox::app
 
         mailbox::Service<nox_msgs::GetScene> _scene_server;
         mailbox::Topic<geometry_msgs::Point> _trajectory_plotter;
+
+        struct
+        {
+            struct
+            {
+                double _replan_distance = 2.0;
+                double _replan_time = 1.0;
+                double _extend_time = 4.0;
+            } _threshold;
+
+            struct
+            {
+                double _backward_time = 1.0;
+                double _forward_time = 8.0;
+            } _reserve;
+        } _param;
     };
 }

@@ -122,3 +122,17 @@ void LatticePlanner::ComputeFrentState(
         OUT s, OUT l
     );
 }
+
+PlannerBase::Result LatticePlanner::Check(const type::Trajectory &trajectory, const PlannerBase::Frame &frame)
+{
+    auto reference = New<ReferenceLine>();
+    reference->path = trajectory.ToPath();
+
+    auto frenet = reference->CalculateFrenet(frame.vehicle);
+    CollisionChecker collisionChecker(frame.scene, frenet.s, frenet.l, reference);
+
+    if(collisionChecker.InCollision(trajectory))
+        return Result(ErrorCode ::InCollision);
+
+    return Result(ErrorCode::Success);
+}

@@ -36,3 +36,16 @@ PlannerBase::Result PlannerBase::Plan(
 
     return PlannerBase::Result(ErrorCode::Fail);
 }
+
+string PlannerBase::ParseErrorCode(PlannerBase::ErrorCode code)
+{
+    switch (code)
+    {
+        case Success:
+            return "Plan Successfully";
+        case Fail:
+            return "Plan Failed";
+        case InCollision:
+            return "In Collision";
+    }
+}

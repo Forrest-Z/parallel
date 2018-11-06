@@ -74,8 +74,6 @@ catkin_package(
 ## Build Executable ##
 ######################
 #pragma nox_begin("build executable")
-
-
 add_executable(localization_Simulator
     include/Simulator/.SimulatorModule.h src/Simulator/.SimulatorModule.cpp
     include/Simulator/Simulator.h src/Simulator/Simulator.cpp
@@ -88,6 +86,29 @@ target_link_libraries(localization_Simulator
 )
 set_target_properties(localization_Simulator PROPERTIES OUTPUT_NAME Simulator PREFIX "")
 set_target_properties(localization_Simulator PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../.bin/localization/)
+
+add_executable(localization_GPS
+    include/GPS/.GPSModule.h src/GPS/.GPSModule.cpp
+    include/GPS/GPS.h src/GPS/GPS.cpp
+        include/GPS/tool/CoordinateConverter.h src/GPS/tool/CoordinateConverter.cpp
+        include/GPS/type/NCOM.h src/GPS/type/NCOM.cpp
+        include/GPS/type/GPSIMU.h src/GPS/type/GPSIMU.cpp
+)
+target_link_libraries(localization_GPS
+    ${catkin_LIBRARIES}
+)
+set_target_properties(localization_GPS PROPERTIES OUTPUT_NAME GPS PREFIX "")
+set_target_properties(localization_GPS PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../.bin/localization/)
+
+add_executable(localization_Repeater
+    include/Repeater/.RepeaterModule.h src/Repeater/.RepeaterModule.cpp
+    include/Repeater/Repeater.h src/Repeater/Repeater.cpp
+)
+target_link_libraries(localization_Repeater
+    ${catkin_LIBRARIES}
+)
+set_target_properties(localization_Repeater PROPERTIES OUTPUT_NAME Repeater PREFIX "")
+set_target_properties(localization_Repeater PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../.bin/localization/)
 
 
 #pragma nox_end()

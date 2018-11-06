@@ -16,6 +16,8 @@ namespace nox::app
             Frame frame,
             nox::type::Trajectory & result) final;
 
+        Result Check(const type::Trajectory &trajectory, const Frame &frame) override;
+
     public:
         struct
         {

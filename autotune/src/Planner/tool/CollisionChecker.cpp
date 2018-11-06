@@ -69,7 +69,7 @@ bool CollisionChecker::InCollision(const type::Trajectory &trajectory) const
 {
     auto vehicle = cache::ReadEgoVehicle();
 
-    for(size_t i = 0, end = trajectory.Size(); i != end; ++i)
+    for(size_t i = 0, end = trajectory.Size(), end2 = _predicted_bouding_boxes.size(); i != end and i != end2; ++i) // 考虑将时间长度跟trajectory绑定
     {
         auto & point = trajectory[i];
         Box box(point.pose, vehicle.param.length.x, vehicle.param.length.y);

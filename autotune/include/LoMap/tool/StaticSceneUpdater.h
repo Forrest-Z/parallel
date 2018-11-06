@@ -27,6 +27,12 @@ namespace nox::app
         void Update(const std_msgs::String & source);
 
     private:
+        struct ControlLine
+        {
+            std::vector<Ptr<Lane>> segments;
+        };
+
+    private:
         void ClearSceneObjects();
 
         void Update(Ptr<Road> road);
