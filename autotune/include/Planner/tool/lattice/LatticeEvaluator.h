@@ -99,8 +99,8 @@ namespace nox::app
                     double _lon_objective = 10.0;
                     double _lon_jerk = 1.0;
                     double _lon_collision = 2.0;
-                    double _centripetal_acc = 1.5;
-                    double _lat_offset = 2000.0; // 2.0
+                    double _centripetal_acc = 10.0; // 1.5;
+                    double _lat_offset = 2.0;
                     double _lat_comfort = 10.0;
                 } _cost;
             } _weight;

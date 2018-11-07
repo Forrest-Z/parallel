@@ -36,5 +36,6 @@ namespace nox::app
         Ptr<LateralController>      _lat_controller;
         Trajectory                  _trajectory;
         Vehicle                     _vehicle;
+        system::Timer               _timer;
     };
 }

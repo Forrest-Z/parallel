@@ -12,6 +12,7 @@ void Tracking::Initialize()
 {
     _lon_controller = New<SimpleLongitudinalController>();
     _lat_controller = New<VTF>();
+    _timer.Start();
 
     cache::WriteVehicleParameter(params.Vehicle);
     cache::WriteVTFParameter(params.VTF);
@@ -26,7 +27,8 @@ void Tracking::Initialize()
 void Tracking::Process(optional<nox_msgs::Trajectory> trajectory, nav_msgs::Odometry vehicle_state,
                        nox_msgs::Chassis chassis, optional<nox_msgs::DrivingCommand> &driving)
 {
-#define TEST_VTF_TRACKING
+    tool::Console::Screen::Clear();
+//#define TEST_VTF_TRACKING
 #ifdef TEST_VTF_TRACKING
     if(trajectory and _trajectory.Empty())
     {
@@ -51,6 +53,8 @@ void Tracking::Process(optional<nox_msgs::Trajectory> trajectory, nav_msgs::Odom
     _vehicle.From(vehicle_state);
     _vehicle.From(chassis);
 
+    Logger::I("Tracking").Print("Vehicle(t, v, w): %6.2lf s, %6.2lf km/h, %6.2lf deg", _timer.Watch().Get<Second>(), chassis.speed, chassis.steering);
+
     double steering = 0;
     double speed = 0;
     
@@ -63,8 +67,8 @@ void Tracking::Process(optional<nox_msgs::Trajectory> trajectory, nav_msgs::Odom
     driving.emplace();
     Clock::now().To(driving.value().header);
     driving.value().target_speed = speed * 3.6;
-    driving.value().target_steering = steering * 180.0 / M_PI * params.Vehicle.Steering.Ratio;
+    driving.value().target_steering = steering * 180.0 / M_PI * params.Vehicle.Steering.Ratio + params.Vehicle.Steering.Offset;
 
-    Logger::I("Tracking") << "Result(v, w): " << driving.value().target_speed << " " << driving.value().target_steering;
+    Logger::I("Tracking").Print("Result(v, w): %6.2lf km/h, %6.2lf deg", driving.value().target_speed, driving.value().target_steering);
 }
 

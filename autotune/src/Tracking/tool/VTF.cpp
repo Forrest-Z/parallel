@@ -17,13 +17,13 @@ double VTF::Calculate(const type::Trajectory &path, const type::Vehicle &vehicle
     auto nearest_frenet = path.FrenetAtPosition(vehicle.pose.t);
 
     double dError = nearest_frenet.l;
-
-    //vehicle.pose.t.DistanceTo(nearest_point.pose.t)
-    //    * math::PointOnLine(vehicle.pose.x, vehicle.pose.y, nearest_point.pose.x, nearest_point.pose.y, nearest_point.pose.theta);
     double aError = vehicle.pose.theta - nearest_frenet.theta; // nearest_point.pose.theta;
     double v = vehicle.v.x;
 
-    Logger::I("VTF") << "(dError, aError, v): " << dError << " " << aError * 180.0 / M_PI << " " << v;
+    Logger::I("VTF").Print("(dError, aError, kappa): %6.2lf m, %6.2lf deg, %6.2lf 1/m",
+                           dError,
+                           aError * 180.0 / M_PI,
+                           nearest_point.kappa);
 
     /// -----------------------------------------------------------------------------
     /// 开始VTF参数

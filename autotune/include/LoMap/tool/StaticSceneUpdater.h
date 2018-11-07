@@ -17,6 +17,12 @@ using std::optional;
 
 namespace nox::app
 {
+    struct ControlLine
+    {
+        std::vector<Ptr<Lane>> segments;
+        bool passable = true;
+    };
+
     class StaticSceneUpdater
     {
     public:
@@ -25,12 +31,6 @@ namespace nox::app
         void Update(const nox_msgs::Road &source);
 
         void Update(const std_msgs::String & source);
-
-    private:
-        struct ControlLine
-        {
-            std::vector<Ptr<Lane>> segments;
-        };
 
     private:
         void ClearSceneObjects();
@@ -52,10 +52,10 @@ namespace nox::app
          * @param end_index 每一种可能结束时的车道索引，用于下一段的选择初始化
          * @return 每一种可能的Guide Line
          */
-        vector<Ptr<GuideLine>> GenerateGuideLines(
-            Ptr<Road> road,
-            const vector<int> & path = {},
-            vector<int> * end_index = nullptr);
+        vector<Ptr<ControlLine>> GenerateControlLines(
+        Ptr<Road> road,
+        const vector<int> &path = {},
+        vector<int> *end_index = nullptr);
 
         /**
          * 遍历路口处一个路连接的多个Lane，产生GuideLine
@@ -64,16 +64,16 @@ namespace nox::app
          * @param next_index 对应每一种可能的GudieLine的结束时的下一条车道索引
          * @return 每一种可能的GuideLine
          */
-        vector<Ptr<GuideLine>> GenerateGuideLines(
-            Ptr<RoadLink> roadLink,
-            optional<int> begin_index = optional<int>(),
-            vector<int> * next_index = nullptr);
+        vector<Ptr<ControlLine>> GenerateControlLines(
+        Ptr<RoadLink> roadLink,
+        optional<int> begin_index = optional<int>(),
+        vector<int> *next_index = nullptr);
 
-        void AddGuideLine(Ptr<GuideLine> guideLine);
+        void AddGuideLine(Ptr<ControlLine> guideLine);
 
-        void AddGuideLines(const vector<Ptr<GuideLine>> & guideLines);
+        void AddGuideLines(const vector<Ptr<ControlLine>> & guideLines);
 
-        void AppendGuideLine(Ptr<GuideLine> src, Ptr<GuideLine> extra);
+        void AppendControlLine(Ptr<ControlLine> src, Ptr<ControlLine> extra);
 
     private:
         Ptr<Scene> _scene;

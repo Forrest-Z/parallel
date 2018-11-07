@@ -82,71 +82,71 @@ void StaticSceneUpdater::Update(const std_msgs::String &source)
         EndSwitch()
     }
 
-    static Smoother smoother;
-    for(auto & i : _scene->GuideLines)
-    {
-        i.second->path = smoother.Smooth(i.second->path);
-    }
+//    static Smoother smoother;
+//    for(auto & i : _scene->GuideLines)
+//    {
+//        i.second->path = smoother.Smooth(i.second->path);
+//    }
     Logger::D("LoMap") << "Generate " << _scene->GuideLines.size() << " GuideLines .";
     _scene->Refresh({"lomap", "test", "scene"});
 }
 
 void StaticSceneUpdater::Update(Ptr<Road> road)
 {
-    auto guideLines = GenerateGuideLines(road);
-    AddGuideLines(guideLines);
+    auto controlLines = GenerateControlLines(road);
+    AddGuideLines(controlLines);
 }
 
 void StaticSceneUpdater::Update(Ptr<RoadLink> roadLink)
 {
-    auto guideLines = GenerateGuideLines(roadLink);
-    AddGuideLines(guideLines);
+    auto controlLines = GenerateControlLines(roadLink);
+    AddGuideLines(controlLines);
 }
 
 void StaticSceneUpdater::Update(Ptr<Road> road, Ptr<RoadLink> roadLink)
 {
     //region 选择通过第一个路段的所有车道
     vector<int> end_index;
-    auto guideLines = GenerateGuideLines(road, {}, &end_index);
+    auto controlLines = GenerateControlLines(road, {}, &end_index);
     //endregion
 
     for(size_t i = 0, end = end_index.size(); i < end; ++i)
     {
         //region 选择通过路口的所有车道
-        auto junction_guideLines = GenerateGuideLines(roadLink, end_index[i]);
-        assert(junction_guideLines.size() <= 1);
+        auto junction_controlLines = GenerateControlLines(roadLink, end_index[i]);
+        assert(junction_controlLines.size() <= 1);
         //endregion
 
-        if(junction_guideLines.empty())
-            guideLines[i]->passable = false; // 追加cost
+        if(junction_controlLines.empty())
+            controlLines[i]->passable = false; // 追加cost
         else
-            AppendGuideLine(guideLines[i], junction_guideLines[0]);
+            AppendControlLine(controlLines[i], junction_controlLines[0]);
     }
 
-    AddGuideLines(guideLines);
+    AddGuideLines(controlLines);
 }
 
 void StaticSceneUpdater::Update(Ptr<RoadLink> roadLink, Ptr<Road> road)
 {
     //region 选择通过路口的车道
     vector<int> next_index;
-    auto guideLines = GenerateGuideLines(roadLink, optional<int>(), &next_index);
+    auto controlLines = GenerateControlLines(roadLink, optional<int>(), &next_index);
     //endregion
 
-    for(size_t i = 0, end = guideLines.size(); i < end; ++i)
+    for(size_t i = 0, end = controlLines.size(); i < end; ++i)
     {
         //region 选择所有通过下一个路段的所有车道
         vector<int> path{next_index[i]};
-        auto next_guideLines = GenerateGuideLines(road, path);
-        assert(not next_guideLines.empty());
+        auto next_controlLines = GenerateControlLines(road, path);
+        assert(not next_controlLines.empty());
         //endregion
 
         //region 将上述车道与通过路口的车道各个连接成一条车道
-        for(auto & j : next_guideLines)
+        for(auto & j : next_controlLines)
         {
-            auto longer_guideLine = New<GuideLine>(*guideLines[i]);
-            AppendGuideLine(longer_guideLine, j);
-            AddGuideLine(longer_guideLine);
+            auto longer_controlLine = New<ControlLine>(*controlLines[i]);
+            AppendControlLine(longer_controlLine, j);
+            AddGuideLine(longer_controlLine);
         }
         //endregion
     }
@@ -156,62 +156,146 @@ void StaticSceneUpdater::Update(Ptr<Road> in_road, Ptr<RoadLink> roadLink, Ptr<R
 {
     //region 产生通过第一个路段的所有车道
     vector<int> end_index;
-    auto guideLines = GenerateGuideLines(in_road, {}, &end_index);
+    auto controlLines = GenerateControlLines(in_road, {}, &end_index);
     //endregion
 
-    for(size_t i = 0, end = guideLines.size(); i < end; ++i)
+    for(size_t i = 0, end = controlLines.size(); i < end; ++i)
     {
         //region 选择通过路口的各个车道（可能不存在）
         vector<int> next_index;
-        auto junction_guideLines = GenerateGuideLines(roadLink, end_index[i], &next_index);
-        assert(junction_guideLines.size() <= 1);
+        auto junction_controlLines = GenerateControlLines(roadLink, end_index[i], &next_index);
+        assert(junction_controlLines.size() <= 1);
         //endregion
 
-        if(junction_guideLines.empty())
+        if(junction_controlLines.empty())
         {
-            guideLines[i]->passable = false; // 追加cost
-            AddGuideLine(guideLines[i]);
+            controlLines[i]->passable = false; // 追加cost
+            AddGuideLine(controlLines[i]);
         }
         else
         {
             //region 追加通过路口的车道，并且选择从该车道通过下一个路段的所有车道
-            AppendGuideLine(guideLines[i], junction_guideLines[0]);
+            AppendControlLine(controlLines[i], junction_controlLines[0]);
 
             vector<int> path{next_index[0]};
-            auto next_guideLines = GenerateGuideLines(out_road, path);
-            assert(not next_guideLines.empty());
+            auto next_controlLines = GenerateControlLines(out_road, path);
+            assert(not next_controlLines.empty());
             //endregion
 
             //region 将通过下一个路段的所有车道与通过上一个路口和路段的车道全部连接起来
-            for(auto & j : next_guideLines)
+            for(auto & j : next_controlLines)
             {
-                auto longer_guideLine = New<GuideLine>(*guideLines[i]);
-                AppendGuideLine(longer_guideLine, j);
-                AddGuideLine(longer_guideLine);
+                auto longer_controlLine = New<ControlLine>(*controlLines[i]);
+                AppendControlLine(longer_controlLine, j);
+                AddGuideLine(longer_controlLine);
             }
             //endregion
         }
     }
 }
 
-void StaticSceneUpdater::AddGuideLine(Ptr<GuideLine> guideLine)
+void StaticSceneUpdater::AddGuideLine(Ptr<ControlLine> controlLine)
 {
     static scene::ID id = 0;
+
+    auto guideLine = New<GuideLine>();
     guideLine->id = id;
+    guideLine->passable = controlLine->passable;
+
+//    std::vector<tool::AnchorPoint> anchors;
+//    anchors.emplace_back(controlLine->segments[0]->Front());
+//    anchors.back().enforced = true;
+//    anchors.back().s = 0;
+//
+//    double S = 0;
+//    for(auto & i : controlLine->segments)
+//    {
+//        S += i->Length();
+//        anchors.emplace_back(i->Back());
+//        anchors.back().enforced = true;
+//        anchors.back().s = S;
+//    }
+//
+//    Smoother smoother;
+//    guideLine->path = smoother.Smooth(anchors);
+
+
+//    tool::AnchorPoint p0, p1;
+//    p1 = controlLine->segments[0]->Front();
+//    p1.enforced = true;
+//    p1.s = 0;
+//
+//    Smoother smoother;
+//
+//    double S = 0;
+//    for(auto & i : controlLine->segments)
+//    {
+//        //S += i->Length();
+//        p0 = p1;
+//        p0.s = 0;
+//
+//        p1 = i->Back();
+//        p1.enforced = true;
+//        p1.s = i->Length();
+//
+//        cout << p0.pose.theta << " " << p1.pose.theta << endl;
+//        guideLine->path += smoother.Smooth({p0, p1});
+//    }
+
+
+    auto first_line = controlLine->segments[0]->GetFunction();
+    auto [x, y] = first_line->Calculate(0, 0);
+    auto [dx, dy] = first_line->Calculate(1, 0);
+    math::Derivative<1> x0, x1{x, dx}, y0, y1{y, dy};
+
+    for(auto & i : controlLine->segments)
+    {
+        auto s = i->Length();
+        auto f = i->GetFunction();
+        auto [tx0, ty0] = f->Calculate(0, 0);
+
+        if(abs(tx0 - x1[0]) < 0.1 and abs(ty0 - y1[0]) < 0.1)
+        {
+            auto [tdx0, tdy0] = f->Calculate(1, 0);
+            x0 = {tx0, tdx0};
+            y0 = {ty0, tdy0};
+        }
+        else
+        {
+            x0 = x1;
+            y0 = y1;
+        }
+
+
+        auto [x, y] = f->Calculate(0, s);
+        auto [dx, dy] = f->Calculate(1, s);
+
+        x1 = {x, dx};
+        y1 = {y, dy};
+
+        math::CubicCurve curve_x(x0, x1, 1);
+        math::CubicCurve curve_y(y0, y1, 1);
+
+        for(double ds : range(0, 0.3, s))
+        {
+            guideLine->path.Add(PathPoint(curve_x, curve_y, ds / s));
+        }
+    }
+
+
     _scene->GuideLines[id++] = guideLine;
 }
 
-vector<Ptr<GuideLine>> StaticSceneUpdater::GenerateGuideLines(Ptr<Road> road, const vector<int> & path_, vector<int> * end_index)
+vector<Ptr<ControlLine>> StaticSceneUpdater::GenerateControlLines(Ptr<Road> road, const vector<int> &path_,
+                                                                  vector<int> *end_index)
 {
-    vector<Ptr<GuideLine>> result;
+    vector<Ptr<ControlLine>> result;
 
     /// 重构车道序列，构造GuideLine
     auto Reconstruct = [&](const std::vector<int> & path)
     {
-        auto guideLine = New<GuideLine>();
-        Range s(0, 0);
-
         //region 根据path序列追加各个车道
+        auto controlLine = New<ControlLine>();
         bool is_illegal = false;
 
         for(size_t i = 0, end = path.size(); i < end; ++i)
@@ -224,11 +308,8 @@ vector<Ptr<GuideLine>> StaticSceneUpdater::GenerateGuideLines(Ptr<Road> road, co
             }
 
             auto lane = section->Lanes[path[i]];
-            s.End = s.Start + lane->Length();
 
-            guideLine->path += lane->Discretize(0.5);
-            guideLine->speedLimits.emplace_back(s, lane->speedLimit);
-            s.Start = s.End;
+            controlLine->segments.push_back(lane);
         }
 
         if(is_illegal) return; // 如果存在非法路径（经过不存在车道），则不添加该结果
@@ -236,7 +317,7 @@ vector<Ptr<GuideLine>> StaticSceneUpdater::GenerateGuideLines(Ptr<Road> road, co
 
         if(end_index)
             end_index->push_back(path.back());
-        result.push_back(guideLine);
+        result.push_back(controlLine);
     };
 
     /// 搜索路径
@@ -307,9 +388,10 @@ vector<Ptr<GuideLine>> StaticSceneUpdater::GenerateGuideLines(Ptr<Road> road, co
     return result;
 }
 
-vector<Ptr<GuideLine>> StaticSceneUpdater::GenerateGuideLines(Ptr<RoadLink> roadLink, optional<int> begin_index, vector<int> *next_index)
+vector<Ptr<ControlLine>> StaticSceneUpdater::GenerateControlLines(Ptr<RoadLink> roadLink, optional<int> begin_index,
+                                                                  vector<int> *next_index)
 {
-    vector<Ptr<GuideLine>> result;
+    vector<Ptr<ControlLine>> result;
 
     for(auto & i : roadLink->LaneLinks)
     {
@@ -319,14 +401,12 @@ vector<Ptr<GuideLine>> StaticSceneUpdater::GenerateGuideLines(Ptr<RoadLink> road
         //region 如果没有指定begin_index，则遍历全部，否则只处理指定的
         if(!begin_index or begin_index.value() == connection.from)
         {
-            auto guideLine = New<GuideLine>();
-
-            guideLine->path = lane->Discretize(0.5);
-            guideLine->speedLimits.emplace_back(Range(0, lane->Length()), lane->speedLimit);
+            auto controlLine = New<ControlLine>();
+            controlLine->segments.push_back(lane);
 
             if(next_index)
                 next_index->push_back(connection.to);
-            result.push_back(guideLine);
+            result.push_back(controlLine);
 
             if(begin_index) break; // 若有指定begin_index，则仅push此条选择
         }
@@ -336,35 +416,14 @@ vector<Ptr<GuideLine>> StaticSceneUpdater::GenerateGuideLines(Ptr<RoadLink> road
     return result;
 }
 
-void StaticSceneUpdater::AppendGuideLine(Ptr<GuideLine> src, Ptr<GuideLine> extra)
+void StaticSceneUpdater::AppendControlLine(Ptr<ControlLine> src, Ptr<ControlLine> extra)
 {
-    //region 追加路径
-    src->path += extra->path;
-    //endregion
-
-    //region 追加速度控制
-    double s0 = 0;
-    if(not src->speedLimits.empty())
-        s0 = src->speedLimits.back().s.End;
-
-    size_t i = src->speedLimits.size();
-    src->speedLimits.insert(src->speedLimits.begin(), extra->speedLimits.begin(), extra->speedLimits.end());
-    for(size_t end = src->speedLimits.size(); i < end; ++i)
-    {
-        src->speedLimits[i].s.Start += s0;
-        src->speedLimits[i].s.End += s0;
-    }
-    //endregion
-
-    //region 更新停止线
-    if(not src->stopLine)
-        src->stopLine = extra->stopLine;
-    //endregion
+    src->segments.insert(src->segments.end(), extra->segments.begin(), extra->segments.end());
 }
 
-void StaticSceneUpdater::AddGuideLines(const vector<Ptr<GuideLine>> &guideLines)
+void StaticSceneUpdater::AddGuideLines(const vector<Ptr<ControlLine>> &controlLines)
 {
-    for(auto i : guideLines)
+    for(const auto &i : controlLines)
         AddGuideLine(i);
 }
 
