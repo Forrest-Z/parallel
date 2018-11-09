@@ -17,6 +17,8 @@ namespace nox::app
     public:
         CollisionChecker(Ptr<type::Scene> scene, double s, double l, Ptr<ReferenceLine> reference);
 
+        CollisionChecker(Ptr<type::Scene> scene, double s, double l, Ptr<ReferenceLine> reference, double temporal_length);
+
         bool InCollision(const type::Trajectory & trajectory) const;
 
     private:
@@ -42,8 +44,8 @@ namespace nox::app
 
             struct /// 碰撞检测缓冲边界（需要跟速度挂钩？）
             {
-                double _lon = 5.0;
-                double _lat = 5.0;
+                double _lon = 2.0;
+                double _lat = 0.1;
             } _buffer;
         } _param;
 

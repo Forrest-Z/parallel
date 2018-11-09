@@ -48,10 +48,6 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
     _scene.From(_scene_server.GetResponse().scene);
 
     _scene.Refresh({"scene"});
-    Logger::D("Planner")
-        << "Scene Updated !" << endl
-        << "(x, y): " << _vehicle.pose.x << " " << _vehicle.pose.y << endl
-        << "(v, w): " << _vehicle.v.x << " " << _vehicle.w.z << endl;
 
     Trajectory planning_trajectory;
     if(mailboxes.trajectory.SendHistoryCount() != 0)
@@ -66,7 +62,7 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
     }
     else
     {
-        Logger::I("Planner") << "Planning Successfully !";
+        // Logger::I("Planner") << "Planning Successfully !";
         trajectory.emplace();
         planning_trajectory.To(trajectory.value());
         planning_trajectory.Refresh({"trajectory"});

@@ -12,7 +12,11 @@ namespace nox::app
         : public LateralController
     {
     public:
+        VTF();
+
         double Calculate(const type::Trajectory &path, const type::Vehicle &vehicle) override;
 
+    private:
+        math::filter::RC_1o_1d _da_filter;
     };
 }

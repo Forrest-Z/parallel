@@ -50,9 +50,9 @@ SLTBoundary STGraph::ComputeObstacleBoundary(const nox::type::Box &box) const
 {
     SLTBoundary boundary;
     boundary.s.Start = type::Real::MAX;
-    boundary.s.End   = type::Real::MIN;
+    boundary.s.End   = -type::Real::MAX;
     boundary.l.Start = type::Real::MAX;
-    boundary.l.End   = type::Real::MIN;
+    boundary.l.End   = -type::Real::MAX;
 
     for(auto & i : box.Corners())
     {

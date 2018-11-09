@@ -15,6 +15,17 @@ CollisionChecker::CollisionChecker(
     BuildPredictedEnvironment(scene, s, l, reference);
 }
 
+CollisionChecker::CollisionChecker(
+    Ptr<type::Scene> scene,
+    double s,
+    double l,
+    Ptr<ReferenceLine> reference,
+    double temporal_length)
+{
+    _param._planning_temporal_length = temporal_length;
+    BuildPredictedEnvironment(scene, s, l, reference);
+}
+
 void CollisionChecker::BuildPredictedEnvironment(
     Ptr<nox::type::Scene> scene,
     double s,
@@ -83,5 +94,7 @@ bool CollisionChecker::InCollision(const type::Trajectory &trajectory) const
 
     return false;
 }
+
+
 
 

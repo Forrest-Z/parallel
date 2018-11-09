@@ -5,6 +5,15 @@
 USING_NAMESPACE_NOX;
 using namespace nox::app;
 
+VTF::VTF()
+{
+    filter::RC_1o_1d::Config da_config;
+    da_config.ThD = Degree(10).Get<Radian>();
+    da_config.ThC = 20;
+
+    _da_filter.SetConfig(da_config);
+}
+
 
 double VTF::Calculate(const type::Trajectory &path, const type::Vehicle &vehicle)
 {
@@ -20,6 +29,7 @@ double VTF::Calculate(const type::Trajectory &path, const type::Vehicle &vehicle
     double aError = vehicle.pose.theta - nearest_frenet.theta; // nearest_point.pose.theta;
     double v = vehicle.v.x;
 
+    aError = _da_filter(aError);
     Logger::I("VTF").Print("(dError, aError, kappa): %6.2lf m, %6.2lf deg, %6.2lf 1/m",
                            dError,
                            aError * 180.0 / M_PI,
@@ -80,4 +90,5 @@ double VTF::Calculate(const type::Trajectory &path, const type::Vehicle &vehicle
 
     return fai_target;
 }
+
 

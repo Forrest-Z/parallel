@@ -19,8 +19,7 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
     analyze_enable(false);
 
     analyze(1. 匹配起点在轨迹上的最近点);
-    size_t matched_index = reference->path.QueryNearestByPosition(init_point.pose.t);
-    const auto matched_point = reference->path.at(matched_index);
+    auto matched_point = reference->path.PointAtPosition(init_point.pose.t);
 
     analyze(2. 计算起点与最近点的Frenet坐标);
     math::Derivative<2> s, l;
@@ -121,6 +120,8 @@ void LatticePlanner::ComputeFrentState(
         matched_point.s, math::Derivative<1>{matched_point.kappa, matched_point.dkappa},
         OUT s, OUT l
     );
+
+    Logger::D("Planner").Print("Init Frenet: s(%lf, %lf, %lf), l(%lf, %lf, %lf)", s[0], s[1], s[2], l[0], l[1], l[2]);
 }
 
 PlannerBase::Result LatticePlanner::Check(const type::Trajectory &trajectory, const PlannerBase::Frame &frame)
@@ -129,7 +130,7 @@ PlannerBase::Result LatticePlanner::Check(const type::Trajectory &trajectory, co
     reference->path = trajectory.ToPath();
 
     auto frenet = reference->CalculateFrenet(frame.vehicle);
-    CollisionChecker collisionChecker(frame.scene, frenet.s, frenet.l, reference);
+    CollisionChecker collisionChecker(frame.scene, frenet.s, frenet.l, reference, trajectory.Back().t);
 
     if(collisionChecker.InCollision(trajectory))
         return Result(ErrorCode ::InCollision);
