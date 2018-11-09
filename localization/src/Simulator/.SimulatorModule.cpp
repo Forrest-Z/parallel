@@ -35,8 +35,9 @@ void SimulatorModule::OnRun()
         optional<nox_msgs::Location> Localization_out;
         optional<nox_lcm::GPSData> GPSDataLCM_out;
         optional<nox_msgs::Chassis> chassis_out;
-        Process(  vehicle_state_out, Localization_out, GPSDataLCM_out, chassis_out );
-        ProcessOutput( vehicle_state_out, Localization_out, GPSDataLCM_out, chassis_out );
+        optional<nox_msgs::Location> localization_out;
+        Process(  vehicle_state_out, Localization_out, GPSDataLCM_out, chassis_out, localization_out );
+        ProcessOutput( vehicle_state_out, Localization_out, GPSDataLCM_out, chassis_out, localization_out );
     }
 }
 
@@ -55,6 +56,7 @@ void SimulatorModule::InitMailbox()
     mailboxes.Localization.Advertise({"Localization"});
     mailboxes.GPSDataLCM.Advertise({"GPSData"});
     mailboxes.chassis.Advertise({"chassis"});
+    mailboxes.localization.Advertise({"/gps/Localization"});
 }
 
 void SimulatorModule::InitParameter()
@@ -82,7 +84,7 @@ void SimulatorModule::TerminatePlugin()
     
 }
 
-void SimulatorModule::ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization, optional<nox_lcm::GPSData> & GPSDataLCM, optional<nox_msgs::Chassis> & chassis )
+void SimulatorModule::ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization, optional<nox_lcm::GPSData> & GPSDataLCM, optional<nox_msgs::Chassis> & chassis, optional<nox_msgs::Location> & localization )
 {
     
     if(vehicle_state)
@@ -93,6 +95,8 @@ void SimulatorModule::ProcessOutput( optional<nav_msgs::Odometry> & vehicle_stat
         mailboxes.GPSDataLCM.Send(GPSDataLCM.value());
     if(chassis)
         mailboxes.chassis.Send(chassis.value());
+    if(localization)
+        mailboxes.localization.Send(localization.value());
 }
 
 void SimulatorModule::Initialize()
@@ -105,13 +109,14 @@ void SimulatorModule::Terminate()
     // Do Nothing ...
 }
 
-void SimulatorModule::Process(  optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization, optional<nox_lcm::GPSData> & GPSDataLCM, optional<nox_msgs::Chassis> & chassis )
+void SimulatorModule::Process(  optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization, optional<nox_lcm::GPSData> & GPSDataLCM, optional<nox_msgs::Chassis> & chassis, optional<nox_msgs::Location> & localization )
 {
     
     vehicle_state.reset();
     Localization.reset();
     GPSDataLCM.reset();
     chassis.reset();
+    localization.reset();
 }
 
 

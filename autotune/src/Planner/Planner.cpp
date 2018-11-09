@@ -133,7 +133,7 @@ Planner::Result Planner::Plan(type::Trajectory &trajectory, bool enable_stitch)
     }
 
 
-    /// 2. 封装车道线为reference_line
+    /// 2. 封装引导线为reference_line
     PlannerBase::Frame frame;
     frame.scene = AddressOf(_scene);
     frame.vehicle = AddressOf(_vehicle);
@@ -159,7 +159,7 @@ Planner::Result Planner::Plan(type::Trajectory &trajectory, bool enable_stitch)
     }
     else
     {
-        return Result(ErrorCode::PlanningFail, "Unable to plan");
+        return Result(ErrorCode::PlanningFail, "Unable to plan because of " + planning_result.Message());
     }
 }
 

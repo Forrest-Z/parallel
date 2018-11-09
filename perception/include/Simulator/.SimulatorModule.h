@@ -20,9 +20,11 @@ namespace nox::app
 
         virtual void Terminate();
 
-        virtual void Process(  optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization, optional<nox_lcm::GPSData> & GPSDataLCM, optional<nox_msgs::Chassis> & chassis, optional<nox_msgs::Location> & localization );
+        virtual void Process( optional<geometry_msgs::PoseWithCovarianceStamped> obstacle, optional<nav_msgs::Odometry> vehicle_state,  optional<nox_msgs::ObstacleArray> & obstacles );
 
         
+        virtual bool ProcessOnobstacle( geometry_msgs::PoseWithCovarianceStamped obstacle , optional<nox_msgs::ObstacleArray> & obstacles );
+        virtual bool ProcessOnvehicle_state( nav_msgs::Odometry vehicle_state , optional<nox_msgs::ObstacleArray> & obstacles );
 
         
 
@@ -40,11 +42,9 @@ namespace nox::app
         struct
         {
             
+            mailbox::Topic<geometry_msgs::PoseWithCovarianceStamped> obstacle;
             mailbox::Topic<nav_msgs::Odometry> vehicle_state;
-            mailbox::Topic<nox_msgs::Location> Localization;
-            mailbox::LCM<nox_lcm::GPSData> GPSDataLCM;
-            mailbox::Topic<nox_msgs::Chassis> chassis;
-            mailbox::Topic<nox_msgs::Location> localization;
+            mailbox::Topic<nox_msgs::ObstacleArray> obstacles;
         } mailboxes;
 
     protected: /// 框架生命周期管理代码
@@ -67,7 +67,7 @@ namespace nox::app
 
         void TerminatePlugin();
 
-        void ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization, optional<nox_lcm::GPSData> & GPSDataLCM, optional<nox_msgs::Chassis> & chassis, optional<nox_msgs::Location> & localization );
+        void ProcessOutput( optional<nox_msgs::ObstacleArray> & obstacles );
 
     private: /// 框架成员
         struct

@@ -15,7 +15,7 @@ namespace nox::app
 
         void Update(const Odometry & state);
 
-        void Update(const nox_msgs::ObstacleArray & obstacles);
+        void Update(const nox_msgs::ObstacleArray & obstacles, bool is_global = false);
 
     private:
         PoseEstimator _pose_estimator;

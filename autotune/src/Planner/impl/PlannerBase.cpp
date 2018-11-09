@@ -20,6 +20,8 @@ PlannerBase::Result PlannerBase::Plan(
         references_heap.push(i);
     }
 
+    string error_msg;
+
     while (references_heap.HasNext())
     {
         auto i = references_heap.Next();
@@ -31,10 +33,13 @@ PlannerBase::Result PlannerBase::Plan(
             result = stitch_trajectory + candidate;
             return planning_result;
         }
-        else break;
+        else
+        {
+            error_msg += FormatOut("Guide Line [id: %lu]: %s\n", i->id, planning_result.Message());
+        }
     }
 
-    return PlannerBase::Result(ErrorCode::Fail);
+    return PlannerBase::Result(ErrorCode::Fail, "all guide lines are suck.\n" + error_msg);
 }
 
 string PlannerBase::ParseErrorCode(PlannerBase::ErrorCode code)
@@ -47,5 +52,7 @@ string PlannerBase::ParseErrorCode(PlannerBase::ErrorCode code)
             return "Plan Failed";
         case InCollision:
             return "In Collision";
+        default:
+            return "Unknown Error";
     }
 }

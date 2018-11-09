@@ -21,7 +21,7 @@ namespace nox::app
     public:
         void UpdateMap(const nox_msgs::Road & source);
 
-        void UpdateObstacles(const nox_msgs::ObstacleArray & obstacles);
+        void UpdateObstacles(const nox_msgs::ObstacleArray & obstacles, bool is_global);
 
         void UpdateState(const type::Odometry & state);
 

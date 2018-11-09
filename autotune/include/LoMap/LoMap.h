@@ -40,6 +40,8 @@ namespace nox::app
 
         bool ProcessOnhdmap(std_msgs::String hdmap) override;
 
+        bool ProcessOnvirtual_obstacles(nox_msgs::ObstacleArray virtual_obstacles) override;
+
     private:
         mailbox::Service<nox_msgs::GetScene> _scene_server;
         Ptr<SceneMaintainer> _scene_maintainer;

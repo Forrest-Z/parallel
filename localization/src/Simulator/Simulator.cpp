@@ -36,9 +36,9 @@ void Simulator::Initialize()
     CoordinateConverter::Setting(120.7752, 31.5921);
 }
 
-
 void Simulator::Process(optional<nav_msgs::Odometry> &vehicle_state, optional<nox_msgs::Location> &Localization,
-                        optional<nox_lcm::GPSData> &GPSDataLCM, optional<nox_msgs::Chassis> &chassis)
+                        optional<nox_lcm::GPSData> &GPSDataLCM, optional<nox_msgs::Chassis> &chassis,
+                        optional<nox_msgs::Location> &localization)
 {
     vehicle_state.emplace();
     vehicle_state.value().header.frame_id = "nox";
@@ -57,4 +57,6 @@ void Simulator::Process(optional<nav_msgs::Odometry> &vehicle_state, optional<no
 
     chassis.emplace();
     chassis.value().speed = _odometry.v.x;
+
+    localization.emplace(Localization.value());
 }

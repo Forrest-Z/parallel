@@ -9,7 +9,7 @@ void LoMapModule::OnStart()
 {
     /// 配置节点
     SetFrequency( 20.000000 );
-    Viewer::Instance()->SetRender(New< None >());
+    Viewer::Instance()->SetRender(New< Rviz >());
 
     // TODO： 看门狗
 
@@ -31,6 +31,7 @@ void LoMapModule::OnRun()
     optional<nox_msgs::ObstacleArray> obstacles_in;
     optional<nox_msgs::Road> old_map_in;
     optional<std_msgs::String> hdmap_in;
+    optional<nox_msgs::ObstacleArray> virtual_obstacles_in;
     
     if(!mailboxes.vehicle_state.IsFresh()) {} 
     else
@@ -48,10 +49,14 @@ void LoMapModule::OnRun()
     else
         hdmap_in = mailboxes.hdmap.Get();
 
+    if(!mailboxes.virtual_obstacles.IsFresh()) {} 
+    else
+        virtual_obstacles_in = mailboxes.virtual_obstacles.Get();
+
     if(status)
     {
         
-        Process( vehicle_state_in, obstacles_in, old_map_in, hdmap_in  );
+        Process( vehicle_state_in, obstacles_in, old_map_in, hdmap_in, virtual_obstacles_in  );
         ProcessOutput(  );
     }
 }
@@ -72,8 +77,10 @@ void LoMapModule::InitMailbox()
     mailboxes.obstacles.SetValidity(1000);
     mailboxes.old_map.Subscribe({"RoadPlanning"});
     mailboxes.old_map.SetValidity(1000);
-    mailboxes.hdmap.Subscribe({"hdmap"});
+    mailboxes.hdmap.Subscribe({"map_to_planner"});
     mailboxes.hdmap.SetValidity(1000);
+    mailboxes.virtual_obstacles.Subscribe({"virtual_obstacles"});
+    mailboxes.virtual_obstacles.SetValidity(1000);
     
 }
 
@@ -113,6 +120,13 @@ void LoMapModule::InitCallback()
         return result;
     });
 
+    mailboxes.virtual_obstacles.AddCallback([&]( const nox_msgs::ObstacleArray & msg, const Address & address ) {
+        
+        bool result = ProcessOnvirtual_obstacles( msg  );
+        ProcessOutput(  );
+        return result;
+    });
+
 }
 
 void LoMapModule::InitPlugin()
@@ -127,6 +141,7 @@ void LoMapModule::TerminateMailbox()
     mailboxes.obstacles.UnSubscribe();
     mailboxes.old_map.UnSubscribe();
     mailboxes.hdmap.UnSubscribe();
+    mailboxes.virtual_obstacles.UnSubscribe();
 }
 
 void LoMapModule::TerminatePlugin()
@@ -149,7 +164,7 @@ void LoMapModule::Terminate()
     // Do Nothing ...
 }
 
-void LoMapModule::Process( optional<nav_msgs::Odometry> vehicle_state, optional<nox_msgs::ObstacleArray> obstacles, optional<nox_msgs::Road> old_map, optional<std_msgs::String> hdmap  )
+void LoMapModule::Process( optional<nav_msgs::Odometry> vehicle_state, optional<nox_msgs::ObstacleArray> obstacles, optional<nox_msgs::Road> old_map, optional<std_msgs::String> hdmap, optional<nox_msgs::ObstacleArray> virtual_obstacles  )
 {
     
 }
@@ -173,6 +188,11 @@ bool LoMapModule::ProcessOnold_map( nox_msgs::Road old_map   )
     return false; /// 
 }
 bool LoMapModule::ProcessOnhdmap( std_msgs::String hdmap   )
+{
+    
+    return false; /// 
+}
+bool LoMapModule::ProcessOnvirtual_obstacles( nox_msgs::ObstacleArray virtual_obstacles   )
 {
     
     return false; /// 

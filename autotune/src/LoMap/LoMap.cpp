@@ -21,7 +21,7 @@ bool LoMap::ProcessOnvehicle_state(nav_msgs::Odometry vehicle_state)
 
 bool LoMap::ProcessOnobstacles(nox_msgs::ObstacleArray obstacles)
 {
-    _scene_maintainer->UpdateObstacles(obstacles);
+    _scene_maintainer->UpdateObstacles(obstacles, false);
     return true;
 }
 
@@ -44,6 +44,12 @@ bool LoMap::ProcessOnPlannerRequest(
 bool LoMap::ProcessOnhdmap(std_msgs::String hdmap)
 {
     _scene_maintainer->UpdateMap(hdmap);
+    return true;
+}
+
+bool LoMap::ProcessOnvirtual_obstacles(nox_msgs::ObstacleArray virtual_obstacles)
+{
+    _scene_maintainer->UpdateObstacles(virtual_obstacles, true);
     return true;
 }
 

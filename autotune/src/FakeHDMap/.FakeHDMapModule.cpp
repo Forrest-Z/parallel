@@ -48,7 +48,7 @@ void FakeHDMapModule::InitMailbox()
 {
     
     
-    mailboxes.hdmap.Advertise({"hdmap"});
+    mailboxes.hdmap.Advertise({"map_to_planner"});
 }
 
 void FakeHDMapModule::InitParameter()

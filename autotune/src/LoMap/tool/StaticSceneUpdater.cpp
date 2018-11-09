@@ -82,12 +82,7 @@ void StaticSceneUpdater::Update(const std_msgs::String &source)
         EndSwitch()
     }
 
-//    static Smoother smoother;
-//    for(auto & i : _scene->GuideLines)
-//    {
-//        i.second->path = smoother.Smooth(i.second->path);
-//    }
-    Logger::D("LoMap") << "Generate " << _scene->GuideLines.size() << " GuideLines .";
+    Logger::I("LoMap") << "Generate " << _scene->GuideLines.size() << " GuideLines .";
     _scene->Refresh({"lomap", "test", "scene"});
 }
 
@@ -202,47 +197,6 @@ void StaticSceneUpdater::AddGuideLine(Ptr<ControlLine> controlLine)
     guideLine->id = id;
     guideLine->passable = controlLine->passable;
 
-//    std::vector<tool::AnchorPoint> anchors;
-//    anchors.emplace_back(controlLine->segments[0]->Front());
-//    anchors.back().enforced = true;
-//    anchors.back().s = 0;
-//
-//    double S = 0;
-//    for(auto & i : controlLine->segments)
-//    {
-//        S += i->Length();
-//        anchors.emplace_back(i->Back());
-//        anchors.back().enforced = true;
-//        anchors.back().s = S;
-//    }
-//
-//    Smoother smoother;
-//    guideLine->path = smoother.Smooth(anchors);
-
-
-//    tool::AnchorPoint p0, p1;
-//    p1 = controlLine->segments[0]->Front();
-//    p1.enforced = true;
-//    p1.s = 0;
-//
-//    Smoother smoother;
-//
-//    double S = 0;
-//    for(auto & i : controlLine->segments)
-//    {
-//        //S += i->Length();
-//        p0 = p1;
-//        p0.s = 0;
-//
-//        p1 = i->Back();
-//        p1.enforced = true;
-//        p1.s = i->Length();
-//
-//        cout << p0.pose.theta << " " << p1.pose.theta << endl;
-//        guideLine->path += smoother.Smooth({p0, p1});
-//    }
-
-
     auto first_line = controlLine->segments[0]->GetFunction();
     auto [x, y] = first_line->Calculate(0, 0);
     auto [dx, dy] = first_line->Calculate(1, 0);
@@ -254,7 +208,7 @@ void StaticSceneUpdater::AddGuideLine(Ptr<ControlLine> controlLine)
         auto f = i->GetFunction();
         auto [tx0, ty0] = f->Calculate(0, 0);
 
-        if(abs(tx0 - x1[0]) < 0.1 and abs(ty0 - y1[0]) < 0.1)
+        if(abs(tx0 - x1[0]) < 0.1 and abs(ty0 - y1[0]) < 0.1) // 连续不一定可导
         {
             auto [tdx0, tdy0] = f->Calculate(1, 0);
             x0 = {tx0, tdx0};

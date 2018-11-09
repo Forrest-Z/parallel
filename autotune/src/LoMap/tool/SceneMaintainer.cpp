@@ -37,11 +37,11 @@ void SceneMaintainer::UpdateMap(const nox_msgs::Road &source)
     }
 }
 
-void SceneMaintainer::UpdateObstacles(const nox_msgs::ObstacleArray &obstacles)
+void SceneMaintainer::UpdateObstacles(const nox_msgs::ObstacleArray &obstacles, bool is_global)
 {
     Synchronized(this)
     {
-        _dynamic_updater.Update(obstacles);
+        _dynamic_updater.Update(obstacles, is_global);
         _overlap_builder.Rebuild();
     }
 }
