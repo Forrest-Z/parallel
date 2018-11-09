@@ -316,6 +316,14 @@ void Simulator::RefreshObstacle(type::Obstacle &obstacle)
             obstacle.prediction.Add(point);
         }
     }
+    else
+    {
+        TrajectoryPoint point;
+        point.pose = obstacle.pose;
+        point.v = 0;
+        point.t = 0;
+        obstacle.prediction.Add(point);
+    }
 }
 
 
