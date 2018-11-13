@@ -5,10 +5,10 @@
 
 #include <nox>
 #include <vector>
+#include <Planner/type/ReferenceLine.h>
 
 namespace nox::app::lattice
 {
-    using Bundle = std::vector<Ptr<math::Parametric<1>>>;
     struct State : public math::Derivative<2>
     {
         double t;
@@ -38,19 +38,19 @@ namespace nox::app::lattice
         Ptr<math::Parametric<1>> _curve;
     };
 
+    using Bundle = std::vector<Ptr<Curve>>;
+
     struct Combination
     {
-        Ptr<math::Parametric<1>> lon;
-        Ptr<math::Parametric<1>> lat;
+        Ptr<Curve> lon;
+        Ptr<Curve> lat;
         double cost_sum = 0;       // 根据比例加权和的权重
         std::vector<double> costs; // 各种各样的cost
 
         Combination() = default;
 
-        Combination(Ptr<math::Parametric<1>> lon, Ptr<math::Parametric<1>> lat);
+        Combination(Ptr<Curve> lon, Ptr<Curve> lat);
 
         bool operator<(const Combination & other) const;
     };
-
-
 }

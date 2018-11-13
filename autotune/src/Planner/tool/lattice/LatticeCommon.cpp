@@ -1,7 +1,7 @@
 #include <utility>
 
 #include <Planner/tool/lattice/LatticeCommon.h>
-
+USING_NAMESPACE_NOX;
 using namespace nox::app::lattice;
 
 
@@ -53,7 +53,7 @@ double Curve::Boundary() const
     return _curve->Boundary();
 }
 
-Combination::Combination(nox::Ptr<nox::math::Parametric<1>> lon, nox::Ptr<nox::math::Parametric<1>> lat)
+Combination::Combination(nox::Ptr<Curve> lon, nox::Ptr<Curve> lat)
     : lon(lon), lat(lat)
 {
 
@@ -63,5 +63,3 @@ bool Combination::operator<(const Combination &other) const
 {
     return cost_sum > other.cost_sum;
 }
-
-

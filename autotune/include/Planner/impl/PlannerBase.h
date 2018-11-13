@@ -31,9 +31,7 @@ namespace nox::app
     public:
         virtual ~PlannerBase() = default;
 
-        Result Plan(const type::Trajectory & stitch_trajectory, Frame frame, type::Trajectory & result);
-
-        virtual Result PlanOnReferenceLine(const type::TrajectoryPoint & init_point, Ptr<ReferenceLine> referenceLine, Frame frame, type::Trajectory & result) = 0;
+        virtual Result Plan(const type::Trajectory & stitch_trajectory, Frame frame, type::Trajectory & result) = 0;
 
         virtual Result Check(const type::Trajectory & trajectory, const Frame & frame) = 0;
 

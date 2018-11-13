@@ -47,6 +47,8 @@ namespace nox::app
 
         void InitializeDeciders();
 
+        void InitializeParameters();
+
         void Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Trajectory> &trajectory) override;
 
     public:

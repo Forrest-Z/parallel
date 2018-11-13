@@ -74,6 +74,8 @@ namespace nox::app
     private:
         SLTBoundary ComputeObstacleBoundary(const type::Box & box) const;
 
+        bool ShouldIgnore(const SLTBoundary & boundary) const;
+
     private:
         type::Range _s, _t;
         double _half_path_width;

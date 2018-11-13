@@ -147,7 +147,7 @@ type::Trajectory TrajectoryStitcher::FromLastTrajectoryByPosition(
     auto   nearest_point = last_trajectory[nearest_index];
 
     double offset = nearest_point.pose.t.DistanceTo(vehicle.pose.t);
-    if(offset > param.threshold.replan.longitudinal_offset)
+    if(offset > param.threshold.replan.distance)
     {
         Logger::W("TrajectoryStitcher") << "Offset: " << offset;
         return MakeResult(InitialTrajectory(vehicle), true);

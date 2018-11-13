@@ -16,6 +16,7 @@ void Planner::Initialize()
     _algorithm = New<LatticePlanner>();
 
     InitializeDeciders();
+    InitializeParameters();
 
     _scene_server.SetReceiver({"scene"});
     _trajectory_plotter.Advertise({"planner_plot"});
@@ -34,6 +35,11 @@ void Planner::InitializeDeciders()
         ->AddRule<rule::Passable>();
 
     _deciders.push_back(guideDecider);
+}
+
+void Planner::InitializeParameters()
+{
+
 }
 
 void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Trajectory> &trajectory)
@@ -62,7 +68,6 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
     }
     else
     {
-        // Logger::I("Planner") << "Planning Successfully !";
         trajectory.emplace();
         planning_trajectory.To(trajectory.value());
         planning_trajectory.Refresh({"trajectory"});
@@ -201,6 +206,8 @@ Planner::Result Planner::Process(type::Trajectory &last_trajectory)
 
     return result;
 }
+
+
 
 
 

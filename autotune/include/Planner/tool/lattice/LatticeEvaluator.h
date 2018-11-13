@@ -45,8 +45,8 @@ namespace nox::app
          * @return 返回加权和的罚值
          */
         double Evaluate(
-            const Ptr<math::Parametric<1>> & lon_traj,
-            const Ptr<math::Parametric<1>> & lat_traj,
+            const Ptr<lattice::Curve> & lon_traj,
+            const Ptr<lattice::Curve> & lat_traj,
             std::vector<double> & costs
         ) const;
 
@@ -55,15 +55,17 @@ namespace nox::app
     private:
         double LonObjectiveCost(const Ptr <math::Parametric<1>> &lon_traj) const;
 
-        double LonComfortCost(const Ptr<math::Parametric<1>> & lon_traj) const;
+        double LonComfortCost(const Ptr<lattice::Curve> & lon_traj) const;
 
-        double LonCollisionCost(const Ptr<math::Parametric<1>> & lon_traj) const;
+        double LonCollisionCost(const Ptr<lattice::Curve> & lon_traj) const;
 
-        double CentripetalAccelerationCost(const Ptr<math::Parametric<1>> & lon_traj) const;
+        double CentripetalAccelerationCost(const Ptr<lattice::Curve> & lon_traj) const;
 
-        double LatOffsetCost(const Ptr<math::Parametric<1>> & lat_traj, double evaluation_horizon) const;
+        double CentripetalAccelerationCost(const Ptr<lattice::Curve> & lon_traj, const Ptr<lattice::Curve> & lat_traj) const;
 
-        double LatComfortCost(const Ptr<math::Parametric<1>> & lon_traj, const Ptr<math::Parametric<1>> & lat_traj) const;
+        double LatOffsetCost(const Ptr<lattice::Curve> & lat_traj, double evaluation_horizon) const;
+
+        double LatComfortCost(const Ptr<lattice::Curve> & lon_traj, const Ptr<lattice::Curve> & lat_traj) const;
 
     private:
         struct
@@ -98,14 +100,14 @@ namespace nox::app
                 {
                     double _lon_objective = 10.0;
                     double _lon_jerk = 1.0;
-                    double _lon_collision = 2.0;
-                    double _centripetal_acc = 10.0; // 1.5;
+                    double _lon_collision = 20;
+                    double _centripetal_acc = 15; // 1.5;
                     double _lat_offset = 2.0;
                     double _lat_comfort = 10.0;
                 } _cost;
             } _weight;
 
-            double _lon_collision_cost_std = 1.0;
+            double _lon_collision_cost_std = 5;
         } _param;
 
         lattice::State                        _init_state;

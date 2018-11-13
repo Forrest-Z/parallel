@@ -28,27 +28,9 @@ void Tracking::Process(optional<nox_msgs::Trajectory> trajectory, nav_msgs::Odom
                        nox_msgs::Chassis chassis, optional<nox_msgs::DrivingCommand> &driving)
 {
     tool::Console::Screen::Clear();
-//#define TEST_VTF_TRACKING
-#ifdef TEST_VTF_TRACKING
-    if(trajectory and _trajectory.Empty())
-    {
-        _trajectory.From(trajectory.value());
-        Logger::I("Tracking")
-            << "Receive Trajectory: " << endl
-            << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl
-            << "|    x    |    y    |    theta    |    kappa    |" << endl;
 
-        for(auto & i : _trajectory)
-        {
-            Logger::I("Trajectory") << i.pose.x << " " << i.pose.y << " " << i.pose.theta << " " << i.kappa;
-        }
-
-        Logger::I("Tracking") << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
-    }
-#else
     if(trajectory)
         _trajectory.From(trajectory.value());
-#endif
 
     _vehicle.From(vehicle_state);
     _vehicle.From(chassis);

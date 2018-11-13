@@ -29,14 +29,20 @@ double VTF::Calculate(const type::Trajectory &path, const type::Vehicle &vehicle
     double aError = vehicle.pose.theta - nearest_frenet.theta; // nearest_point.pose.theta;
     double v = vehicle.v.x;
 
-    aError = _da_filter(aError);
-    Logger::I("VTF").Print("(dError, aError, kappa): %6.2lf m, %6.2lf deg, %6.2lf 1/m",
-                           dError,
-                           aError * 180.0 / M_PI,
+    // aError = _da_filter(aError);
+
+    Logger::I("Map").Print("Map(x, y, theta, kappa): %6.3lf m, %6.3lf m, %6.3lf deg, %10.6lf 1/m",
+                           nearest_point.pose.x.get(),
+                           nearest_point.pose.y.get(),
+                           nearest_point.pose.theta.get(),
                            nearest_point.kappa);
 
+    Logger::I("VTF").Print("Input(dError, aError): %6.3lf m, %6.3lf deg",
+                           dError,
+                           aError * 180.0 / M_PI);
+
     /// -----------------------------------------------------------------------------
-    /// 开始VTF参数
+    /// 开始VTF计算
     double eyt = dError;
     double delta_psi0 = aError;
     double vx = std::max(v, 3.5);

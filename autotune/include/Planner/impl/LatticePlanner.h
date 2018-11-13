@@ -10,11 +10,14 @@ namespace nox::app
     class LatticePlanner : public PlannerBase
     {
     public:
+        Result Plan(const type::Trajectory & stitch_trajectory, Frame frame, type::Trajectory & result) override;
+
         Result PlanOnReferenceLine(
             const type::TrajectoryPoint &init_point,
             Ptr<ReferenceLine> referenceLine,
             Frame frame,
-            nox::type::Trajectory & result) final;
+            nox::type::Trajectory & result,
+            double & cost);
 
         Result Check(const type::Trajectory &trajectory, const Frame &frame) override;
 
@@ -25,6 +28,7 @@ namespace nox::app
             double planning_temporal_length = 8;
             double time_resolution = 0.1;
             double lane_default_width = 3.5;
+            double cost_not_optimal_reference_line = 2.0;
         } param;
 
     private:

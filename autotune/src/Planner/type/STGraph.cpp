@@ -37,6 +37,10 @@ void STGraph::AddStaticObstacle(const nox::type::Obstacle &obstacle)
 {
     auto box = obstacle.BoxAtTime(0);
     auto boundary = ComputeObstacleBoundary(box);
+
+    if(ShouldIgnore(boundary)) /// 当障碍物不在参考线范围内时，不添加。
+        return;
+
     boundary.t.Start = 0;
     boundary.t.End = _t.End;
 
@@ -73,10 +77,7 @@ void STGraph::AddDynamicObstacle(const nox::type::Obstacle &obstacle)
         auto box = obstacle.BoxAtTime(time);
         auto boundary = ComputeObstacleBoundary(box);
 
-        if (boundary.s.End < _s.Start or
-            boundary.s.Start > _s.End or
-            (boundary.l.Start > _half_path_width and boundary.l.End < -_half_path_width)
-        )   /// 当障碍物当前位置的包围范围超出了path-time图的范围，则不操作
+        if (ShouldIgnore(boundary))   /// 当障碍物当前位置的包围范围超出了path-time图的范围，则不操作
         {
             continue;
         }
@@ -122,6 +123,14 @@ vector<nox::type::Bound> STGraph::GetLateralBounds(double s_start, double s_end,
 
 
     return bounds;
+}
+
+bool STGraph::ShouldIgnore(const SLTBoundary &boundary) const
+{
+    return boundary.s.End < _s.Start or
+           boundary.s.Start > _s.End or
+           boundary.l.Start > _half_path_width or
+           boundary.l.End < -_half_path_width;
 }
 
 STPoint::STPoint(double t, double s_begin, double s_end)

@@ -132,7 +132,7 @@ void LatticeGenerator::Combine(
     nox::type::Trajectory &result) const
 {
     double t0 = _param._time_resolution;
-    double s0 = lon.Calculate(0, t0);
+    double s0 = lon.Calculate(0, 0);
     double s_max = reference->path.Back().s;
     double last_s = -Real::Epsilon;
 
