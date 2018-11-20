@@ -1,6 +1,6 @@
 #include <Planner/tool/lattice/LatticeEvaluator.h>
 #include <nox>
-#include <Planner/type/ConstantAccelerationCurve.h>
+#include <Planner/type/PiecewiseAccelerationCurve.h>
 USING_NAMESPACE_NOX;
 using namespace nox::app;
 
@@ -59,6 +59,7 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
     _reference_v.clear();
 
     double brake_a = _param._vehicle._comfort_a_factor * _param._vehicle._min_lon_a;
+    double cruise_v = _reference_line->CruisingSpeed();
     assert(brake_a < 0);
 
     if(_reference_line->stopLine)
@@ -69,7 +70,7 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
         if(ds < _param._stop_in_range_threshold)
         {
             //region 已经在停止点附近，因此整条轨迹速度为零
-            ConstantAccelerationCurve lon_traj(_init_state[0], 0);
+            PiecewiseAccelerationCurve lon_traj(_init_state[0], 0);
             lon_traj.PushSegment(0, _param._planning_temporal_length);
 
             for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))
@@ -79,7 +80,6 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
             //endregion
         }
 
-        double cruise_v = _vehicle->v.x;
         double brake_s = -cruise_v * cruise_v * 0.5 / brake_a;
 
         if(brake_s > ds)
@@ -88,7 +88,7 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
             double reachable_v = std::sqrt(-2.0 * brake_a * ds);
             double brake_t = -reachable_v / brake_a;
 
-            ConstantAccelerationCurve lon_traj(_init_state[0], reachable_v);
+            PiecewiseAccelerationCurve lon_traj(_init_state[0], reachable_v);
             lon_traj.PushSegment(brake_a, brake_t);
 
             if(lon_traj.Boundary() < _param._planning_temporal_length)
@@ -109,7 +109,7 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
             double cruise_s = ds - brake_s;
             double cruise_t = cruise_s / cruise_v;
 
-            ConstantAccelerationCurve lon_traj(_init_state[0], cruise_v);
+            PiecewiseAccelerationCurve lon_traj(_init_state[0], cruise_v);
             lon_traj.PushSegment(0, cruise_t);
             lon_traj.PushSegment(brake_a, brake_t);
 
@@ -130,7 +130,7 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
     else
     {
         //region 没有停止的目标，按轨迹巡航速度计算
-        ConstantAccelerationCurve lon_traj(_init_state[0], _reference_line->CruisingSpeed());
+        PiecewiseAccelerationCurve lon_traj(_init_state[0], cruise_v);
         lon_traj.PushSegment(0, _param._planning_temporal_length);
 
         for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))
@@ -179,6 +179,13 @@ double LatticeEvaluator::Evaluate(
     analyze(6. Cost of lateral comfort);
     double lat_comfort_cost   = LatComfortCost(lon_traj, lat_traj);
 
+    lon_objective_cost   *= _param._weight._cost._lon_objective;
+    lon_jerk_cost        *= _param._weight._cost._lon_jerk;
+    lon_collision_cost   *= _param._weight._cost._lon_collision;
+    centripetal_acc_cost *= _param._weight._cost._centripetal_acc;
+    lat_offset_cost      *= _param._weight._cost._lat_offset;
+    lat_comfort_cost     *= _param._weight._cost._lat_comfort;
+
     costs.push_back(lon_objective_cost);
     costs.push_back(lon_jerk_cost);
     costs.push_back(lon_collision_cost);
@@ -187,12 +194,12 @@ double LatticeEvaluator::Evaluate(
     costs.push_back(lat_comfort_cost);
 
     return
-        _param._weight._cost._lon_objective * lon_objective_cost +
-        _param._weight._cost._lon_jerk * lon_jerk_cost +
-        _param._weight._cost._lon_collision * lon_collision_cost +
-        _param._weight._cost._centripetal_acc * centripetal_acc_cost +
-        _param._weight._cost._lat_offset * lat_offset_cost +
-        _param._weight._cost._lat_comfort * lat_comfort_cost;
+        lon_objective_cost +
+        lon_jerk_cost +
+        lon_collision_cost +
+        centripetal_acc_cost +
+        lat_offset_cost +
+        lat_comfort_cost;
 }
 
 double LatticeEvaluator::LonObjectiveCost(const Ptr <math::Parametric<1>> &lon_traj) const

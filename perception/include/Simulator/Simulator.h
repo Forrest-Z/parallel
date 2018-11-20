@@ -29,13 +29,16 @@ namespace nox::app
 
         void
         Process(optional<geometry_msgs::PoseWithCovarianceStamped> obstacle, optional<nav_msgs::Odometry> vehicle_state,
-                optional<nox_msgs::ObstacleArray> &obstacles) override;
+                optional<nox_msgs::ObstacleArray> &obstacles,
+                optional<traffic_light::msg_traffic_light_list> &traffic_lights) override;
 
         bool ProcessOnobstacle(geometry_msgs::PoseWithCovarianceStamped obstacle,
-                               optional<nox_msgs::ObstacleArray> &obstacles) override;
+                               optional<nox_msgs::ObstacleArray> &obstacles,
+                               optional<traffic_light::msg_traffic_light_list> &traffic_lights) override;
 
-        bool
-        ProcessOnvehicle_state(nav_msgs::Odometry vehicle_state, optional<nox_msgs::ObstacleArray> &obstacles) override;
+        bool ProcessOnvehicle_state(nav_msgs::Odometry vehicle_state, optional<nox_msgs::ObstacleArray> &obstacles,
+                                    optional<traffic_light::msg_traffic_light_list> &traffic_lights) override;
+
 
     private:
         void Select(int index);
@@ -58,6 +61,7 @@ namespace nox::app
 
         void StretchY(double dly);
 
+        void SwitchLight();
 
     private:
         void PrintHelp();
@@ -70,6 +74,6 @@ namespace nox::app
         int _current_index = -1;
         std::vector<type::Obstacle> _obstacles;
         Pose _reference_pose;
-
+        bool _traffic_light_green = true;
     };
 }

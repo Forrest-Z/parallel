@@ -50,11 +50,13 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>nox</build_depend>
+  <build_depend>traffic_light</build_depend>
 
   <build_export_depend>nox</build_export_depend>
+  <build_export_depend>traffic_light</build_export_depend>
 
   <exec_depend>nox</exec_depend>
-
+  <exec_depend>traffic_light</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

@@ -10,14 +10,14 @@ namespace nox::app
     class LatticePlanner : public PlannerBase
     {
     public:
-        Result Plan(const type::Trajectory & stitch_trajectory, Frame frame, type::Trajectory & result) override;
+        Result Plan(const Frame & frame, type::Trajectory & result) override;
 
         Result PlanOnReferenceLine(
-            const type::TrajectoryPoint &init_point,
-            Ptr<ReferenceLine> referenceLine,
-            Frame frame,
-            nox::type::Trajectory & result,
-            double & cost);
+            const Frame                 & frame,
+            const type::TrajectoryPoint & init_point,
+            Ptr<ReferenceLine>            referenceLine,
+            nox::type::Trajectory       & result,
+            double                      & cost);
 
         Result Check(const type::Trajectory &trajectory, const Frame &frame) override;
 
@@ -37,5 +37,11 @@ namespace nox::app
             const type::PathPoint &matched_point,
             OUT math::Derivative<2> &s,
             OUT math::Derivative<2> &l);
+
+        /**
+         * 处理轨迹防止启动时速度为零（若轨迹较短，且为停车轨迹，则不处理）
+         * @param trajectory
+         */
+        void LaunchTrajectory(type::Trajectory & trajectory, Ptr<Vehicle> vehicle);
     };
 }

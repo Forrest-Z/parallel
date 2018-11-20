@@ -114,7 +114,7 @@ type::Trajectory TrajectoryStitcher::ComputeTrajectory(type::Position position, 
         result.Add(point);
         time += time_step;
         distance += param.density;
-        position.Move(param.density);
+        position = position.Move(param.density);
     }
 
     return result;

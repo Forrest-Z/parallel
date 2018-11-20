@@ -4,7 +4,7 @@ USING_NAMESPACE_NOX;
 
 void LoMap::Initialize()
 {
-    _scene_maintainer = New<SceneMaintainer>(New<Scene>());
+    _scene_maintainer = New<SceneMaintainer>();
     _scene_server.Subscribe({"scene"});
     _scene_server.AddRequestCallback(&LoMap::ProcessOnPlannerRequest, this);
 
@@ -38,6 +38,7 @@ bool LoMap::ProcessOnPlannerRequest(
     nox_msgs::GetScene::Response &response)
 {
     response.scene = _scene_maintainer->ToMsg();
+    response.scene.egoVehicle.odometry.pose.pose = request.location.pose;
     return true;
 }
 
@@ -50,6 +51,12 @@ bool LoMap::ProcessOnhdmap(std_msgs::String hdmap)
 bool LoMap::ProcessOnvirtual_obstacles(nox_msgs::ObstacleArray virtual_obstacles)
 {
     _scene_maintainer->UpdateObstacles(virtual_obstacles, true);
+    return true;
+}
+
+bool LoMap::ProcessOntraffic_lights(traffic_light::msg_traffic_light_list traffic_lights)
+{
+
     return true;
 }
 

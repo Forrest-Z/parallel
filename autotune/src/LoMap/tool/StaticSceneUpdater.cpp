@@ -1,5 +1,6 @@
 #include <LoMap/tool/StaticSceneUpdater.h>
 #include <tuple>
+#include <LoMap/tool/GuideLineBuilder.h>
 USING_NAMESPACE_NOX;
 using namespace nox::app;
 using namespace std;
@@ -10,9 +11,30 @@ StaticSceneUpdater::StaticSceneUpdater(Ptr<Scene> scene)
     _scene = scene;
 }
 
+void StaticSceneUpdater::Update(const traffic_light::msg_traffic_light_list &lights)
+{
+    _traffic_lights.direction = scene::Direction(scene::Unknown);
+
+    for(auto & i : lights.lights)
+    {
+        if(i.color == 2)
+        {
+            if(i.left)
+                _traffic_lights.direction = scene::Direction(_traffic_lights.direction | scene::Leftward);
+            if(i.right)
+                _traffic_lights.direction = scene::Direction(_traffic_lights.direction | scene::Rightward);
+            if(i.forward)
+                _traffic_lights.direction = scene::Direction(_traffic_lights.direction | scene::Forward);
+        }
+    }
+}
+
 void StaticSceneUpdater::Update(const nox_msgs::Road &source)
 {
     ClearSceneObjects();
+    auto guideLine = New<GuideLine>();
+
+
 }
 
 void StaticSceneUpdater::ClearSceneObjects()
@@ -24,6 +46,7 @@ void StaticSceneUpdater::Update(const std_msgs::String &source)
 {
     _scene->GuideLines.clear();
     _hdmap.From(source.data);
+    _hdmap.Refresh({"lomap", "hdmap"});
 
     for(auto & i : _hdmap.Roads)
     {
@@ -89,6 +112,8 @@ void StaticSceneUpdater::Update(const std_msgs::String &source)
 void StaticSceneUpdater::Update(Ptr<Road> road)
 {
     auto controlLines = GenerateControlLines(road);
+    for(auto & i : controlLines)
+        SetEndLine(i);
     AddGuideLines(controlLines);
 }
 
@@ -197,45 +222,8 @@ void StaticSceneUpdater::AddGuideLine(Ptr<ControlLine> controlLine)
     guideLine->id = id;
     guideLine->passable = controlLine->passable;
 
-    auto first_line = controlLine->segments[0]->GetFunction();
-    auto [x, y] = first_line->Calculate(0, 0);
-    auto [dx, dy] = first_line->Calculate(1, 0);
-    math::Derivative<1> x0, x1{x, dx}, y0, y1{y, dy};
-
-    for(auto & i : controlLine->segments)
-    {
-        auto s = i->Length();
-        auto f = i->GetFunction();
-        auto [tx0, ty0] = f->Calculate(0, 0);
-
-        if(abs(tx0 - x1[0]) < 0.1 and abs(ty0 - y1[0]) < 0.1) // 连续不一定可导
-        {
-            auto [tdx0, tdy0] = f->Calculate(1, 0);
-            x0 = {tx0, tdx0};
-            y0 = {ty0, tdy0};
-        }
-        else
-        {
-            x0 = x1;
-            y0 = y1;
-        }
-
-
-        auto [x, y] = f->Calculate(0, s);
-        auto [dx, dy] = f->Calculate(1, s);
-
-        x1 = {x, dx};
-        y1 = {y, dy};
-
-        math::CubicCurve curve_x(x0, x1, 1);
-        math::CubicCurve curve_y(y0, y1, 1);
-
-        for(double ds : range(0, 0.3, s))
-        {
-            guideLine->path.Add(PathPoint(curve_x, curve_y, ds / s));
-        }
-    }
-
+    GuideLineBuilder::BuildPathUsingSpline2(controlLine, guideLine);
+    GuideLineBuilder::BuildStopLine(controlLine, guideLine);
 
     _scene->GuideLines[id++] = guideLine;
 }
@@ -250,7 +238,7 @@ vector<Ptr<ControlLine>> StaticSceneUpdater::GenerateControlLines(Ptr<Road> road
     {
         //region 根据path序列追加各个车道
         auto controlLine = New<ControlLine>();
-        bool is_illegal = false;
+        bool is_illegal = path.empty();
 
         for(size_t i = 0, end = path.size(); i < end; ++i)
         {
@@ -271,6 +259,7 @@ vector<Ptr<ControlLine>> StaticSceneUpdater::GenerateControlLines(Ptr<Road> road
 
         if(end_index)
             end_index->push_back(path.back());
+
         result.push_back(controlLine);
     };
 
@@ -373,6 +362,7 @@ vector<Ptr<ControlLine>> StaticSceneUpdater::GenerateControlLines(Ptr<RoadLink> 
 void StaticSceneUpdater::AppendControlLine(Ptr<ControlLine> src, Ptr<ControlLine> extra)
 {
     src->segments.insert(src->segments.end(), extra->segments.begin(), extra->segments.end());
+    src->stopPoints.insert(src->stopPoints.end(), extra->stopPoints.begin(), extra->stopPoints.end());
 }
 
 void StaticSceneUpdater::AddGuideLines(const vector<Ptr<ControlLine>> &controlLines)
@@ -380,5 +370,20 @@ void StaticSceneUpdater::AddGuideLines(const vector<Ptr<ControlLine>> &controlLi
     for(const auto &i : controlLines)
         AddGuideLine(i);
 }
+
+void StaticSceneUpdater::SetEndLine(Ptr<ControlLine> controlLine)
+{
+    controlLine->stopPoints.push_back(controlLine->segments.back()->Back().pose.t);
+}
+
+void StaticSceneUpdater::SetTrafficLight(Ptr<ControlLine> controlLine, Ptr<RoadLink> roadLink)
+{
+    if(roadLink->direction bitand _traffic_lights.direction)
+    {
+        SetEndLine(controlLine);
+    }
+}
+
+
 
 

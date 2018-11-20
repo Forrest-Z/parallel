@@ -12,6 +12,7 @@ namespace nox::app::lattice
     struct State : public math::Derivative<2>
     {
         double t;
+        double priority_factor = 1.0;
 
         State();
 
@@ -26,6 +27,7 @@ namespace nox::app::lattice
         double target_time = 0;
         double target_speed = 0;
         double target_position = 0;
+        double priority_factor = 1.0;
 
     public:
         explicit Curve(Ptr<math::Parametric<1>> curve);

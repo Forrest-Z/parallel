@@ -42,6 +42,8 @@ namespace nox::app
 
         bool ProcessOnvirtual_obstacles(nox_msgs::ObstacleArray virtual_obstacles) override;
 
+        bool ProcessOntraffic_lights(traffic_light::msg_traffic_light_list traffic_lights) override;
+
     private:
         mailbox::Service<nox_msgs::GetScene> _scene_server;
         Ptr<SceneMaintainer> _scene_maintainer;

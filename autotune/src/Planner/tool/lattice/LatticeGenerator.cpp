@@ -33,6 +33,7 @@ void LatticeGenerator::GenerateLongitudinalBundle(Ptr<ReferenceLine> reference, 
     GenerateSpeedProfilesForObstacles(result);
     if(reference->stopLine)
     {
+        Logger::D("LatticeGenerator") << "Stop Line: " << reference->stopLine.value().s;
         GenerateSpeedProfilesForStopping(reference->StopPoint(), result);
     }
 }
@@ -121,6 +122,7 @@ void LatticeGenerator::GenerateQuinticBundle(
         lattice_curve->target_position = end_state[0];
         lattice_curve->target_speed = end_state[1];
         lattice_curve->target_time = end_state.t;
+
         result.push_back(lattice_curve);
     }
 }
@@ -131,14 +133,13 @@ void LatticeGenerator::Combine(
     const nox::math::Parametric<1> &lat,
     nox::type::Trajectory &result) const
 {
-    double t0 = _param._time_resolution;
     double s0 = lon.Calculate(0, 0);
     double s_max = reference->path.Back().s;
     double last_s = -Real::Epsilon;
 
     result.Clear();
 
-    for(double t : range(t0, _param._time_resolution, _param._planning_temporal_length))
+    for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))
     {
         math::Derivative<2> s, l;
         s[0] = lon.Calculate(0, t);

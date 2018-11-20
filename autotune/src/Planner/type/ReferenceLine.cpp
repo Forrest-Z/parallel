@@ -34,6 +34,11 @@ bool ReferenceLine::IsReachedEnd(Ptr<type::Vehicle> vehicle) const
     return (path.Back().s - nearest_point.s) < vehicle->param.length.x * 1.5;
 }
 
+math::Frenet ReferenceLine::CalculateFrenet(const Pose &pose) const
+{
+    return CalculateFrenet(pose.x, pose.y, pose.theta);
+}
+
 math::Frenet ReferenceLine::CalculateFrenet(double x, double y, double theta) const
 {
     auto frenet = path.FrenetAtPosition({x, y});
@@ -44,7 +49,7 @@ math::Frenet ReferenceLine::CalculateFrenet(double x, double y, double theta) co
 math::Frenet ReferenceLine::CalculateFrenet(Ptr<type::Vehicle> vehicle) const
 {
     assert(vehicle);
-    return CalculateFrenet(vehicle->pose.x, vehicle->pose.y, vehicle->pose.theta);
+    return CalculateFrenet(vehicle->pose);
 }
 
 double ReferenceLine::Length() const
@@ -65,4 +70,15 @@ double ReferenceLine::StopPoint() const
 {
     return stopLine.value_or(real::MAX).s;
 }
+
+void ReferenceLine::Kill()
+{
+    _killed = true;
+}
+
+bool ReferenceLine::Dead() const
+{
+    return _killed;
+}
+
 

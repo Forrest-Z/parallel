@@ -31,6 +31,7 @@ namespace nox::app
         struct
         {
             
+            parameter::VehicleParameter Vehicle;
         } params;
 
         struct

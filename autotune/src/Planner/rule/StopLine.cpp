@@ -2,15 +2,15 @@
 
 namespace nox::app::rule
 {
-    void StopLine::Apply(Ptr<GuideDecider> decider, Ptr<ReferenceLine> referenceLine) const
+    void StopLine::Apply(const PlannerBase::Frame & frame, ReferenceLine & referenceLine) const
     {
-        if(referenceLine->stopLine)
+        if(referenceLine.stopLine)
         {
-            auto frenet = referenceLine->CalculateFrenet(decider->vehicle);
-            double ds = referenceLine->stopLine->s - frenet.s;
+            auto frenet = referenceLine.CalculateFrenet(frame.stitch->Back().pose);
+            double ds = referenceLine.stopLine->s - frenet.s;
 
             if(ds >= 0 and ds <= 50)
-                referenceLine->AddCost(ReferenceLine::Important, 1);
+                referenceLine.AddCost(ReferenceLine::Important, 1);
         }
     }
 }

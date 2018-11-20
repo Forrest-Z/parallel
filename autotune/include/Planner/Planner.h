@@ -63,7 +63,6 @@ namespace nox::app
         Result Plan(type::Trajectory &result, bool enable_stitch = true);
 
 
-
     private:
         type::Vehicle _vehicle;
         type::Scene   _scene;

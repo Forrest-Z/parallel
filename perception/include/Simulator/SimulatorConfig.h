@@ -12,6 +12,7 @@
 #include "../../../.plugin/Plugin.h"
 
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <traffic_light/msg_traffic_light_list.h>
 
 namespace nox::app
 {

@@ -1,5 +1,5 @@
 #include <Planner/type/STGraph.h>
-
+USING_NAMESPACE_NOX;
 using namespace nox::app;
 
 
@@ -18,6 +18,7 @@ STGraph::STGraph(
     _time_resolution = time_resolution;
     _half_path_width = 0.5 * path_width;
     _reference = referenceLine;
+
     SetupObstacles(scene);
 }
 

@@ -21,6 +21,7 @@ message("Build Type:" ${CMAKE_BUILD_TYPE} ${CMAKE_CXX_FLAGS})
 
 set(${PROJECT_NAME}_DEPS
   nox
+        traffic_light
 )
 
 set(${PROJECT_NAME}_SYSTEM_DEPS
@@ -84,12 +85,12 @@ add_executable(autotune_Planner
         include/Planner/PlannerConfig.h
         include/Planner/tool/PredictionQuerier.h src/Planner/tool/PredictionQuerier.cpp
         include/Planner/tool/lattice/LatticeEvaluator.h src/Planner/tool/lattice/LatticeEvaluator.cpp
-        include/Planner/type/ConstantAccelerationCurve.h src/Planner/type/ConstantAccelerationCurve.cpp
+        include/Planner/type/PiecewiseAccelerationCurve.h src/Planner/type/PiecewiseAccelerationCurve.cpp
         include/Planner/tool/ConstraintChecker.h src/Planner/tool/ConstraintChecker.cpp
         include/Planner/tool/CollisionChecker.h src/Planner/tool/CollisionChecker.cpp
         include/Planner/type/ConstantJerkCurve.h src/Planner/type/ConstantJerkCurve.cpp
-        include/Planner/type/PiecewiseJerkCurve.h src/Planner/type/PiecewiseJerkCurve.cpp src/Planner/tool/GuideDecider.cpp src/Planner/rule/StopLine.cpp
-        include/Planner/tool/GuideDecider.h include/Planner/rule/StopLine.h include/Planner/rule/Passable.h src/Planner/rule/Passable.cpp include/Tracking/tool/Guardian.h)
+        include/Planner/type/PiecewiseJerkCurve.h src/Planner/type/PiecewiseJerkCurve.cpp src/Planner/rule/StopLine.cpp
+        include/Planner/rule/StopLine.h include/Planner/rule/Passable.h src/Planner/rule/Passable.cpp include/Tracking/tool/Guardian.h src/Planner/type/ConstantAccelerationCurve.cpp)
 target_link_libraries(autotune_Planner
     ${catkin_LIBRARIES}
 )
@@ -106,7 +107,7 @@ add_executable(autotune_LoMap
         include/LoMap/tool/SceneObjectCreator.h
         include/LoMap/tool/DynamicSceneUpdater.h src/LoMap/tool/DynamicSceneUpdater.cpp
         include/LoMap/tool/SceneOverlapBuilder.h src/LoMap/tool/SceneOverlapBuilder.cpp
-        include/LoMap/LoMapConfig.h )
+        include/LoMap/LoMapConfig.h include/LoMap/tool/GuideLineBuilder.h include/LoMap/type/ControlLine.h src/LoMap/tool/GuideLineBuilder.cpp)
 target_link_libraries(autotune_LoMap
     ${catkin_LIBRARIES}
 )
@@ -126,7 +127,7 @@ set_target_properties(autotune_FakeHDMap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${P
 add_executable(autotune_Tracking
     include/Tracking/.TrackingModule.h src/Tracking/.TrackingModule.cpp
     include/Tracking/Tracking.h src/Tracking/Tracking.cpp
-        include/Tracking/tool/LongitudinalController.h include/Tracking/tool/LateralController.h include/Tracking/tool/SimpleLongitudinalController.h src/Tracking/tool/SimpleLongitudinalController.cpp include/Tracking/tool/VTF.h src/Tracking/tool/VTF.cpp)
+        include/Tracking/tool/LongitudinalController.h include/Tracking/tool/LateralController.h include/Tracking/tool/SimpleLongitudinalController.h src/Tracking/tool/SimpleLongitudinalController.cpp include/Tracking/tool/VTF.h src/Tracking/tool/VTF.cpp include/Tracking/tool/Filter.h src/Tracking/tool/Filter.cpp include/Tracking/rule/Clipping.h src/Tracking/rule/Clipping.cpp include/Tracking/rule/Lowpass.h src/Tracking/rule/Lowpass.cpp include/Tracking/rule/Limiting.h src/Tracking/rule/Limiting.cpp include/Tracking/rule/Custom.h src/Tracking/rule/Custom.cpp include/Planner/type/ConstantAccelerationCurve.h)
 target_link_libraries(autotune_Tracking
     ${catkin_LIBRARIES}
 )

@@ -10,6 +10,7 @@
 #include "../../../.plugin/Plugin.h"
 #include <old_nox_msgs.h>
 #include <std_msgs/String.h>
+#include <traffic_light/msg_traffic_light_list.h>
 
 namespace nox::app
 {

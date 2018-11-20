@@ -28,9 +28,11 @@ namespace nox::app
 
         void Process(optional<nav_msgs::Odometry> &vehicle_state, optional<nox_msgs::Location> &Localization,
                      optional<nox_lcm::GPSData> &GPSDataLCM, optional<nox_msgs::Chassis> &chassis,
-                     optional<nox_msgs::Location> &localization) override;
+                     optional<nox_msgs::Location> &localization, optional<nox_msgs::DrivingCommand> &driving) override;
 
     private:
-        type::Odometry _odometry;
+        type::Vehicle _vehicle;
+        bool _driving = false;
+        bool _positioning = true;
     };
 }

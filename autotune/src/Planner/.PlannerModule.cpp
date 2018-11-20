@@ -68,6 +68,7 @@ void PlannerModule::InitMailbox()
 void PlannerModule::InitParameter()
 {
     
+    params.Vehicle.Read(GetParameter("Vehicle"));
 }
 
 void PlannerModule::InitCallback()

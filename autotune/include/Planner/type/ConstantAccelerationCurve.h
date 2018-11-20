@@ -1,34 +1,29 @@
 /**
- * @brief 描述恒定加速的的轨迹
+ * @file ConstantAccelerationCurve.h
  */
+
 #pragma once
 
 #include <nox>
-#include <vector>
 
 namespace nox::app
 {
-    class ConstantAccelerationCurve : public math::Parametric<1>
+    class ConstantAccelerationCurve
+        : public math::Parametric<1>
     {
     public:
-        ConstantAccelerationCurve(double start_s, double start_v);
+        ConstantAccelerationCurve() = default;
 
-        void PushSegment(double a, double dt);
+        ConstantAccelerationCurve(double s0, double v0, double t, double a);
 
-        void PopSegment();
-
-        double Calculate(size_t order, double param) const override;
+        double Calculate(size_t order, double t) const override;
 
         double Boundary() const override;
 
     private:
-        double CalculateS(double t) const;
-
-        double CalculateV(double t) const;
-
-        double CalculateA(double t) const;
-
-    private:
-        std::vector<double> _s, _v, _t, _a;
+        double _s = 0;
+        double _v = 0;
+        double _t = 0;
+        double _a = 0;
     };
 }

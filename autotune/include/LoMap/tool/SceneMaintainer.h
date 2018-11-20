@@ -14,7 +14,7 @@ namespace nox::app
         : public system::MutexLock
     {
     public:
-        explicit SceneMaintainer(Ptr<type::Scene> scene);
+        explicit SceneMaintainer();
 
         nox_msgs::Scene ToMsg() const;
 
@@ -27,8 +27,17 @@ namespace nox::app
 
         void UpdateMap(const std_msgs::String & source);
 
+        void UpdateTrafficLight(const traffic_light::msg_traffic_light_list & lights);
+
     private:
-        Ptr<type::Scene> _scene;
+        void UpdateScene();
+
+    private:
+        Ptr<type::Scene> _ready_scene;
+        Ptr<type::Scene> _temp_scene;
+        system::MutexLock _visit_lock;
+        system::MutexLock _update_lock;
+
         StaticSceneUpdater _static_updater;
         DynamicSceneUpdater _dynamic_updater;
         SceneOverlapBuilder _overlap_builder;

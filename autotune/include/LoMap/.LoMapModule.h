@@ -20,7 +20,7 @@ namespace nox::app
 
         virtual void Terminate();
 
-        virtual void Process( optional<nav_msgs::Odometry> vehicle_state, optional<nox_msgs::ObstacleArray> obstacles, optional<nox_msgs::Road> old_map, optional<std_msgs::String> hdmap, optional<nox_msgs::ObstacleArray> virtual_obstacles  );
+        virtual void Process( optional<nav_msgs::Odometry> vehicle_state, optional<nox_msgs::ObstacleArray> obstacles, optional<nox_msgs::Road> old_map, optional<std_msgs::String> hdmap, optional<nox_msgs::ObstacleArray> virtual_obstacles, optional<traffic_light::msg_traffic_light_list> traffic_lights  );
 
         
         virtual bool ProcessOnvehicle_state( nav_msgs::Odometry vehicle_state   );
@@ -28,6 +28,7 @@ namespace nox::app
         virtual bool ProcessOnold_map( nox_msgs::Road old_map   );
         virtual bool ProcessOnhdmap( std_msgs::String hdmap   );
         virtual bool ProcessOnvirtual_obstacles( nox_msgs::ObstacleArray virtual_obstacles   );
+        virtual bool ProcessOntraffic_lights( traffic_light::msg_traffic_light_list traffic_lights   );
 
         
 
@@ -50,6 +51,7 @@ namespace nox::app
             mailbox::Topic<nox_msgs::Road> old_map;
             mailbox::Topic<std_msgs::String> hdmap;
             mailbox::Topic<nox_msgs::ObstacleArray> virtual_obstacles;
+            mailbox::Topic<traffic_light::msg_traffic_light_list> traffic_lights;
         } mailboxes;
 
     protected: /// 框架生命周期管理代码

@@ -18,6 +18,7 @@
 #include ".TrackingModule.h"
 #include <Tracking/tool/LongitudinalController.h>
 #include <Tracking/tool/LateralController.h>
+#include <Tracking/tool/Filter.h>
 
 namespace nox::app
 {
@@ -37,5 +38,6 @@ namespace nox::app
         Trajectory                  _trajectory;
         Vehicle                     _vehicle;
         system::Timer               _timer;
+        Filter                      _lon_filter;
     };
 }

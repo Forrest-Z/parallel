@@ -20,7 +20,7 @@ namespace nox::app
 
         virtual void Terminate();
 
-        virtual void Process(  optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization, optional<nox_lcm::GPSData> & GPSDataLCM, optional<nox_msgs::Chassis> & chassis, optional<nox_msgs::Location> & localization );
+        virtual void Process(  optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization, optional<nox_lcm::GPSData> & GPSDataLCM, optional<nox_msgs::Chassis> & chassis, optional<nox_msgs::Location> & localization, optional<nox_msgs::DrivingCommand> & driving );
 
         
 
@@ -45,6 +45,7 @@ namespace nox::app
             mailbox::LCM<nox_lcm::GPSData> GPSDataLCM;
             mailbox::Topic<nox_msgs::Chassis> chassis;
             mailbox::Topic<nox_msgs::Location> localization;
+            mailbox::Topic<nox_msgs::DrivingCommand> driving;
         } mailboxes;
 
     protected: /// 框架生命周期管理代码
@@ -67,7 +68,7 @@ namespace nox::app
 
         void TerminatePlugin();
 
-        void ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization, optional<nox_lcm::GPSData> & GPSDataLCM, optional<nox_msgs::Chassis> & chassis, optional<nox_msgs::Location> & localization );
+        void ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & Localization, optional<nox_lcm::GPSData> & GPSDataLCM, optional<nox_msgs::Chassis> & chassis, optional<nox_msgs::Location> & localization, optional<nox_msgs::DrivingCommand> & driving );
 
     private: /// 框架成员
         struct

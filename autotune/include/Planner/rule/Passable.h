@@ -5,13 +5,13 @@
  */
 #pragma once
 
-#include <Planner/tool/GuideDecider.h>
+#include <Planner/tool/DecisionMaker.h>
 
 namespace nox::app::rule
 {
-    class Passable : public GuideDecider::Rule
+    class Passable : public DecisionMaker::Rule
     {
     public:
-        void Apply(Ptr<GuideDecider> decider, Ptr<ReferenceLine> referenceLine) const override;
+        void Apply(const PlannerBase::Frame & frame, ReferenceLine & referenceLine) const override;
     };
 }

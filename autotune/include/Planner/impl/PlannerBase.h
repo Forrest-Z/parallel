@@ -26,13 +26,26 @@ namespace nox::app
             std::vector<Ptr<ReferenceLine>> references;
             Ptr<type::Scene> scene;
             Ptr<type::Vehicle> vehicle;
+            Ptr<type::Trajectory> stitch;
         };
 
     public:
         virtual ~PlannerBase() = default;
 
-        virtual Result Plan(const type::Trajectory & stitch_trajectory, Frame frame, type::Trajectory & result) = 0;
+        /**
+         * 从当前帧规划到result
+         * @param frame 当前帧规划信息（车状态、引导线、规划场景等）
+         * @param result 规划结果
+         * @return 规划状态
+         */
+        virtual Result Plan(const Frame & frame, type::Trajectory & result) = 0;
 
+        /**
+         * 检查目标轨迹在frame下的合理性
+         * @param trajectory 目标轨迹
+         * @param frame 当前规划信息
+         * @return 检查状态
+         */
         virtual Result Check(const type::Trajectory & trajectory, const Frame & frame) = 0;
 
     public:

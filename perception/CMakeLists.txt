@@ -22,6 +22,8 @@ message("Build Basic:" ${CMAKE_BUILD_TYPE} ${CMAKE_CXX_FLAGS})
 
 set(${PROJECT_NAME}_DEPS
   nox
+        autoware_msgs
+        traffic_light
 )
 
 set(${PROJECT_NAME}_SYSTEM_DEPS
@@ -79,8 +81,6 @@ catkin_package(
 ## Build Executable ##
 ######################
 #pragma nox_begin("build executable")
-
-
 add_executable(perception_Simulator
     include/Simulator/.SimulatorModule.h src/Simulator/.SimulatorModule.cpp
     include/Simulator/Simulator.h src/Simulator/Simulator.cpp
@@ -91,6 +91,17 @@ target_link_libraries(perception_Simulator
 )
 set_target_properties(perception_Simulator PROPERTIES OUTPUT_NAME Simulator PREFIX "")
 set_target_properties(perception_Simulator PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../.bin/perception/)
+
+add_executable(perception_Repeater
+    include/Repeater/.RepeaterModule.h src/Repeater/.RepeaterModule.cpp
+    include/Repeater/Repeater.h src/Repeater/Repeater.cpp
+    include/Repeater/RepeaterConfig.h
+)
+target_link_libraries(perception_Repeater
+    ${catkin_LIBRARIES}
+)
+set_target_properties(perception_Repeater PROPERTIES OUTPUT_NAME Repeater PREFIX "")
+set_target_properties(perception_Repeater PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../.bin/perception/)
 
 
 #pragma nox_end()

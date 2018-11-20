@@ -22,6 +22,7 @@ message("Build Type:" ${CMAKE_BUILD_TYPE} ${CMAKE_CXX_FLAGS})
 
 set(${PROJECT_NAME}_DEPS
   nox
+        tf
 )
 
 set(${PROJECT_NAME}_SYSTEM_DEPS
@@ -80,7 +81,7 @@ add_executable(localization_Simulator
         include/Simulator/tool/CoordinateConverter.h
         include/Simulator/tool/convert_coordinates.hpp
         src/Simulator/tool/CoordinateConverter.cpp
-)
+        src/Common/Common.cpp include/Common/Common.h)
 target_link_libraries(localization_Simulator
     ${catkin_LIBRARIES}
 )
@@ -93,7 +94,7 @@ add_executable(localization_GPS
         include/GPS/tool/CoordinateConverter.h src/GPS/tool/CoordinateConverter.cpp
         include/GPS/type/NCOM.h src/GPS/type/NCOM.cpp
         include/GPS/type/GPSIMU.h src/GPS/type/GPSIMU.cpp
-)
+        src/Common/Common.cpp include/Common/Common.h)
 target_link_libraries(localization_GPS
     ${catkin_LIBRARIES}
 )
@@ -103,7 +104,7 @@ set_target_properties(localization_GPS PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PRO
 add_executable(localization_Repeater
     include/Repeater/.RepeaterModule.h src/Repeater/.RepeaterModule.cpp
     include/Repeater/Repeater.h src/Repeater/Repeater.cpp
-)
+        src/Common/Common.cpp include/Common/Common.h)
 target_link_libraries(localization_Repeater
     ${catkin_LIBRARIES}
 )

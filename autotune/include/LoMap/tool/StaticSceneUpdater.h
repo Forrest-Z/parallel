@@ -11,18 +11,14 @@
 #include <std_msgs/String.h>
 #include <optional>
 #include "SceneObjectCreator.h"
+#include <LoMap/type/ControlLine.h>
+#include <traffic_light/msg_traffic_light_list.h>
 using namespace nox::type;
 using std::vector;
 using std::optional;
 
 namespace nox::app
 {
-    struct ControlLine
-    {
-        std::vector<Ptr<Lane>> segments;
-        bool passable = true;
-    };
-
     class StaticSceneUpdater
     {
     public:
@@ -31,6 +27,8 @@ namespace nox::app
         void Update(const nox_msgs::Road &source);
 
         void Update(const std_msgs::String & source);
+
+        void Update(const traffic_light::msg_traffic_light_list & lights);
 
     private:
         void ClearSceneObjects();
@@ -53,9 +51,9 @@ namespace nox::app
          * @return 每一种可能的Guide Line
          */
         vector<Ptr<ControlLine>> GenerateControlLines(
-        Ptr<Road> road,
-        const vector<int> &path = {},
-        vector<int> *end_index = nullptr);
+            Ptr<Road> road,
+            const vector<int> &path = {},
+            vector<int> *end_index = nullptr);
 
         /**
          * 遍历路口处一个路连接的多个Lane，产生GuideLine
@@ -65,19 +63,25 @@ namespace nox::app
          * @return 每一种可能的GuideLine
          */
         vector<Ptr<ControlLine>> GenerateControlLines(
-        Ptr<RoadLink> roadLink,
-        optional<int> begin_index = optional<int>(),
-        vector<int> *next_index = nullptr);
+            Ptr<RoadLink> roadLink,
+            optional<int> begin_index = optional<int>(),
+            vector<int> * next_index = nullptr);
 
-        void AddGuideLine(Ptr<ControlLine> guideLine);
+        void AddGuideLine(Ptr<ControlLine> controlLine);
 
-        void AddGuideLines(const vector<Ptr<ControlLine>> & guideLines);
+        void AddGuideLines(const vector<Ptr<ControlLine>> & controlLines);
 
         void AppendControlLine(Ptr<ControlLine> src, Ptr<ControlLine> extra);
 
     private:
+        void SetEndLine(Ptr<ControlLine> controlLine);
+
+        void SetTrafficLight(Ptr<ControlLine> controlLine, Ptr<RoadLink> roadLink);
+
+    private:
         Ptr<Scene> _scene;
         Map _hdmap;
+        type::Signal _traffic_lights;
     };
 
 

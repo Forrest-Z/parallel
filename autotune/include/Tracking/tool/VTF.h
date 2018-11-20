@@ -5,6 +5,7 @@
 #pragma once
 
 #include "LateralController.h"
+#include <Tracking/tool/Filter.h>
 
 namespace nox::app
 {
@@ -18,5 +19,6 @@ namespace nox::app
 
     private:
         math::filter::RC_1o_1d _da_filter;
+        Filter _a_error_filter;
     };
 }

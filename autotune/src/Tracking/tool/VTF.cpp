@@ -1,6 +1,7 @@
 #include <Tracking/tool/VTF.h>
 #include <Tracking/TrackingConfig.h>
 #include "../../../../.param/template/Parameter.h"
+#include <Tracking/rule/Lowpass.h>
 
 USING_NAMESPACE_NOX;
 using namespace nox::app;
@@ -12,6 +13,7 @@ VTF::VTF()
     da_config.ThC = 20;
 
     _da_filter.SetConfig(da_config);
+    _a_error_filter.AddRule<rule::Lowpass>(5);
 }
 
 
@@ -26,10 +28,11 @@ double VTF::Calculate(const type::Trajectory &path, const type::Vehicle &vehicle
     auto nearest_frenet = path.FrenetAtPosition(vehicle.pose.t);
 
     double dError = nearest_frenet.l;
-    double aError = vehicle.pose.theta - nearest_frenet.theta; // nearest_point.pose.theta;
+    double aError = vehicle.pose.theta - nearest_frenet.theta;
     double v = vehicle.v.x;
 
     // aError = _da_filter(aError);
+//    aError = _a_error_filter(aError);
 
     Logger::I("Map").Print("Map(x, y, theta, kappa): %6.3lf m, %6.3lf m, %6.3lf deg, %10.6lf 1/m",
                            nearest_point.pose.x.get(),
@@ -65,6 +68,9 @@ double VTF::Calculate(const type::Trajectory &path, const type::Vehicle &vehicle
         Kappa = 0;
 
     double ls = std::min(vtf_param.lsmax, std::max(vtf_param.lsmin /* 5 */, vx1 * vtf_param.lsmulti));
+//    double ls = (std::abs(Kappa) - 0.05) * (vtf_param.lsmax - vtf_param.lsmin) / (0.005 - 0.05) + vtf_param.lsmin;
+//    ls = math::Clamp(ls, vtf_param.lsmin, vtf_param.lsmax);
+
     double eymax = (vx1 * 3.6 - 40.0) * ( vtf_param.eymax_1 - vtf_param.eymax_2 ) / ( 10.0 - 40.0 ) + vtf_param.eymax_2;
     eymax = std::max(eymax, vtf_param.eymax_min);
 
@@ -94,7 +100,12 @@ double VTF::Calculate(const type::Trajectory &path, const type::Vehicle &vehicle
 
     double fai_target = std::min(abs(fai_target0), fai_max) * math::Sign(fai_target0);
 
-    return fai_target;
+    /// -----------------------------------------------------------------------------
+    /// 结果根据速度进行限制
+    double wrmax = 0.8;
+    double fai_target_limit = std::max(wrmax / Kw, 0.0);
+
+    return std::min(std::abs(fai_target), fai_target_limit) * math::Sign(fai_target);
 }
 
 

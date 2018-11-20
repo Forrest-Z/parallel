@@ -27,6 +27,11 @@ namespace nox::app
     public: /// 操作接口
         void AddCost(Priority priority, double cost);
 
+        /**
+         * 杀死该条参考线，不会被规划
+         */
+        void Kill();
+
     public: /// 查询接口
         bool IsPriorThan(const ReferenceLine &other) const;
 
@@ -38,12 +43,17 @@ namespace nox::app
 
         double StopPoint() const;
 
+        bool Dead() const;
+
     public: /// 工具接口
         math::Frenet CalculateFrenet(Ptr<type::Vehicle> vehicle) const;
+
+        math::Frenet CalculateFrenet(const Pose & pose) const;
 
         math::Frenet CalculateFrenet(double x, double y, double theta) const;
 
     private:
         std::array<double, 4> _priority{1, 1, 1, 1};
+        bool _killed = false;
     };
 }

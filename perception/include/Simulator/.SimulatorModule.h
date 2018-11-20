@@ -20,11 +20,11 @@ namespace nox::app
 
         virtual void Terminate();
 
-        virtual void Process( optional<geometry_msgs::PoseWithCovarianceStamped> obstacle, optional<nav_msgs::Odometry> vehicle_state,  optional<nox_msgs::ObstacleArray> & obstacles );
+        virtual void Process( optional<geometry_msgs::PoseWithCovarianceStamped> obstacle, optional<nav_msgs::Odometry> vehicle_state,  optional<nox_msgs::ObstacleArray> & obstacles, optional<traffic_light::msg_traffic_light_list> & traffic_lights );
 
         
-        virtual bool ProcessOnobstacle( geometry_msgs::PoseWithCovarianceStamped obstacle , optional<nox_msgs::ObstacleArray> & obstacles );
-        virtual bool ProcessOnvehicle_state( nav_msgs::Odometry vehicle_state , optional<nox_msgs::ObstacleArray> & obstacles );
+        virtual bool ProcessOnobstacle( geometry_msgs::PoseWithCovarianceStamped obstacle , optional<nox_msgs::ObstacleArray> & obstacles, optional<traffic_light::msg_traffic_light_list> & traffic_lights );
+        virtual bool ProcessOnvehicle_state( nav_msgs::Odometry vehicle_state , optional<nox_msgs::ObstacleArray> & obstacles, optional<traffic_light::msg_traffic_light_list> & traffic_lights );
 
         
 
@@ -45,6 +45,7 @@ namespace nox::app
             mailbox::Topic<geometry_msgs::PoseWithCovarianceStamped> obstacle;
             mailbox::Topic<nav_msgs::Odometry> vehicle_state;
             mailbox::Topic<nox_msgs::ObstacleArray> obstacles;
+            mailbox::Topic<traffic_light::msg_traffic_light_list> traffic_lights;
         } mailboxes;
 
     protected: /// 框架生命周期管理代码
@@ -67,7 +68,7 @@ namespace nox::app
 
         void TerminatePlugin();
 
-        void ProcessOutput( optional<nox_msgs::ObstacleArray> & obstacles );
+        void ProcessOutput( optional<nox_msgs::ObstacleArray> & obstacles, optional<traffic_light::msg_traffic_light_list> & traffic_lights );
 
     private: /// 框架成员
         struct

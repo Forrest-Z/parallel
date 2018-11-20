@@ -42,8 +42,9 @@ void SimulatorModule::OnRun()
     {
         
         optional<nox_msgs::ObstacleArray> obstacles_out;
-        Process( obstacle_in, vehicle_state_in,  obstacles_out );
-        ProcessOutput( obstacles_out );
+        optional<traffic_light::msg_traffic_light_list> traffic_lights_out;
+        Process( obstacle_in, vehicle_state_in,  obstacles_out, traffic_lights_out );
+        ProcessOutput( obstacles_out, traffic_lights_out );
     }
 }
 
@@ -63,6 +64,7 @@ void SimulatorModule::InitMailbox()
     mailboxes.vehicle_state.SetValidity(1000);
     
     mailboxes.obstacles.Advertise({"virtual_obstacles"});
+    mailboxes.traffic_lights.Advertise({"traffic_lights"});
 }
 
 void SimulatorModule::InitParameter()
@@ -76,16 +78,18 @@ void SimulatorModule::InitCallback()
     mailboxes.obstacle.AddCallback([&]( const geometry_msgs::PoseWithCovarianceStamped & msg, const Address & address ) {
         
         optional<nox_msgs::ObstacleArray> obstacles_out;
-        bool result = ProcessOnobstacle( msg , obstacles_out );
-        ProcessOutput( obstacles_out );
+        optional<traffic_light::msg_traffic_light_list> traffic_lights_out;
+        bool result = ProcessOnobstacle( msg , obstacles_out, traffic_lights_out );
+        ProcessOutput( obstacles_out, traffic_lights_out );
         return result;
     });
 
     mailboxes.vehicle_state.AddCallback([&]( const nav_msgs::Odometry & msg, const Address & address ) {
         
         optional<nox_msgs::ObstacleArray> obstacles_out;
-        bool result = ProcessOnvehicle_state( msg , obstacles_out );
-        ProcessOutput( obstacles_out );
+        optional<traffic_light::msg_traffic_light_list> traffic_lights_out;
+        bool result = ProcessOnvehicle_state( msg , obstacles_out, traffic_lights_out );
+        ProcessOutput( obstacles_out, traffic_lights_out );
         return result;
     });
 
@@ -108,11 +112,13 @@ void SimulatorModule::TerminatePlugin()
     
 }
 
-void SimulatorModule::ProcessOutput( optional<nox_msgs::ObstacleArray> & obstacles )
+void SimulatorModule::ProcessOutput( optional<nox_msgs::ObstacleArray> & obstacles, optional<traffic_light::msg_traffic_light_list> & traffic_lights )
 {
     
     if(obstacles)
         mailboxes.obstacles.Send(obstacles.value());
+    if(traffic_lights)
+        mailboxes.traffic_lights.Send(traffic_lights.value());
 }
 
 void SimulatorModule::Initialize()
@@ -125,24 +131,27 @@ void SimulatorModule::Terminate()
     // Do Nothing ...
 }
 
-void SimulatorModule::Process( optional<geometry_msgs::PoseWithCovarianceStamped> obstacle, optional<nav_msgs::Odometry> vehicle_state,  optional<nox_msgs::ObstacleArray> & obstacles )
+void SimulatorModule::Process( optional<geometry_msgs::PoseWithCovarianceStamped> obstacle, optional<nav_msgs::Odometry> vehicle_state,  optional<nox_msgs::ObstacleArray> & obstacles, optional<traffic_light::msg_traffic_light_list> & traffic_lights )
 {
     
     obstacles.reset();
+    traffic_lights.reset();
 }
 
 
 
 
-bool SimulatorModule::ProcessOnobstacle( geometry_msgs::PoseWithCovarianceStamped obstacle , optional<nox_msgs::ObstacleArray> & obstacles )
+bool SimulatorModule::ProcessOnobstacle( geometry_msgs::PoseWithCovarianceStamped obstacle , optional<nox_msgs::ObstacleArray> & obstacles, optional<traffic_light::msg_traffic_light_list> & traffic_lights )
 {
     
     obstacles.reset();
+    traffic_lights.reset();
     return false; /// 
 }
-bool SimulatorModule::ProcessOnvehicle_state( nav_msgs::Odometry vehicle_state , optional<nox_msgs::ObstacleArray> & obstacles )
+bool SimulatorModule::ProcessOnvehicle_state( nav_msgs::Odometry vehicle_state , optional<nox_msgs::ObstacleArray> & obstacles, optional<traffic_light::msg_traffic_light_list> & traffic_lights )
 {
     
     obstacles.reset();
+    traffic_lights.reset();
     return false; /// 
 }

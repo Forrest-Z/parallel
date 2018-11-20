@@ -4,12 +4,14 @@
 #include <Planner/tool/lattice/LatticeGenerator.h>
 #include <Planner/tool/lattice/LatticeEvaluator.h>
 #include <Planner/tool/CollisionChecker.h>
+#include <nox>
+
 USING_NAMESPACE_NOX;
 using namespace nox::app;
 using namespace nox::type;
 using std::endl;
 
-PlannerBase::Result LatticePlanner::Plan(const type::Trajectory &stitch_trajectory, PlannerBase::Frame frame, type::Trajectory &result)
+PlannerBase::Result LatticePlanner::Plan(const PlannerBase::Frame & frame, type::Trajectory &result)
 {
     struct PlanningResult
     {
@@ -37,27 +39,31 @@ PlannerBase::Result LatticePlanner::Plan(const type::Trajectory &stitch_trajecto
 
     for(auto & i : frame.references)
     {
-        references_heap.push(i);
+        if(not i->Dead())
+            references_heap.push(i);
     }
 
     string error_msg;
     bool is_optimal_reference_line = true;
+    auto init_point = frame.stitch->Back();
+    frame.stitch->PopBack();
 
     Logger::I("LatticePlanner")
         << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl
         << "Start to plan ...";
+
     while (references_heap.HasNext())
     {
         auto i = references_heap.Next();
         type::Trajectory candidate;
 
         double cost;
-        auto planning_result = PlanOnReferenceLine(stitch_trajectory.Back(), i, frame, candidate, cost);
+        auto planning_result = PlanOnReferenceLine(frame, init_point, i, candidate, cost);
         if(planning_result.OK())
         {
             auto result_candidate = New<PlanningResult>();
             result_candidate->cost = cost;
-            result_candidate->trajectory = stitch_trajectory + candidate;
+            result_candidate->trajectory = *frame.stitch + candidate;
 
             if(not is_optimal_reference_line)
                 result_candidate->cost *= param.cost_not_optimal_reference_line;
@@ -68,7 +74,7 @@ PlannerBase::Result LatticePlanner::Plan(const type::Trajectory &stitch_trajecto
         }
         else
         {
-            error_msg += FormatOut("Guide Line [id: %lu]: %s\n", i->id, planning_result.Message());
+            error_msg += FormatOut("Guide Line [id: %lu]: %s\n", i->id, planning_result.Message().c_str());
         }
     }
 
@@ -80,11 +86,11 @@ PlannerBase::Result LatticePlanner::Plan(const type::Trajectory &stitch_trajecto
 }
 
 PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
-    const type::TrajectoryPoint &init_point,
-    Ptr<ReferenceLine> reference,
-    PlannerBase::Frame frame,
-    type::Trajectory & result,
-    double & cost)
+    const PlannerBase::Frame    & frame,
+    const type::TrajectoryPoint & init_point,
+    Ptr<ReferenceLine>            reference,
+    type::Trajectory            & result,
+    double                      & cost)
 {
     analyze_init(LatticePlanner);
     analyze_enable(false);
@@ -164,6 +170,8 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
         if(collision_checker.InCollision(trajectory))
             continue;
 
+        LaunchTrajectory(trajectory, frame.vehicle);
+
         auto lon = std::dynamic_pointer_cast<lattice::Curve>(candidate.lon);
         auto lat = std::dynamic_pointer_cast<lattice::Curve>(candidate.lat);
         Logger::D("LatticePlanner")
@@ -214,5 +222,16 @@ PlannerBase::Result LatticePlanner::Check(const type::Trajectory &trajectory, co
         return Result(ErrorCode ::InCollision);
 
     return Result(ErrorCode::Success);
+}
+
+void LatticePlanner::LaunchTrajectory(type::Trajectory &trajectory, Ptr<Vehicle> vehicle)
+{
+    for(size_t i = 0, size = trajectory.Size(); i < size; ++i)
+    {
+        double & v = trajectory[i].v;
+        if(real::IsZero(v) or abs(v) > 0.5)
+            break;
+        v = 0.5 * math::Sign(v);
+    }
 }
 

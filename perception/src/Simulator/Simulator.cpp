@@ -28,6 +28,9 @@ void Simulator::Initialize()
                     case KeyBoard::H: case KeyBoard::h:
                         PrintHelp();
                         return true;
+                    case KeyBoard::L: case KeyBoard::l:
+                        SwitchLight();
+                        return true;
                 }
 
                 if(_current_index == -1)
@@ -203,6 +206,12 @@ void Simulator::StretchY(double dly)
     PrintHelp();
 }
 
+void Simulator::SwitchLight()
+{
+    _traffic_light_green = !_traffic_light_green;
+    PrintHelp();
+}
+
 void Simulator::PrintHelp()
 {
     Console::Screen::Clear();
@@ -221,6 +230,7 @@ void Simulator::PrintHelp()
         << "[   Q, E   ]: Control the speed of the selected obstacle." << endl
         << "[   N, M   ]: Stretch x direction of the selected obstacle." << endl
         << "[   O, P   ]: Stretch y direction of the selected obstacle." << endl
+        << "[   L, l   ]: Switch traffic light between green and red." << endl
         << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
 
     Console::ForeColor::Purple();
@@ -249,48 +259,29 @@ void Simulator::PrintHelp()
     }
 
     Console::ForeColor::Green();
-
     cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
 
+    Console::ForeColor::Purple();
+    cout << "Traffic Ligth: ";
+
+    if(_traffic_light_green)
+    {
+        Console::BackColor::Green();
+        cout << "  ";
+    }
+    else
+    {
+        Console::BackColor::Red();
+        cout << "  ";
+    }
+
+    Console::Screen::ClearStyle();
+
+    Console::ForeColor::Green();
+    cout << endl << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl;
     Console::Screen::ClearStyle();
 }
 
-bool Simulator::ProcessOnobstacle(geometry_msgs::PoseWithCovarianceStamped obstacle,
-                                  optional<nox_msgs::ObstacleArray> &obstacles)
-{
-    Synchronized(this)
-    {
-        type::Obstacle obstacle_;
-        obstacle_.pose.From(obstacle.pose.pose);
-
-        SetDefault(obstacle_);
-        Add(obstacle_);
-    }
-
-    return true;
-}
-
-bool Simulator::ProcessOnvehicle_state(nav_msgs::Odometry vehicle_state, optional<nox_msgs::ObstacleArray> &obstacles)
-{
-    Synchronized(this)
-        _reference_pose.From(vehicle_state.pose.pose);
-    return true;
-}
-
-void Simulator::Process(optional<geometry_msgs::PoseWithCovarianceStamped> obstacle,
-                        optional<nav_msgs::Odometry> vehicle_state, optional<nox_msgs::ObstacleArray> &obstacles)
-{
-    Synchronized(this)
-    {
-        obstacles.emplace();
-
-        size_t size = _obstacles.size();
-        obstacles.value().obstacles.resize(size);
-
-        for(size_t i = 0; i < size; ++i)
-            _obstacles[i].To(obstacles.value().obstacles[i]);
-    }
-}
 
 void Simulator::SetDefault(type::Obstacle &obstacle)
 {
@@ -325,5 +316,60 @@ void Simulator::RefreshObstacle(type::Obstacle &obstacle)
         obstacle.prediction.Add(point);
     }
 }
+
+void Simulator::Process(optional<geometry_msgs::PoseWithCovarianceStamped> obstacle,
+                        optional<nav_msgs::Odometry> vehicle_state, optional<nox_msgs::ObstacleArray> &obstacles,
+                        optional<traffic_light::msg_traffic_light_list> &traffic_lights)
+{
+    Synchronized(this)
+    {
+        //region 发出障碍物
+        obstacles.emplace();
+
+        size_t size = _obstacles.size();
+        obstacles.value().obstacles.resize(size);
+
+        for(size_t i = 0; i < size; ++i)
+            _obstacles[i].To(obstacles.value().obstacles[i]);
+        //endregion
+
+        //region 发出红绿灯
+        traffic_lights.emplace();
+        traffic_light::msg_traffic_light light;
+
+        light.color = _traffic_light_green ? 2 : 1;
+        light.right = true;
+        light.left = true;
+        light.forward = true;
+        traffic_lights.value().lights.push_back(light);
+        //endregion
+    }
+}
+
+bool Simulator::ProcessOnobstacle(geometry_msgs::PoseWithCovarianceStamped obstacle,
+                                  optional<nox_msgs::ObstacleArray> &obstacles,
+                                  optional<traffic_light::msg_traffic_light_list> &traffic_lights)
+{
+    Synchronized(this)
+    {
+        type::Obstacle obstacle_;
+        obstacle_.pose.From(obstacle.pose.pose);
+
+        SetDefault(obstacle_);
+        Add(obstacle_);
+    }
+
+    return true;
+}
+
+bool Simulator::ProcessOnvehicle_state(nav_msgs::Odometry vehicle_state, optional<nox_msgs::ObstacleArray> &obstacles,
+                                       optional<traffic_light::msg_traffic_light_list> &traffic_lights)
+{
+    Synchronized(this)
+        _reference_pose.From(vehicle_state.pose.pose);
+    return true;
+}
+
+
 
 

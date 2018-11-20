@@ -3,22 +3,20 @@ USING_NAMESPACE_NOX;
 using namespace nox::app;
 
 
-void DecisionMaker::Execute(vector<Ptr<ReferenceLine>> &referenceLines) const
+void DecisionMaker::Execute(const PlannerBase::Frame & frame) const
 {
-    for(auto & i : referenceLines)
-        Execute(i);
+    for(auto & i : frame.references)
+        Execute(frame, *i);
 }
 
-void DecisionMaker::Execute(Ptr<ReferenceLine> referenceLine) const
+void DecisionMaker::Execute(const PlannerBase::Frame & frame, ReferenceLine & referenceLine) const
 {
-    assert(referenceLine);
     for(const auto & i : _rules)
-        i->Apply(i->_decider, referenceLine);
+        i->Apply(frame, referenceLine);
 }
 
 Ptr<DecisionMaker> DecisionMaker::AddRule(Ptr<DecisionMaker::Rule> rule)
 {
-    rule->_decider = AddressOf(*this);
     _rules.push_back(rule);
     return AddressOf(*this);
 }

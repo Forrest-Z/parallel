@@ -4,6 +4,7 @@
 #pragma once
 
 #include <Planner/type/ReferenceLine.h>
+#include <Planner/impl/PlannerBase.h>
 #include <memory>
 #include <vector>
 
@@ -15,20 +16,16 @@ namespace nox::app
         class Rule
         {
         public:
-            virtual void Apply(Ptr<DecisionMaker> decider, Ptr<ReferenceLine> referenceLine) const = 0;
+            virtual void Apply(const PlannerBase::Frame & frame, ReferenceLine & referenceLine) const = 0;
             virtual ~Rule() = default;
-
-        private:
-            friend class DecisionMaker;
-            Ptr<DecisionMaker> _decider;
         };
 
         virtual ~DecisionMaker() = default;
 
     public:
-        void Execute(vector<Ptr<ReferenceLine>> & referenceLines) const;
+        void Execute(const PlannerBase::Frame & frame) const;
 
-        void Execute(Ptr<ReferenceLine> referenceLine) const;
+        void Execute(const PlannerBase::Frame & frame, ReferenceLine & referenceLine) const;
 
         Ptr<DecisionMaker> AddRule(Ptr<Rule> rule);
 
