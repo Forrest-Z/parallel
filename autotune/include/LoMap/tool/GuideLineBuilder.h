@@ -11,7 +11,7 @@ namespace nox::app
     class GuideLineBuilder
     {
     public:
-        static void BuildPathUsingCubic(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine);
+        static void BuildPathUsingCubic(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine, double density = 0.3);
 
         static void BuildPathUsingCC_Dubins(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine);
 
@@ -25,6 +25,8 @@ namespace nox::app
          * 使用Cubie先生成path，再使用spline平滑它
          */
         static void BuildPathUsingSpline2(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine);
+
+        static void BuildPathUsingSpline3(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine);
 
         /**
          * 在引导线上，根据控制线上的停止点建立停止线（只取最前边的停止线）

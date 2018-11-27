@@ -71,7 +71,7 @@ void RepeaterModule::OnFinish()
 void RepeaterModule::InitMailbox()
 {
     
-    mailboxes.localization.Subscribe({"/gps/Localization"});
+    mailboxes.localization.Subscribe({"Localization"});
     mailboxes.localization.SetValidity(1000);
     mailboxes.chassis.Subscribe({"chassis"});
     mailboxes.chassis.SetValidity(1000);

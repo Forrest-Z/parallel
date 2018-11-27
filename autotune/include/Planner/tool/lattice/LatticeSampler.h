@@ -59,11 +59,8 @@ namespace nox::app
             double _sample_longitudinal_length = 5.0;
             size_t _number_of_samples = 5;
             size_t _num_velocity_samples = 6;
-
-            struct
-            {
-                double from_edge_to_center;
-            } _vehicle;
+            double _follow_reserve = 10.0;   // 跟随预留空间（之后应该跟速度挂钩）
+            double _overtake_reserve = 10.0;
         } _param;
     };
 }

@@ -81,7 +81,8 @@ namespace nox::app
 
             struct
             {
-                double _min_lon_a = -4;
+                double _max_lon_a = 4;
+                double _min_lon_a = -4.5;
                 double _comfort_a_factor = 1.0;
             } _vehicle;
 
@@ -98,10 +99,10 @@ namespace nox::app
                 /// 各代价系数
                 struct
                 {
-                    double _lon_objective = 10.0;
-                    double _lon_jerk = 5.0;
+                    double _lon_objective = 5.0;
+                    double _lon_comfort = 8.0;
                     double _lon_collision = 20;
-                    double _centripetal_acc = 15; // 1.5;
+                    double _centripetal_acc = 15;
                     double _lat_offset = 2.0;
                     double _lat_comfort = 10.0;
                 } _cost;

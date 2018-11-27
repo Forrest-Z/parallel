@@ -1,8 +1,10 @@
 #include <utility>
-
+#include <Planner/PlannerConfig.h>
 #include <utility>
 
 #include <Planner/tool/lattice/LatticeGenerator.h>
+#include <nox>
+
 USING_NAMESPACE_NOX;
 using namespace nox::app;
 
@@ -16,7 +18,8 @@ LatticeGenerator::LatticeGenerator(
     : _init_lon_state(s, 0), _init_lat_state(l, 0),
       _sampler(s, l, std::move(path_time_graph), std::move(prediction_querier))
 {
-
+    auto & vehicle = cache::ReadEgoVehicle();
+    _param._vehicle_length = vehicle.param.length.x;
 }
 
 void LatticeGenerator::GenerateBundles(Ptr<ReferenceLine> reference, lattice::Bundle &lon, lattice::Bundle &lat) const
@@ -34,7 +37,7 @@ void LatticeGenerator::GenerateLongitudinalBundle(Ptr<ReferenceLine> reference, 
     if(reference->stopLine)
     {
         Logger::D("LatticeGenerator") << "Stop Line: " << reference->stopLine.value().s;
-        GenerateSpeedProfilesForStopping(reference->StopPoint(), result);
+        GenerateSpeedProfilesForStopping(reference->StopPoint() - _param._vehicle_length, result);
     }
 }
 
@@ -64,6 +67,7 @@ void LatticeGenerator::GenerateSpeedProfilesForStopping(double distance, lattice
     auto end_states = _sampler.SampleLonStatesForStopping(distance);
     if(end_states->empty())
     {
+        Logger::D("LatticeGenerator") << "There is a stop line but not samples for stopping.";
         return;
     }
 
@@ -99,6 +103,7 @@ void LatticeGenerator::GenerateQuarticBundle(
 
         lattice_curve->target_speed = end_state[1];
         lattice_curve->target_time = end_state.t;
+        lattice_curve->priority_factor = end_state.priority_factor;
         result.push_back(lattice_curve);
     }
 }
@@ -122,6 +127,7 @@ void LatticeGenerator::GenerateQuinticBundle(
         lattice_curve->target_position = end_state[0];
         lattice_curve->target_speed = end_state[1];
         lattice_curve->target_time = end_state.t;
+        lattice_curve->priority_factor = end_state.priority_factor;
 
         result.push_back(lattice_curve);
     }

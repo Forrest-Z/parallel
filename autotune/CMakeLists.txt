@@ -90,7 +90,7 @@ add_executable(autotune_Planner
         include/Planner/tool/CollisionChecker.h src/Planner/tool/CollisionChecker.cpp
         include/Planner/type/ConstantJerkCurve.h src/Planner/type/ConstantJerkCurve.cpp
         include/Planner/type/PiecewiseJerkCurve.h src/Planner/type/PiecewiseJerkCurve.cpp src/Planner/rule/StopLine.cpp
-        include/Planner/rule/StopLine.h include/Planner/rule/Passable.h src/Planner/rule/Passable.cpp include/Tracking/tool/Guardian.h src/Planner/type/ConstantAccelerationCurve.cpp)
+        include/Planner/rule/StopLine.h include/Planner/rule/Passable.h src/Planner/rule/Passable.cpp include/Tracking/tool/Guardian.h src/Planner/type/ConstantAccelerationCurve.cpp include/Planner/tool/PiecewiseBrakingTrajectoryGenerator.h src/Planner/tool/PiecewiseBrakingTrajectoryGenerator.cpp)
 target_link_libraries(autotune_Planner
     ${catkin_LIBRARIES}
 )
@@ -107,7 +107,7 @@ add_executable(autotune_LoMap
         include/LoMap/tool/SceneObjectCreator.h
         include/LoMap/tool/DynamicSceneUpdater.h src/LoMap/tool/DynamicSceneUpdater.cpp
         include/LoMap/tool/SceneOverlapBuilder.h src/LoMap/tool/SceneOverlapBuilder.cpp
-        include/LoMap/LoMapConfig.h include/LoMap/tool/GuideLineBuilder.h include/LoMap/type/ControlLine.h src/LoMap/tool/GuideLineBuilder.cpp)
+        include/LoMap/LoMapConfig.h include/LoMap/tool/GuideLineBuilder.h include/LoMap/type/ControlLine.h src/LoMap/tool/GuideLineBuilder.cpp include/LoMap/pattern/SupplyChain.h include/LoMap/provider/GuideLineProvider.h src/LoMap/provider/GuideLineProvider.cpp include/LoMap/type/Material.h include/LoMap/tool/SceneGenerator.h include/LoMap/provider/MapProvider.h src/LoMap/provider/MapProvider.cpp src/LoMap/tool/SceneGenerator.cpp include/LoMap/type/MD5.h include/LoMap/provider/TrafficLightProvider.h include/LoMap/provider/VehicleStateProvider.h src/LoMap/provider/VehicleStateProvider.cpp include/LoMap/provider/ObstacleProvider.h src/LoMap/provider/ObstacleProvider.cpp src/LoMap/provider/TrafficLightProvider.cpp include/LoMap/provider/SceneProvider.h src/LoMap/provider/SceneProvider.cpp)
 target_link_libraries(autotune_LoMap
     ${catkin_LIBRARIES}
 )

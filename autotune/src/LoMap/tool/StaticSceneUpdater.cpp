@@ -106,7 +106,6 @@ void StaticSceneUpdater::Update(const std_msgs::String &source)
     }
 
     Logger::I("LoMap") << "Generate " << _scene->GuideLines.size() << " GuideLines .";
-    _scene->Refresh({"lomap", "test", "scene"});
 }
 
 void StaticSceneUpdater::Update(Ptr<Road> road)

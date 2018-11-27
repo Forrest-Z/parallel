@@ -44,8 +44,8 @@ namespace nox::app
 
             struct /// 碰撞检测缓冲边界（需要跟速度挂钩？）
             {
-                double _lon = 2.0;
-                double _lat = 0.5;
+                double _lon = 5.0;
+                double _lat = 1.0;
             } _buffer;
         } _param;
 

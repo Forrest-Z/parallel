@@ -31,6 +31,7 @@ namespace nox::parameter
         double eymax_speed;
         double eymax_low_speed;
         double kappa_min;
+        double wrmax;
         struct
         {
             int Steer_comp;
@@ -54,6 +55,7 @@ namespace nox::parameter
             eymax_speed = node["eymax_speed"].as<double>();
             eymax_low_speed = node["eymax_low_speed"].as<double>();
             kappa_min = node["kappa_min"].as<double>();
+            wrmax = node["wrmax"].as<double>();
 
             {
                 const Node & tmp = node["Option"];
@@ -81,6 +83,7 @@ namespace nox::parameter
             stream << " eymax_speed: " << eymax_speed << "\n";
             stream << " eymax_low_speed: " << eymax_low_speed << "\n";
             stream << " kappa_min: " << kappa_min << "\n";
+            stream << " wrmax: " << wrmax << "\n";
             stream << " Option:\n";
             stream << "   Steer_comp: " << Option.Steer_comp << "\n";
             stream << "   R_road: " << Option.R_road << "\n";

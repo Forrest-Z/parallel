@@ -18,6 +18,7 @@ namespace nox::app
         PathPoint last_point;
         double segment = 0;
         double total_sum = 0;
+        bool is_finished = false;
         //endregion
 
         for(auto & i : controlLine->segments)
@@ -75,12 +76,20 @@ namespace nox::app
                         anchor.s = total_sum;
                         anchors.push_back(anchor);
                         segment = 0;
+
+                        if(total_sum > 100)
+                        {
+                            is_finished = true;
+                            break;
+                        }
                     }
                 }
 
                 last_point = current_point;
             }
             //endregion
+
+            if(is_finished) break;
         }
 
         //region 配置平滑器，并进行平滑
@@ -94,11 +103,16 @@ namespace nox::app
 
         smoother.SetConfig(config);
 
+        if(anchors.size() >= 2)
+        {
+            anchors.front().enforced = true;
+            anchors.back().enforced = true;
+        }
         guideLine->path = smoother.Smooth(anchors);
         //endregion
     }
 
-    void GuideLineBuilder::BuildPathUsingCubic(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine)
+    void GuideLineBuilder::BuildPathUsingCubic(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine, double density)
     {
         //region 初始化第一个控制点（之后迭代更新第二个点）
         auto first_line = controlLine->segments[0]->GetFunction();
@@ -142,7 +156,7 @@ namespace nox::app
 
             //region 按步长取点，同时记录收尾处index
             std::vector<size_t> head_index, tail_index; // 记录轨迹开始几个点的下标
-            for(double ds : range(0.0, 0.3, s - 0.3))
+            for(double ds : range(0.0, density, s - density))
             {
                 PathPoint point(curve_x, curve_y, ds / s);
                 guideLine->path.Add(point);
@@ -236,10 +250,7 @@ namespace nox::app
         {
             auto   nearest_index = guideLine->path.QueryNearestByPosition(i);
             auto & nearest_point = guideLine->path[nearest_index];
-            if(not guideLine->stopLine)
-                guideLine->stopLine.emplace(real::MAX);
-
-            guideLine->stopLine.value().s = std::min(nearest_point.s, guideLine->stopLine.value().s);
+            guideLine->AddStopLine(nearest_point.s);
         }
     }
 
@@ -258,6 +269,20 @@ namespace nox::app
         smoother.SetConfig(config);
 
         guideLine->path = smoother.Smooth(guideLine->path);
+    }
+
+    void GuideLineBuilder::BuildPathUsingSpline3(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine)
+    {
+        tool::Smoother::Config config;
+        config.density = 0.3;
+        config.type = tool::Smoother::Spline;
+        config.anchor.density = 3.0;
+
+        tool::Smoother smoother;
+        smoother.SetConfig(config);
+
+        BuildPathUsingCubic(controlLine, guideLine, 1);
+
     }
 
 

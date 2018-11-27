@@ -13,6 +13,7 @@ eymax_2: 3.0
 eymax_speed: 10.0
 eymax_low_speed: 20.0
 kappa_min: 0.005
+wrmax: 0.8
 Option:
   Steer_comp: 0
   R_road: 0

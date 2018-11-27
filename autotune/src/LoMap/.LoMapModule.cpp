@@ -94,6 +94,7 @@ void LoMapModule::InitMailbox()
 void LoMapModule::InitParameter()
 {
     
+    params.Device.Read(GetParameter("Device"));
 }
 
 void LoMapModule::InitCallback()

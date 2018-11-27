@@ -14,5 +14,5 @@
 
 namespace nox::app
 {
-
+    caching(parameter::DeviceParameter, DeviceParameter);
 }

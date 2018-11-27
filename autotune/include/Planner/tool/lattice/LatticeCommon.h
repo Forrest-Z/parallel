@@ -16,9 +16,10 @@ namespace nox::app::lattice
 
         State();
 
-        State(const math::Derivative<2> & state, double t);
+        State(const math::Derivative<2> & state, double t, double priority_factor = 1.0);
 
-        State(double s0, double s1, double s2, double t);
+        State(double s0, double s1, double s2, double t, double priority_factor = 1.0);
+
     };
 
     class Curve : public math::Parametric<1>

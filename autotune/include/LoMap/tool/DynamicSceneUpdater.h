@@ -5,6 +5,7 @@
 
 #include "PoseEstimator.h"
 #include "SceneObjectCreator.h"
+#include <LoMap/LoMapConfig.h>
 
 namespace nox::app
 {
@@ -22,5 +23,10 @@ namespace nox::app
         Ptr<type::Scene> _scene;
 
         SceneObjectCreator<type::Obstacle> _obstacle_creator;
+
+        struct
+        {
+            type::Pose _lidar;
+        } _device;
     };
 }

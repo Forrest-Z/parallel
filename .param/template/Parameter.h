@@ -4,6 +4,7 @@
 #pragma once
 
 
+#include "header/DeviceParameter.hpp"
 #include "header/GPSParameter.hpp"
 #include "header/VehicleParameter.hpp"
 #include "header/VTFParameter.hpp"

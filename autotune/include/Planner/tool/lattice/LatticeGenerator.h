@@ -84,6 +84,7 @@ namespace nox::app
             double _planning_temporal_length = 8.0;
             double _delta_s_lateral_optimization = 2.0;
             double _default_cruising_speed = 5.0;
+            double _vehicle_length = 4.0;
         } _param;
     };
 }

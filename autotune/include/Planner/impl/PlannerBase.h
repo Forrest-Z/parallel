@@ -6,21 +6,13 @@
 #include <Planner/type/ReferenceLine.h>
 #include <nox>
 #include <vector>
+using nox::container::Result;
 
 namespace nox::app
 {
     class PlannerBase
     {
     public:
-        enum ErrorCode
-        {
-            Success,
-            Fail,
-            InCollision
-        };
-
-        using Result = container::Result<ErrorCode, ErrorCode::Success>;
-
         struct Frame
         {
             std::vector<Ptr<ReferenceLine>> references;
@@ -38,7 +30,7 @@ namespace nox::app
          * @param result 规划结果
          * @return 规划状态
          */
-        virtual Result Plan(const Frame & frame, type::Trajectory & result) = 0;
+        virtual Result<bool> Plan(const Frame & frame, type::Trajectory & result) = 0;
 
         /**
          * 检查目标轨迹在frame下的合理性
@@ -46,9 +38,6 @@ namespace nox::app
          * @param frame 当前规划信息
          * @return 检查状态
          */
-        virtual Result Check(const type::Trajectory & trajectory, const Frame & frame) = 0;
-
-    public:
-        static string ParseErrorCode(ErrorCode code);
+        virtual Result<bool> Check(const type::Trajectory & trajectory, const Frame & frame) = 0;
     };
 }

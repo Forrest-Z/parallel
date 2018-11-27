@@ -36,6 +36,7 @@ namespace nox::app
         struct
         {
             
+            parameter::DeviceParameter Device;
         } params;
 
         struct

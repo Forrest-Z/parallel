@@ -6,6 +6,10 @@ using namespace nox::app;
 PoseEstimator::PoseEstimator()
 {
     _history.SetBufferSize(1);
+
+    Odometry init_odometry;
+    init_odometry.timeStamp = Clock::now();
+    _history.Fill(init_odometry);
 }
 
 void PoseEstimator::Update(const Odometry & stamped_odometry)
@@ -15,6 +19,8 @@ void PoseEstimator::Update(const Odometry & stamped_odometry)
 
 Pose PoseEstimator::Estimate(const type::Time &current_time)
 {
+    return _history.Lattest().pose;
+
     auto state = _history.Lattest();
     double t = current_time.Get(Time::Second) - state.timeStamp.Get(Time::Second);
     double v = state.v.x;

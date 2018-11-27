@@ -11,7 +11,7 @@ using namespace nox::app;
 using namespace nox::type;
 using std::endl;
 
-PlannerBase::Result LatticePlanner::Plan(const PlannerBase::Frame & frame, type::Trajectory &result)
+Result<bool> LatticePlanner::Plan(const PlannerBase::Frame & frame, type::Trajectory &result)
 {
     struct PlanningResult
     {
@@ -79,13 +79,13 @@ PlannerBase::Result LatticePlanner::Plan(const PlannerBase::Frame & frame, type:
     }
 
     if(results_heap.empty())
-        return PlannerBase::Result(ErrorCode::Fail, "all guide lines are suck.\n" + error_msg);
+        return Result(false, "all guide lines are suck.\n" + error_msg);
 
     result = results_heap.top()->trajectory;
-    return PlannerBase::Result(ErrorCode::Success);
+    return Result(true);
 }
 
-PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
+Result<bool> LatticePlanner::PlanOnReferenceLine(
     const PlannerBase::Frame    & frame,
     const type::TrajectoryPoint & init_point,
     Ptr<ReferenceLine>            reference,
@@ -157,6 +157,9 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
     ConstraintChecker constraint_checker(frame.vehicle);
     CollisionChecker collision_checker(frame.scene, s[0], l[0], reference);
 
+    if(not evaluator.HasNext())
+        return Result(false, "Evaluator is empty");
+
     while (evaluator.HasNext())
     {
         auto candidate = evaluator.Next();
@@ -187,10 +190,10 @@ PlannerBase::Result LatticePlanner::PlanOnReferenceLine(
             << "6. lat comfort:   " << candidate.costs[5] << endl;
 
         cost = candidate.cost_sum;
-        return Result(ErrorCode::Success);
+        return Result(true);
     }
 
-    return Result(ErrorCode::Fail);
+    return Result(false, "All candidate trajectories cannot pass the test.");
 }
 
 void LatticePlanner::ComputeFrentState(
@@ -210,7 +213,7 @@ void LatticePlanner::ComputeFrentState(
     Logger::D("Planner").Print("Init Frenet: s(%lf, %lf, %lf), l(%lf, %lf, %lf)", s[0], s[1], s[2], l[0], l[1], l[2]);
 }
 
-PlannerBase::Result LatticePlanner::Check(const type::Trajectory &trajectory, const PlannerBase::Frame &frame)
+Result<bool> LatticePlanner::Check(const type::Trajectory &trajectory, const PlannerBase::Frame &frame)
 {
     auto reference = New<ReferenceLine>();
     reference->path = trajectory.ToPath();
@@ -219,19 +222,35 @@ PlannerBase::Result LatticePlanner::Check(const type::Trajectory &trajectory, co
     CollisionChecker collisionChecker(frame.scene, frenet.s, frenet.l, reference, trajectory.Back().t);
 
     if(collisionChecker.InCollision(trajectory))
-        return Result(ErrorCode ::InCollision);
+        return Result(false, "Checking: Trajectory is in collision.");
 
-    return Result(ErrorCode::Success);
+    return Result(true);
 }
 
 void LatticePlanner::LaunchTrajectory(type::Trajectory &trajectory, Ptr<Vehicle> vehicle)
 {
-    for(size_t i = 0, size = trajectory.Size(); i < size; ++i)
+    type::Trajectory result;
+    double segment = 0;
+
+    if(not trajectory.Empty())
+        result.Add(trajectory.Front());
+
+    for(size_t i = 1, size = trajectory.Size(); i < size; ++i)
     {
-        double & v = trajectory[i].v;
-        if(real::IsZero(v) or abs(v) > 0.5)
-            break;
-        v = 0.5 * math::Sign(v);
+        segment += trajectory[i].s - trajectory[i-1].s;
+        if(segment > 0.2)
+        {
+            segment = 0;
+            result.Add(trajectory[i]);
+        }
     }
+
+    if(segment != 0)
+        result.Add(trajectory.Back());
+
+    if(result.Size() >= 2)
+        result[0].v = result[1].v;
+
+    trajectory = result;
 }
 

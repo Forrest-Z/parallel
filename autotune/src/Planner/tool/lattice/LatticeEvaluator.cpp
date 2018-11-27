@@ -1,6 +1,8 @@
 #include <Planner/tool/lattice/LatticeEvaluator.h>
 #include <nox>
 #include <Planner/type/PiecewiseAccelerationCurve.h>
+#include <Planner/tool/PiecewiseBrakingTrajectoryGenerator.h>
+#include <iostream>
 USING_NAMESPACE_NOX;
 using namespace nox::app;
 
@@ -58,9 +60,7 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
 {
     _reference_v.clear();
 
-    double brake_a = _param._vehicle._comfort_a_factor * _param._vehicle._min_lon_a;
     double cruise_v = _reference_line->CruisingSpeed();
-    assert(brake_a < 0);
 
     if(_reference_line->stopLine)
     {
@@ -79,48 +79,23 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
             }
             //endregion
         }
-
-        double brake_s = -cruise_v * cruise_v * 0.5 / brake_a;
-
-        if(brake_s > ds)
-        {
-            //region 刹车距离不够，只能刹车到某个速度
-            double reachable_v = std::sqrt(-2.0 * brake_a * ds);
-            double brake_t = -reachable_v / brake_a;
-
-            PiecewiseAccelerationCurve lon_traj(_init_state[0], reachable_v);
-            lon_traj.PushSegment(brake_a, brake_t);
-
-            if(lon_traj.Boundary() < _param._planning_temporal_length)
-            {
-                lon_traj.PushSegment(0, _param._planning_temporal_length - lon_traj.Boundary());
-            }
-
-            for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))
-            {
-                _reference_v.emplace_back(lon_traj.Calculate(1, t));
-            }
-            //endregion
-        }
         else
         {
-            //region 有足够的刹车距离，先继续走，最后再停下来
-            double brake_t = -cruise_v / brake_a;
-            double cruise_s = ds - brake_s;
-            double cruise_t = cruise_s / cruise_v;
+            //region 生成减速轨迹
+            double a_comfort = _param._vehicle._comfort_a_factor * _param._vehicle._max_lon_a;
+            double d_comfort = -_param._vehicle._comfort_a_factor * _param._vehicle._min_lon_a;
 
-            PiecewiseAccelerationCurve lon_traj(_init_state[0], cruise_v);
-            lon_traj.PushSegment(0, cruise_t);
-            lon_traj.PushSegment(brake_a, brake_t);
-
-            if(lon_traj.Boundary() < _param._planning_temporal_length)
-            {
-                lon_traj.PushSegment(0, _param._planning_temporal_length - lon_traj.Boundary());
-            }
+            auto lon_traj = PiecewiseBrakingTrajectoryGenerator::Generate
+            (
+                _reference_line->StopPoint(), _init_state[0],
+                cruise_v,
+                _init_state[1], a_comfort, d_comfort,
+                _param._planning_temporal_length
+            );
 
             for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))
             {
-                _reference_v.emplace_back(lon_traj.Calculate(1, t));
+                _reference_v.emplace_back(lon_traj->Calculate(1, t));
             }
             //endregion
         }
@@ -143,7 +118,7 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
 
 void LatticeEvaluator::Evaluate(lattice::Combination &candidate) const
 {
-    candidate.cost_sum = Evaluate(candidate.lon, candidate.lat, candidate.costs);
+    candidate.cost_sum = Evaluate(candidate.lon, candidate.lat, candidate.costs) * candidate.lon->priority_factor * candidate.lat->priority_factor;
 }
 
 double LatticeEvaluator::Evaluate(
@@ -180,7 +155,7 @@ double LatticeEvaluator::Evaluate(
     double lat_comfort_cost   = LatComfortCost(lon_traj, lat_traj);
 
     lon_objective_cost   *= _param._weight._cost._lon_objective;
-    lon_jerk_cost        *= _param._weight._cost._lon_jerk;
+    lon_jerk_cost        *= _param._weight._cost._lon_comfort;
     lon_collision_cost   *= _param._weight._cost._lon_collision;
     centripetal_acc_cost *= _param._weight._cost._centripetal_acc;
     lat_offset_cost      *= _param._weight._cost._lat_offset;
@@ -268,8 +243,9 @@ double LatticeEvaluator::LonComfortCost(const Ptr<lattice::Curve> &lon_traj) con
 
     for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))
     {
+        double a = lon_traj->Calculate(2, t);
         double jerk = lon_traj->Calculate(3, t);
-        double cost = jerk / _vehicle->param.limit.lon.jerk.Upper;
+        double cost = jerk / _vehicle->param.limit.lon.jerk.Upper + a / _vehicle->param.limit.lon.a.Upper;
         cost_sqr_sum += cost * cost;
         cost_abs_sum += std::abs(cost);
     }
@@ -323,7 +299,7 @@ double LatticeEvaluator::LatOffsetCost(const Ptr<lattice::Curve> &lat_traj, doub
     }
 
     double result = cost_sqr_sum / (cost_abs_sum + type::Real::Epsilon);
-    if(lat_traj->target_position != 0)
+    if(not real::IsZero(lat_traj->target_position))
         result *= 5.0;
 
     return result;

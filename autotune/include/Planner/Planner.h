@@ -23,6 +23,7 @@
 #include <memory>
 #include <vector>
 
+using nox::container::Result;
 using std::vector;
 using std::shared_ptr;
 
@@ -32,15 +33,6 @@ namespace nox::app
         : public PlannerModule
     {
         /// Override your process functions ...
-    public:
-        enum ErrorCode
-        {
-            Success,
-            LackOfInformation,
-            PlanningFail
-        };
-
-        using Result = container::Result<ErrorCode, ErrorCode::Success>;
 
     protected:
         void Initialize() override;
@@ -52,7 +44,7 @@ namespace nox::app
         void Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Trajectory> &trajectory) override;
 
     public:
-        Result Process(type::Trajectory & last_trajectory);
+        Result<bool> Process(type::Trajectory & last_trajectory);
 
         /**
          * 进行规划流程处理
@@ -60,7 +52,7 @@ namespace nox::app
          * @param scene  场景（包含车道线、障碍物、红绿灯灯物件）
          * @param result 传入的是空轨迹，或上一条轨迹，再使用之返回规划结果
          */
-        Result Plan(type::Trajectory &result, bool enable_stitch = true);
+        Result<bool> Plan(type::Trajectory &result, bool enable_stitch = true);
 
 
     private:
@@ -80,7 +72,7 @@ namespace nox::app
             {
                 double _replan_distance = 2.0;
                 double _replan_time = 1.0;
-                double _extend_time = 4.0;
+                double _extend_time = 6.0;
             } _threshold;
 
             struct

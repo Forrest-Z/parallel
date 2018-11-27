@@ -51,7 +51,6 @@ void CollisionChecker::BuildPredictedEnvironment(
         for(auto & i : obstacles_considered)
         {
             auto box = i->BoxAtTime(t);
-            box.Expand(2.0 * _param._buffer._lon, 2.0 * _param._buffer._lat);
             predicted_env.push_back(std::move(box));
         }
 
@@ -83,12 +82,14 @@ bool CollisionChecker::InCollision(const type::Trajectory &trajectory) const
     for(size_t i = 0, end = trajectory.Size(), end2 = _predicted_bouding_boxes.size(); i != end and i != end2; ++i) // 考虑将时间长度跟trajectory绑定
     {
         auto & point = trajectory[i];
-        Box box(point.pose, vehicle.param.length.x, vehicle.param.length.y);
+        Box box(point.pose, vehicle.param.length.x + 2 * _param._buffer._lon, vehicle.param.length.y + 2 * _param._buffer._lat);
 
         for(auto & obstacle_box : _predicted_bouding_boxes[i])
         {
             if(box.HasOverlap(obstacle_box))
+            {
                 return true;
+            }
         }
     }
 

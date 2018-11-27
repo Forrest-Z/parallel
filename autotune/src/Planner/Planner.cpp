@@ -46,16 +46,25 @@ void Planner::InitializeParameters()
 
 void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Trajectory> &trajectory)
 {
+    static system::Timer timer;
+
+
     //region 更新车的状态以及规划场景
+    timer.Start();
     _vehicle.From(vehicle_state);
 
     nox_msgs::GetSceneRequest request_for_scene;
     _vehicle.pose.To(request_for_scene.location.pose);
     request_for_scene.location.header = vehicle_state.header;
 
-    _scene_server.SendRequest(request_for_scene); // TODO: 超时处理
-    _scene.From(_scene_server.GetResponse().scene);
+    // TODO: 超时处理
+    if(not _scene_server.SendRequest(request_for_scene))
+    {
+        Logger::E("Planner") << "Fail to update scene. (sec: " << timer.Watch().Get<Second>() << ")";
+        return;
+    }
 
+    _scene.From(_scene_server.GetResponse().scene);
     _scene.Refresh({"scene"});
     //endregion
 
@@ -82,7 +91,7 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
 }
 
 
-Planner::Result Planner::Plan(type::Trajectory &trajectory, bool enable_stitch)
+Result<bool> Planner::Plan(type::Trajectory &trajectory, bool enable_stitch)
 {
     /// 1. 计算缝合轨迹，或裁短规划轨迹
     if(enable_stitch)
@@ -125,17 +134,17 @@ Planner::Result Planner::Plan(type::Trajectory &trajectory, bool enable_stitch)
     /// 6. 返回处理结果
     if(planning_result.OK())
     {
-        return Result(ErrorCode::Success);
+        return Result(true);
     }
     else
     {
-        return Result(ErrorCode::PlanningFail, "Unable to plan because of " + planning_result.Message());
+        return Result(false, "Unable to plan because of " + planning_result.Message());
     }
 }
 
-Planner::Result Planner::Process(type::Trajectory &last_trajectory)
+Result<bool> Planner::Process(type::Trajectory &last_trajectory)
 {
-    Planner::Result result;
+    Result<bool> result;
     auto vehicle = AddressOf(_vehicle);
     auto scene = AddressOf(_scene);
 
@@ -165,7 +174,7 @@ Planner::Result Planner::Process(type::Trajectory &last_trajectory)
             else if(auto check_result = _algorithm->Check(last_trajectory, frame); check_result.Fail())
             {
                 /// 6. 否则检查是否该轨迹是否会发生碰撞，会的话也直接重规划
-                Logger::W("Planner") << "Check last trajectory failed. Because of " << PlannerBase::ParseErrorCode(check_result.Code());
+                Logger::W("Planner") << "Check last trajectory failed. Because of " << check_result.Message();
                 result = Plan(last_trajectory);
             }
             else if(last_point.t - nearest_point.t < _param._threshold._extend_time)
