@@ -4,7 +4,7 @@ USING_NAMESPACE_NOX;
 namespace nox::app
 {
 
-    void ObstacleProvider::Update(const std::vector<type::Obstacle> & obstacles, bool is_global)
+    void ObstacleProvider::Update(const nox_msgs::ObstacleArray & obstacles, bool is_global)
     {
         if(is_global)
             _Update(obstacles, _input_global);
@@ -12,13 +12,11 @@ namespace nox::app
             _Update(obstacles, _input_local);
     }
 
-    MD5<vector<Obstacle>> ObstacleProvider::Produce(const MD5<type::Odometry> &state)
+    MD5<vector<Obstacle>> ObstacleProvider::Produce(VehicleStateProvider & state_provider)
     {
-        _state.Update(state);
-
-        if(_state.IsFresh() or _input_local.IsFresh() or _input_global.IsFresh())
+        if(_input_local.IsFresh() or _input_global.IsFresh())
         {
-            Process();
+            Process(state_provider);
         }
 
         return _output;
@@ -43,40 +41,41 @@ namespace nox::app
         }
     }
 
-    void ObstacleProvider::Process()
+    void ObstacleProvider::Process(VehicleStateProvider & state_provider)
     {
-        static std::hash<long> hasher;
-
-        auto state = _state.Get();
-        auto current_pose = state.data().pose;
-
-        _output.reset({}, hasher(Clock::us()));
+        _output.reset({}, Clock::us());
 
         if(_input_local.IsInit())
         {
-            for(auto i : _input_local.Get().data())
+            auto input = _input_local.Get().data();
+            Time time;
+            time.From(input.header);
+
+            auto state = state_provider.Produce(time);
+            auto current_pose = state.data().pose;
+
+            for(const auto & i : _input_local.Get().data().obstacles)
             {
-                i *= (current_pose * _device._lidar);
-                _output.data().push_back(i);
+                _output.data().emplace_back();
+                _output.data().back().From(i);
+                _output.data().back() *= (current_pose * _device._lidar);
             }
         }
 
         if(_input_global.IsInit())
         {
-            for(const auto & i : _input_global.Get().data())
+            for(const auto & i : _input_global.Get().data().obstacles)
             {
-                _output.data().push_back(i);
+                _output.data().emplace_back();
+                _output.data().back().From(i);
             }
         }
     }
 
-    void ObstacleProvider::_Update(const std::vector<type::Obstacle> &src, Material<MD5<vector<Obstacle>>> &dst)
+    void ObstacleProvider::_Update(const nox_msgs::ObstacleArray &src, Material<MD5<nox_msgs::ObstacleArray>> &dst)
     {
-        static std::hash<long> hasher;
-
-        MD5<std::vector<type::Obstacle>> input(src);
-        input.md5() = hasher(Clock::us());
-
+        MD5<nox_msgs::ObstacleArray> input(src);
+        input.md5() = Clock::us();
         dst.Update(input);
     }
 

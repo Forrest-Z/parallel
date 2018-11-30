@@ -64,7 +64,7 @@ void SimulatorModule::InitMailbox()
     mailboxes.vehicle_state.SetValidity(1000);
     
     mailboxes.obstacles.Advertise({"virtual_obstacles"});
-    mailboxes.traffic_lights.Advertise({"traffic_lights"});
+    mailboxes.traffic_lights.Advertise({"traffic_light_state"});
 }
 
 void SimulatorModule::InitParameter()

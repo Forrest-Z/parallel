@@ -43,6 +43,7 @@ namespace nox::app
                     double lateral_offset = 5;      // 米，侧向容忍偏移上限
                     double longitudinal_offset = 5; // 米，纵向容忍偏移上限
                     double distance = 2;            // 米，欧拉距离容忍偏移上界
+                    double too_short = 0.5;         // 米，已有轨迹过短重规划下界
                 } replan; /// 处理重规划的参数
             } threshold; /// 阈值对象
         } param; /// 参数对象

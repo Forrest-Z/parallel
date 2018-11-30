@@ -51,6 +51,7 @@ namespace nox::app
         FeasibleRegion _feasible_region;
         Ptr<STGraph> _st_graph;
         Ptr<PredictionQuerier> _prediction_querier;
+        vector<double> _time_samples;
 
         struct
         {

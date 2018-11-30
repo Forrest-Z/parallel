@@ -37,6 +37,8 @@ namespace nox::app
 
         bool IsReachedEnd(Ptr<type::Vehicle> vehicle) const;
 
+        bool IsBeyondStopLine(const Pose & pose) const;
+
         double Length() const;
 
         double CruisingSpeed() const;

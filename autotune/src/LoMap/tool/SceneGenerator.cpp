@@ -15,12 +15,15 @@ namespace nox::app
         auto vehicle_state = _vehicle_state_provider.Produce();
 
         /// 4. 获得障碍物信息
-        auto obstacles = _obstacle_provider.Produce(vehicle_state);
+        auto obstacles = _obstacle_provider.Produce(_vehicle_state_provider);
 
         /// 5. 附上红绿灯信息
         guideLines = _traffic_light_provider.Produce(map, guideLines);
 
-        /// 6. 将所有信息整合进ready scene
+        /// 6. 处理所有停止线信息
+        _stop_line_provider.Produce(guideLines);
+
+        /// 7. 将所有信息整合进ready scene
         Locking(_ready_scene)
         {
             _scene_provider.Produce(guideLines, obstacles, vehicle_state, _ready_scene);
@@ -50,9 +53,10 @@ namespace nox::app
     void SceneGenerator::OnStart()
     {
         _obstacle_provider.Initialize();
+        _vehicle_state_provider.Initialize();
     }
 
-    void SceneGenerator::UpdateObstacles(const std::vector<type::Obstacle> &obstacles, bool is_global)
+    void SceneGenerator::UpdateObstacles(const nox_msgs::ObstacleArray &obstacles, bool is_global)
     {
         _obstacle_provider.Update(obstacles, is_global);
     }

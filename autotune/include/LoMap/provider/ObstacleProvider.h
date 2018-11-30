@@ -7,6 +7,7 @@
 #include <nox>
 #include <LoMap/type/Material.h>
 #include <LoMap/type/MD5.h>
+#include <LoMap/provider/VehicleStateProvider.h>
 
 namespace nox::app
 {
@@ -16,19 +17,18 @@ namespace nox::app
         void Initialize();
 
         __asynchronous_thread
-        void Update(const std::vector<type::Obstacle> & obstacles, bool is_global);
+        void Update(const nox_msgs::ObstacleArray & obstacles, bool is_global);
 
-        MD5<std::vector<type::Obstacle>> Produce(const MD5<type::Odometry> & state);
-
-    private:
-        void _Update(const std::vector<type::Obstacle> & src, Material<MD5<std::vector<type::Obstacle>>> & dst);
-
-        void Process();
+        MD5<std::vector<type::Obstacle>> Produce(VehicleStateProvider & state_provider);
 
     private:
-        Material<MD5<type::Odometry>> _state;
-        Material<MD5<std::vector<type::Obstacle>>> _input_local;
-        Material<MD5<std::vector<type::Obstacle>>> _input_global;
+        void _Update(const nox_msgs::ObstacleArray & src, Material<MD5<nox_msgs::ObstacleArray>> & dst);
+
+        void Process(VehicleStateProvider & state_provider);
+
+    private:
+        Material<MD5<nox_msgs::ObstacleArray>> _input_local;
+        Material<MD5<nox_msgs::ObstacleArray>> _input_global;
 
         MD5<std::vector<type::Obstacle>> _output;
 

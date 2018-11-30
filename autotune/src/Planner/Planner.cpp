@@ -91,14 +91,13 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
 }
 
 
-Result<bool> Planner::Plan(type::Trajectory &trajectory, bool enable_stitch)
+Result<bool> Planner::Plan(PlannerBase::Frame & frame, type::Trajectory &trajectory, bool enable_stitch)
 {
     /// 1. 计算缝合轨迹，或裁短规划轨迹
     if(enable_stitch)
     {
         bool is_replan = false;
         trajectory = _trajectoryStitcher->FromLastTrajectoryByPosition(_vehicle, trajectory, &is_replan);
-//    trajectory = _trajectoryStitcher->InitialTrajectory(*vehicle);
     }
     else
     {
@@ -110,28 +109,18 @@ Result<bool> Planner::Plan(type::Trajectory &trajectory, bool enable_stitch)
         trajectory = trajectory.SubTrajectory(backward_index, forward_index);
     }
 
-
-    /// 2. 封装引导线为reference_line
-    PlannerBase::Frame frame;
-    frame.scene = AddressOf(_scene);
-    frame.vehicle = AddressOf(_vehicle);
     frame.stitch = AddressOf(trajectory);
 
-    for(auto & i : _scene.GuideLines)
-    {
-        frame.references.push_back(New<ReferenceLine>(*i.second));
-    }
-
-    /// 3. 运用决策器，决策信息放在ReferenceLine中
+    /// 2. 运用决策器，决策信息放在ReferenceLine中
     for(auto & decider : _deciders)
     {
         decider->Execute(frame);
     }
 
-    /// 5. 运用规划器
+    /// 3. 运用规划器
     auto planning_result = _algorithm->Plan(frame, trajectory);
 
-    /// 6. 返回处理结果
+    /// 4. 返回处理结果
     if(planning_result.OK())
     {
         return Result(true);
@@ -144,13 +133,23 @@ Result<bool> Planner::Plan(type::Trajectory &trajectory, bool enable_stitch)
 
 Result<bool> Planner::Process(type::Trajectory &last_trajectory)
 {
+    //region 初始化
     Result<bool> result;
-    auto vehicle = AddressOf(_vehicle);
-    auto scene = AddressOf(_scene);
+    PlannerBase::Frame frame;
+    frame.scene = AddressOf(_scene);
+    frame.vehicle = AddressOf(_vehicle);
+
+    for(auto & i : _scene.GuideLines)
+    {
+        frame.references.push_back(New<ReferenceLine>(*i.second));
+    }
+    //endregion
 
     /// 1. 当上一条轨迹为空时，直接重规划
     if (last_trajectory.Empty())
-        result = Plan(last_trajectory);
+    {
+        result = Plan(frame, last_trajectory);
+    }
     else
     {
         /// 2. 先检验上一条轨迹的合理性
@@ -159,32 +158,33 @@ Result<bool> Planner::Process(type::Trajectory &last_trajectory)
 
         /// 3. 若车已经远离上一条轨迹，则重规划
         if (_vehicle.pose.t.DistanceTo(nearest_point.pose.t) > _param._threshold._replan_distance)
-            result = Plan(last_trajectory);
+        {
+            result = Plan(frame, last_trajectory);
+        }
         else
         {
             /// 4. 若车没有远离轨迹，优先考虑续用该条轨迹，判断上一条轨迹终点与当前位置的关系
             auto last_point = last_trajectory.Back();
-            PlannerBase::Frame frame;
-            frame.scene = scene;
-            frame.vehicle = vehicle;
 
             /// 5. 若当前位置离终点太近，则直接重规划
-            if(last_point.t - nearest_point.t < _param._threshold._replan_time)
-                result = Plan(last_trajectory);
+            if(last_point.t - nearest_point.t < _param._threshold._replan_time or last_point.s - nearest_point.s < _param._threshold._replan_distance)
+            {
+                result = Plan(frame, last_trajectory);
+            }
             else if(auto check_result = _algorithm->Check(last_trajectory, frame); check_result.Fail())
             {
                 /// 6. 否则检查是否该轨迹是否会发生碰撞，会的话也直接重规划
                 Logger::W("Planner") << "Check last trajectory failed. Because of " << check_result.Message();
-                result = Plan(last_trajectory);
+                result = Plan(frame, last_trajectory);
             }
             else if(last_point.t - nearest_point.t < _param._threshold._extend_time)
             {
                 /// 7. 若当前没啥问题，则判断剩余时间，到一定阈值则延长规划。
-                if(result = Plan(last_trajectory, false); result.Fail())
+                if(result = Plan(frame, last_trajectory, false); result.Fail())
                 {
                     /// 8. 如果延长规划失败，则全部重规划
                     Logger::W("Planner") << "Extend last trajectory failed";
-                    result = Plan(last_trajectory);
+                    result = Plan(frame, last_trajectory);
                 }
             }
         }

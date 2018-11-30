@@ -11,8 +11,10 @@ State::State()
 }
 
 State::State(const math::Derivative<2> &state, double t, double priority_factor)
-    : math::Derivative<2>(state), t(t), priority_factor(priority_factor)
-{}
+    : math::Derivative<2>(state), t(t)
+{
+    cost_factor.all = priority_factor;
+}
 
 State::State(double s0, double s1, double s2, double t, double priority_factor)
     : State({s0, s1, s2}, t, priority_factor)

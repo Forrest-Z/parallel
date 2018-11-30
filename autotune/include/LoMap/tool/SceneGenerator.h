@@ -10,6 +10,7 @@
 #include <LoMap/provider/VehicleStateProvider.h>
 #include <LoMap/provider/ObstacleProvider.h>
 #include <LoMap/provider/TrafficLightProvider.h>
+#include <LoMap/provider/StopLineProvider.h>
 #include <LoMap/provider/SceneProvider.h>
 
 namespace nox::app
@@ -28,7 +29,7 @@ namespace nox::app
         void UpdateVehicleState(const type::Odometry & state);
 
         __asynchronous_thread
-        void UpdateObstacles(const std::vector<type::Obstacle> & obstacles, bool is_global);
+        void UpdateObstacles(const nox_msgs::ObstacleArray & obstacles, bool is_global);
 
         __asynchronous_thread
         void UpdateTrafficLight(const type::Signal & signal);
@@ -45,6 +46,7 @@ namespace nox::app
         VehicleStateProvider _vehicle_state_provider;
         ObstacleProvider _obstacle_provider;
         TrafficLightProvider _traffic_light_provider;
+        StopLineProvider _stop_line_provider;
         SceneProvider _scene_provider;
     };
 }

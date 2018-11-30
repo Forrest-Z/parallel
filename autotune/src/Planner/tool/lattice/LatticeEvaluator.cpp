@@ -26,13 +26,14 @@ LatticeEvaluator::LatticeEvaluator(
     double start_time = _st_graph->TRange().Start;
     double end_time = _st_graph->TRange().End;
     double stop_point = reference->stopLine.value_or(real::MAX).s;
+    double vehicle_length = vehicle->param.length.x;
 
     for(auto & lon_traj : lon_bundles)
     {
         double lon_end_s = lon_traj->Calculate(0, end_time);
 
         /// 若轨迹的终点跑到了停止点后边，则不予考虑
-        if(_init_state[0] < stop_point and lon_end_s + _param._stop_in_range_threshold > stop_point)
+        if(_init_state[0] < stop_point and lon_end_s + vehicle_length - _param._stop_in_range_threshold > stop_point)
             continue;
 
         /// 不满足车辆的约束（加速度、速度等边界内），则不予考虑
@@ -118,7 +119,7 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
 
 void LatticeEvaluator::Evaluate(lattice::Combination &candidate) const
 {
-    candidate.cost_sum = Evaluate(candidate.lon, candidate.lat, candidate.costs) * candidate.lon->priority_factor * candidate.lat->priority_factor;
+    candidate.cost_sum = Evaluate(candidate.lon, candidate.lat, candidate.costs) * candidate.lon->state.cost_factor.all * candidate.lat->state.cost_factor.all;
 }
 
 double LatticeEvaluator::Evaluate(
@@ -177,7 +178,7 @@ double LatticeEvaluator::Evaluate(
         lat_comfort_cost;
 }
 
-double LatticeEvaluator::LonObjectiveCost(const Ptr <math::Parametric<1>> &lon_traj) const
+double LatticeEvaluator::LonObjectiveCost(const Ptr<lattice::Curve> &lon_traj) const
 {
     double t_max = lon_traj->Boundary();
     double ds = lon_traj->Calculate(0, t_max) - lon_traj->Calculate(0, 0);
@@ -194,8 +195,8 @@ double LatticeEvaluator::LonObjectiveCost(const Ptr <math::Parametric<1>> &lon_t
         speed_cost_weight_sum += t * t;
     }
 
-    double speed_cost = speed_cost_sqr_sum / (speed_cost_weight_sum + type::Real::Epsilon);
-    double s_travelled_cost = 1.0 / (1.0 + ds);
+    double speed_cost = speed_cost_sqr_sum / (speed_cost_weight_sum + type::Real::Epsilon) * lon_traj->state.cost_factor.v_reached;
+    double s_travelled_cost = 1.0 / (1.0 + ds) * lon_traj->state.cost_factor.s_travelled;
 
     return (speed_cost * _param._weight._v_reached +
         s_travelled_cost * _param._weight._s_travelled)
@@ -298,10 +299,7 @@ double LatticeEvaluator::LatOffsetCost(const Ptr<lattice::Curve> &lat_traj, doub
         }
     }
 
-    double result = cost_sqr_sum / (cost_abs_sum + type::Real::Epsilon);
-    if(not real::IsZero(lat_traj->target_position))
-        result *= 5.0;
-
+    double result = cost_sqr_sum / (cost_abs_sum + type::Real::Epsilon) * lat_traj->state.cost_factor.lateral_offset;
     return result;
 }
 

@@ -23,6 +23,10 @@ namespace nox::app
 
         double TLower(double s) const;
 
+        double ComfortVUpper(double t) const;
+
+        double ComfortVLower(double t) const;
+
     private:
         double _s, _v, _a;
         double _t_at_zero_speed;
@@ -30,5 +34,6 @@ namespace nox::app
         double _base_speed;
 
         type::Bound _longitudinal_acceleration;
+        type::Bound _comfort_lon_acceleration;
     };
 }

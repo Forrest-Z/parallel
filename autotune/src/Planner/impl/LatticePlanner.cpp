@@ -16,7 +16,7 @@ Result<bool> LatticePlanner::Plan(const PlannerBase::Frame & frame, type::Trajec
     struct PlanningResult
     {
         type::Trajectory trajectory;
-        double cost;
+        double cost = 0;
     };
 
     struct PtrPlanningResultComparator
@@ -64,6 +64,8 @@ Result<bool> LatticePlanner::Plan(const PlannerBase::Frame & frame, type::Trajec
             auto result_candidate = New<PlanningResult>();
             result_candidate->cost = cost;
             result_candidate->trajectory = *frame.stitch + candidate;
+
+            LaunchTrajectory(result_candidate->trajectory, frame.vehicle);
 
             if(not is_optimal_reference_line)
                 result_candidate->cost *= param.cost_not_optimal_reference_line;
@@ -173,14 +175,16 @@ Result<bool> LatticePlanner::PlanOnReferenceLine(
         if(collision_checker.InCollision(trajectory))
             continue;
 
-        LaunchTrajectory(trajectory, frame.vehicle);
-
         auto lon = std::dynamic_pointer_cast<lattice::Curve>(candidate.lon);
         auto lat = std::dynamic_pointer_cast<lattice::Curve>(candidate.lat);
         Logger::D("LatticePlanner")
             << endl
-            << "Pick lon(p, v, t) = " << lon->target_position << ", " << lon->target_speed << ", " << lon->target_time << endl
-            << "Pick lat(p, v, t) = " << lat->target_position << ", " << lat->target_speed << ", " << lat->target_time << endl
+            << "Pick lon(p, v, t) = " << lon->state[0] << ", " << lon->state[1] << ", " << lon->state.t << endl
+            << "Pick lat(p, v, t) = " << lat->state[0] << ", " << lat->state[1] << ", " << lat->state.t << endl
+            << "Cost Factor(lon, lat): " << lon->state.cost_factor.all << ", " << lat->state.cost_factor.all << endl
+            << "1. lon s travelled: " << lon->state.cost_factor.s_travelled << endl
+            << "2. lon v reached:   " << lon->state.cost_factor.v_reached << endl
+            << "3. lat offset:      " << lat->state.cost_factor.lateral_offset << endl
             << "Cost: " << candidate.cost_sum << endl
             << "1. lon objective: " << candidate.costs[0] << endl
             << "2. lon jerk:      " << candidate.costs[1] << endl
@@ -215,6 +219,7 @@ void LatticePlanner::ComputeFrentState(
 
 Result<bool> LatticePlanner::Check(const type::Trajectory &trajectory, const PlannerBase::Frame &frame)
 {
+    //region 检查碰撞
     auto reference = New<ReferenceLine>();
     reference->path = trajectory.ToPath();
 
@@ -223,6 +228,18 @@ Result<bool> LatticePlanner::Check(const type::Trajectory &trajectory, const Pla
 
     if(collisionChecker.InCollision(trajectory))
         return Result(false, "Checking: Trajectory is in collision.");
+    //endregion
+
+    //region 检查停止线
+    // 简单实现，直接取最后一个点来判断
+    const auto & last_point = trajectory.Back();
+
+    for(auto & i : frame.references)
+    {
+        if(i->IsBeyondStopLine(last_point.pose))
+            return Result(false, "Checking: Trajectory is beyond stop line.");
+    }
+    //endregion
 
     return Result(true);
 }
@@ -250,6 +267,10 @@ void LatticePlanner::LaunchTrajectory(type::Trajectory &trajectory, Ptr<Vehicle>
 
     if(result.Size() >= 2)
         result[0].v = result[1].v;
+
+    size_t nearest_index = result.QueryNearestByPosition(vehicle->pose.t);
+    if(nearest_index + 1 < result.Size())
+        result[nearest_index].v = result[nearest_index + 1].v;
 
     trajectory = result;
 }

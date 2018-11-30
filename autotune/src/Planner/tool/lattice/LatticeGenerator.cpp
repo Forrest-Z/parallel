@@ -101,9 +101,7 @@ void LatticeGenerator::GenerateQuarticBundle(
             ))
         );
 
-        lattice_curve->target_speed = end_state[1];
-        lattice_curve->target_time = end_state.t;
-        lattice_curve->priority_factor = end_state.priority_factor;
+        lattice_curve->state = end_state;
         result.push_back(lattice_curve);
     }
 }
@@ -124,10 +122,7 @@ void LatticeGenerator::GenerateQuinticBundle(
             ))
         );
 
-        lattice_curve->target_position = end_state[0];
-        lattice_curve->target_speed = end_state[1];
-        lattice_curve->target_time = end_state.t;
-        lattice_curve->priority_factor = end_state.priority_factor;
+        lattice_curve->state = end_state;
 
         result.push_back(lattice_curve);
     }

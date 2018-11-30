@@ -19,7 +19,7 @@ namespace nox::app
         MD5<vector<Ptr<GuideLine>>> Produce(const MD5<type::Map> & map, const MD5<vector<Ptr<type::GuideLine>>> & guideLines);
 
     private:
-        void Process();
+        bool Process();
 
     private:
         Material<type::Signal> _signal;

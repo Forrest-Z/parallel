@@ -1,4 +1,5 @@
 #include <LoMap/tool/GuideLineBuilder.h>
+#include <LoMap/provider/StopLineProvider.h>
 #include <iostream>
 #include <nox>
 
@@ -250,7 +251,8 @@ namespace nox::app
         {
             auto   nearest_index = guideLine->path.QueryNearestByPosition(i);
             auto & nearest_point = guideLine->path[nearest_index];
-            guideLine->AddStopLine(nearest_point.s);
+            guideLine->SetStopLine(StopLine(nearest_point.s));
+            guideLine->AddStopLine(StopLineProvider::DeadEnd, StopLine(nearest_point.s));
         }
     }
 

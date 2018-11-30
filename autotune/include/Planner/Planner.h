@@ -52,7 +52,7 @@ namespace nox::app
          * @param scene  场景（包含车道线、障碍物、红绿灯灯物件）
          * @param result 传入的是空轨迹，或上一条轨迹，再使用之返回规划结果
          */
-        Result<bool> Plan(type::Trajectory &result, bool enable_stitch = true);
+        Result<bool> Plan(PlannerBase::Frame & frame, type::Trajectory &result, bool enable_stitch = true);
 
 
     private:
@@ -78,7 +78,7 @@ namespace nox::app
             struct
             {
                 double _backward_time = 1.0;
-                double _forward_time = 8.0;
+                double _forward_time = 4.0;
             } _reserve;
         } _param;
     };

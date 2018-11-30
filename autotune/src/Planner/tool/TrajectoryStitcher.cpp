@@ -97,6 +97,8 @@ type::Trajectory TrajectoryStitcher::ComputeTrajectory(type::Position position, 
         time_step = time_sum / (distance_sum / param.density);
 
     TrajectoryPoint point;
+    point.pose.x = position.x;
+    point.pose.y = position.y;
     point.pose.theta = theta;
     point.v = v;
     point.a = a;
@@ -105,16 +107,13 @@ type::Trajectory TrajectoryStitcher::ComputeTrajectory(type::Position position, 
     type::Trajectory result;
     while (distance <= distance_sum) // 最后一个点可能被抛弃，现在暂时不管
     {
-        point.pose.x = position.x;
-        point.pose.y = position.y;
-        point.pose.z = position.z;
         point.s = distance;
         point.t = time;
 
         result.Add(point);
         time += time_step;
         distance += param.density;
-        position = position.Move(param.density);
+        point.pose = point.pose.Move(param.density);
     }
 
     return result;
@@ -138,18 +137,18 @@ type::Trajectory TrajectoryStitcher::FromLastTrajectoryByPosition(
         return std::move(result);
     };
 
-    if(last_trajectory.Empty())
+    if(last_trajectory.Length() < param.threshold.replan.too_short)
     {
         return MakeResult(InitialTrajectory(vehicle), true);
     }
 
     size_t nearest_index = last_trajectory.QueryNearestByPosition(vehicle.pose.t);
-    auto   nearest_point = last_trajectory[nearest_index];
+    auto & nearest_point = last_trajectory[nearest_index];
 
     double offset = nearest_point.pose.t.DistanceTo(vehicle.pose.t);
     if(offset > param.threshold.replan.distance)
     {
-        Logger::W("TrajectoryStitcher") << "Offset: " << offset;
+        Logger::W("TrajectoryStitcher") << "Initialize Trajectory because of the Offset: " << offset;
         return MakeResult(InitialTrajectory(vehicle), true);
     }
 

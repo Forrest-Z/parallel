@@ -9,26 +9,31 @@
 
 namespace nox::app::lattice
 {
+    struct CostFactor
+    {
+        double all            = 1.0;
+        double s_travelled    = 1.0;
+        double v_reached      = 1.0;
+        double lateral_offset = 1.0;
+    };
+
     struct State : public math::Derivative<2>
     {
         double t;
-        double priority_factor = 1.0;
+
+        CostFactor cost_factor;
 
         State();
 
         State(const math::Derivative<2> & state, double t, double priority_factor = 1.0);
 
         State(double s0, double s1, double s2, double t, double priority_factor = 1.0);
-
     };
 
     class Curve : public math::Parametric<1>
     {
     public:
-        double target_time = 0;
-        double target_speed = 0;
-        double target_position = 0;
-        double priority_factor = 1.0;
+        State state;
 
     public:
         explicit Curve(Ptr<math::Parametric<1>> curve);

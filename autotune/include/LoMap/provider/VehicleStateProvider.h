@@ -15,6 +15,8 @@ namespace nox::app
         : public system::MutexLock
     {
     public:
+        void Initialize();
+
         __asynchronous_thread
         void Update(const Odometry & state);
 
@@ -25,5 +27,7 @@ namespace nox::app
     private:
         Material<Odometry> _input;
         MD5<Odometry> _output;
+
+        container::Buffer<Odometry> _states;
     };
 }

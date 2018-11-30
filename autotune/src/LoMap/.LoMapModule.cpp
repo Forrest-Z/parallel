@@ -86,7 +86,7 @@ void LoMapModule::InitMailbox()
     mailboxes.hdmap.SetValidity(1000);
     mailboxes.virtual_obstacles.Subscribe({"virtual_obstacles"});
     mailboxes.virtual_obstacles.SetValidity(1000);
-    mailboxes.traffic_lights.Subscribe({"traffic_lights"});
+    mailboxes.traffic_lights.Subscribe({"traffic_light_state"});
     mailboxes.traffic_lights.SetValidity(1000);
     
 }

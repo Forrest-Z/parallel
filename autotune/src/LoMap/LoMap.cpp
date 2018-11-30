@@ -39,13 +39,7 @@ bool LoMap::ProcessOnvehicle_state(nav_msgs::Odometry vehicle_state)
 bool LoMap::ProcessOnobstacles(nox_msgs::ObstacleArray obstacles)
 {
 #ifdef USE_NEW_METHOD
-    vector<type::Obstacle> obstacles_(obstacles.obstacles.size());
-    for(auto & [src_i, dst_i] : together(obstacles.obstacles, obstacles_))
-    {
-        dst_i.From(src_i);
-    }
-
-    _scene_generator.UpdateObstacles(obstacles_, false);
+    _scene_generator.UpdateObstacles(obstacles, false);
 #else
     _scene_maintainer->UpdateObstacles(obstacles, false);
 #endif
@@ -92,13 +86,7 @@ bool LoMap::ProcessOnhdmap(std_msgs::String hdmap)
 bool LoMap::ProcessOnvirtual_obstacles(nox_msgs::ObstacleArray virtual_obstacles)
 {
 #ifdef USE_NEW_METHOD
-    vector<type::Obstacle> obstacles_(virtual_obstacles.obstacles.size());
-    for(auto & [src_i, dst_i] : together(virtual_obstacles.obstacles, obstacles_))
-    {
-        dst_i.From(src_i);
-    }
-
-    _scene_generator.UpdateObstacles(obstacles_, true);
+    _scene_generator.UpdateObstacles(virtual_obstacles, true);
 #else
     _scene_maintainer->UpdateObstacles(virtual_obstacles, true);
 #endif

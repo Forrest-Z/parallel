@@ -53,7 +53,7 @@ namespace nox::app
         void Evaluate(lattice::Combination & candidate) const;
 
     private:
-        double LonObjectiveCost(const Ptr <math::Parametric<1>> &lon_traj) const;
+        double LonObjectiveCost(const Ptr<lattice::Curve> &lon_traj) const;
 
         double LonComfortCost(const Ptr<lattice::Curve> & lon_traj) const;
 
@@ -99,8 +99,8 @@ namespace nox::app
                 /// 各代价系数
                 struct
                 {
-                    double _lon_objective = 5.0;
-                    double _lon_comfort = 8.0;
+                    double _lon_objective = 10.0;
+                    double _lon_comfort = 5.0;
                     double _lon_collision = 20;
                     double _centripetal_acc = 15;
                     double _lat_offset = 2.0;

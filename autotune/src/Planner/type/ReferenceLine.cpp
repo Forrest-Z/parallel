@@ -59,7 +59,7 @@ double ReferenceLine::Length() const
 
 double ReferenceLine::CruisingSpeed() const
 {
-    return 5.0;
+    return 20.0 / 3.6;
     if(speedLimits.empty())
         return 5.0;
     else
@@ -79,6 +79,17 @@ void ReferenceLine::Kill()
 bool ReferenceLine::Dead() const
 {
     return _killed;
+}
+
+bool ReferenceLine::IsBeyondStopLine(const Pose &pose) const
+{
+    if(not stopLine)
+        return false;
+    else
+    {
+        auto frenet = CalculateFrenet(pose);
+        return frenet.s > stopLine.value().s;
+    }
 }
 
 

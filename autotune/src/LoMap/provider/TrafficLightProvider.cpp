@@ -1,4 +1,5 @@
 #include <LoMap/provider/TrafficLightProvider.h>
+#include <LoMap/provider/StopLineProvider.h>
 USING_NAMESPACE_NOX;
 
 namespace nox::app
@@ -17,13 +18,17 @@ namespace nox::app
 
         if(_signal.IsFresh() or _map.IsFresh() or _guide_lines.IsFresh())
         {
-            Process();
+            if(not Process())
+            {
+                for(auto & i : _output.data())
+                    i->ClearStopLine(StopLineProvider::TrafficLight);
+            }
         }
 
         return _output;
     }
 
-    void TrafficLightProvider::Process()
+    bool TrafficLightProvider::Process()
     {
         static std::hash<long> hasher;
 
@@ -32,15 +37,15 @@ namespace nox::app
         auto & guideLines = _guide_lines.Get().data();
 
         _output.reset(guideLines, hasher(Clock::us()));
-        
+
         if(not _signal.IsInit())
-            return;
+            return false;
         auto signal = _signal.Get();
         //endregion
 
         //region 基本筛查
         if(map.Junctions.empty()) // 没有路口时，忽略红绿灯信息
-            return;
+            return false;
 
         assert(map.Junctions.size() == 1);
         auto junction = map.Junctions.begin()->second;
@@ -49,11 +54,11 @@ namespace nox::app
         auto roadLink = junction->RoadLinks.begin()->second;
 
         if(roadLink->direction bitand signal.direction) // 路口方向与绿灯方向一致时，不需要操作
-            return;
+            return false;
 
         auto road_it = map.Roads.find(connection.from);
         if(road_it == map.Roads.end()) // 若路口没有进入的road时，也不处理
-            return;
+            return false;
         //endregion
 
         //region 取出停止点
@@ -73,8 +78,10 @@ namespace nox::app
         for(auto & i : _output.data())
         {
             auto point = i->path.PointAtPosition(last_point.pose.t);
-            i->AddStopLine(point.s);
+            i->AddStopLine(StopLineProvider::TrafficLight, StopLine(point.s));
         }
+
+        return true;
         //endregion
     }
 }

@@ -21,6 +21,15 @@ LatticeSampler::LatticeSampler(
     // TODO: 读取参数
     auto & vehicle = cache::ReadEgoVehicle();
     _param._follow_reserve += vehicle.param.length.x;
+
+    double dt = _param._min_response_time;
+    auto graph_t_range = _st_graph->TRange();
+
+    _time_samples.push_back(real::Epsilon);
+    for(auto t : range(graph_t_range.Start + dt, dt, graph_t_range.End))
+        _time_samples.push_back(t);
+    if(_time_samples.back() != graph_t_range.End)
+        _time_samples.push_back(graph_t_range.End);
 }
 
 Ptr<LatticeSampler::States> LatticeSampler::SampleLatStates() const
@@ -31,7 +40,12 @@ Ptr<LatticeSampler::States> LatticeSampler::SampleLatStates() const
     {
         for(auto l : {0.0, -0.5, 0.5})
         {
-            end_states->emplace_back(l, 0, 0, s);
+            lattice::State state(l, 0, 0, s);
+
+            if(l != 0)
+                state.cost_factor.lateral_offset = 5;
+
+            end_states->emplace_back(state);
         }
     }
 
@@ -42,30 +56,41 @@ Ptr<LatticeSampler::States> LatticeSampler::SampleLonStatesForCruising(double ta
 {
     auto end_states = New<States>();
 
-    /// 在ST图的时间维度上，按系统的反应时间进行采样
-    auto graph_t_range = _st_graph->TRange();
-    double dt = _param._min_response_time;
-    double d0 = real::Epsilon;
-
-    for(auto t : range(graph_t_range.Start + d0, dt, graph_t_range.End))
+    static auto CreateState = [](double v, double t, double factor)
     {
-        double v_upper = std::min(_feasible_region.VUpper(t), target_speed);
-        double v_lower = _feasible_region.VLower(t);
+        lattice::State state(0, v, 0, t);
+        state.cost_factor.v_reached = factor;
+        return state;
+    };
 
-        /// 在该时间节点下，根据可以达到的速度上下限中，在速度维度上采样
-        end_states->emplace_back(0, v_lower, 0, t);
-        end_states->emplace_back(0, v_upper, 0, t);
+    auto Sampler = [&](double t, double v_min, double v_max, double factor)
+    {
+        end_states->push_back(CreateState(v_min, t, factor));
+        end_states->push_back(CreateState(v_max, t, factor));
 
         double dv = std::max
         (
             _param._mps_resolution,
-            (v_upper - v_lower) / (_param._num_velocity_samples - 2)
+            (v_max - v_min) / (_param._num_velocity_samples - 2)
         );
 
-        for(auto v : range(v_lower + dv, dv, v_upper - dv))
+        for(auto v : range(v_min + dv, dv, v_max - dv))
         {
-            end_states->emplace_back(0, v, 0, t);
+            end_states->push_back(CreateState(v, t, factor));
         }
+    };
+
+    /// 在ST图的时间维度上，按系统的反应时间进行采样
+    for(auto t : _time_samples)
+    {
+        double v_upper = std::min(_feasible_region.VUpper(t), target_speed);
+        double v_lower = _feasible_region.VLower(t);
+        double v_comfort_upper = std::min(_feasible_region.ComfortVUpper(t), target_speed);
+        double v_comfort_lower = _feasible_region.ComfortVLower(t);
+
+        Sampler(t, v_comfort_lower, v_comfort_upper, 0.5);
+        Sampler(t, v_lower, v_comfort_lower - _param._mps_resolution, 1.0);
+        Sampler(t, v_comfort_upper + _param._mps_resolution, v_upper, 1.5);
     }
 
     return end_states;
@@ -76,13 +101,12 @@ Ptr<LatticeSampler::States> LatticeSampler::SampleLonStatesForStopping(double ta
     auto end_states = New<States>();
 
     /// 在ST图的时间维度上，按系统的反应时间进行采样
-    auto graph_t_range = _st_graph->TRange();
-    double dt = _param._min_response_time;
-    double d0 = real::Epsilon;
-
-    for(auto t : Range(graph_t_range.Start + d0, dt, graph_t_range.End))
+    for(auto t : _time_samples)
     {
-        end_states->emplace_back(std::max(_init_s[0], target_position), 0, 0, t, 0.1);
+        lattice::State state(std::max(_init_s[0], target_position), 0, 0, t);
+        state.cost_factor.s_travelled = 0.5;
+
+        end_states->emplace_back(state);
     }
 
     return end_states;
