@@ -34,6 +34,7 @@ namespace nox::app
             
             parameter::VehicleParameter Vehicle;
             parameter::VTFParameter VTF;
+            parameter::PCPIDParameter PCPID;
         } params;
 
         struct

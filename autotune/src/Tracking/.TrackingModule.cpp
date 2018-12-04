@@ -91,6 +91,7 @@ void TrackingModule::InitParameter()
     
     params.Vehicle.Read(GetParameter("Vehicle"));
     params.VTF.Read(GetParameter("VTF"));
+    params.PCPID.Read(GetParameter("PCPID"));
 }
 
 void TrackingModule::InitCallback()

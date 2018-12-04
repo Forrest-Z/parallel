@@ -14,5 +14,7 @@ namespace nox::app
         virtual ~LateralController() = default;
 
         virtual double Calculate(const type::Trajectory & path, const type::Vehicle & vehicle) = 0;
+
+        virtual void Initialize() {}
     };
 }

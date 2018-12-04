@@ -1,4 +1,4 @@
-#include <Tracking/tool/SimpleLongitudinalController.h>
+#include <Tracking/component/SimpleLongitudinalController.h>
 #include <iostream>
 USING_NAMESPACE_NOX;
 using namespace nox::app;

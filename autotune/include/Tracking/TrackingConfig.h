@@ -15,4 +15,5 @@ namespace nox::app
 {
     caching(parameter::VehicleParameter, VehicleParameter);
     caching(parameter::VTFParameter, VTFParameter);
+    caching(parameter::PCPIDParameter, PCPIDParameter);
 }

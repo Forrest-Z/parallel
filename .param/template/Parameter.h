@@ -6,5 +6,6 @@
 
 #include "header/DeviceParameter.hpp"
 #include "header/GPSParameter.hpp"
+#include "header/PCPIDParameter.hpp"
 #include "header/VehicleParameter.hpp"
 #include "header/VTFParameter.hpp"

@@ -1,12 +1,13 @@
 #include <Tracking/Tracking.h>
-#include <Tracking/tool/SimpleLongitudinalController.h>
-#include <Tracking/tool/VTF.h>
+#include <Tracking/component/SimpleLongitudinalController.h>
+#include <Tracking/component/VTF.h>
 #include <Tracking/.TrackingModule.h>
 #include <Tracking/rule/Clipping.h>
 #include <Tracking/rule/Lowpass.h>
 #include <Tracking/rule/Limiting.h>
 #include <Tracking/rule/Custom.h>
 #include "../../../.param/template/Parameter.h"
+#include <Tracking/component/PCPID.h>
 
 using namespace nox::app;
 USING_NAMESPACE_NOX;
@@ -14,8 +15,14 @@ using namespace std;
 
 void Tracking::Initialize()
 {
+    cache::WriteVehicleParameter(params.Vehicle);
+    cache::WriteVTFParameter(params.VTF);
+    cache::WritePCPIDParameter(params.PCPID);
+
     _lon_controller = New<SimpleLongitudinalController>();
-    _lat_controller = New<VTF>();
+    _lat_controller = New<PCPID>();
+
+    _lat_controller->Initialize();
 
 
     _lon_filter.AddRule<rule::Lowpass>(5);
@@ -24,14 +31,14 @@ void Tracking::Initialize()
 
     _timer.Start();
 
-    cache::WriteVehicleParameter(params.Vehicle);
-    cache::WriteVTFParameter(params.VTF);
 
     Logger::I("Tracking")
         << "Vehicle Parameter: " << endl
         << string(params.Vehicle) << endl
         << "VTF Parameter: " << endl
-        << string(params.VTF) << endl;
+        << string(params.VTF) << endl
+        << "PCPID Parameter: " << endl
+        << string(params.PCPID) << endl;
 }
 
 void Tracking::Process(optional<nox_msgs::Trajectory> trajectory, nav_msgs::Odometry vehicle_state,

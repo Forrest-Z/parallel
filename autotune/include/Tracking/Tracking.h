@@ -16,8 +16,8 @@
 #pragma once
 
 #include ".TrackingModule.h"
-#include <Tracking/tool/LongitudinalController.h>
-#include <Tracking/tool/LateralController.h>
+#include <Tracking/component/interface/LongitudinalController.h>
+#include <Tracking/component/interface/LateralController.h>
 #include <Tracking/tool/Filter.h>
 
 namespace nox::app

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "LateralController.h"
+#include "Tracking/component/interface/LateralController.h"
 #include <Tracking/tool/Filter.h>
 
 namespace nox::app

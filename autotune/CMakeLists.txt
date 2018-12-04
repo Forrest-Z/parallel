@@ -127,7 +127,7 @@ set_target_properties(autotune_FakeHDMap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${P
 add_executable(autotune_Tracking
     include/Tracking/.TrackingModule.h src/Tracking/.TrackingModule.cpp
     include/Tracking/Tracking.h src/Tracking/Tracking.cpp
-        include/Tracking/tool/LongitudinalController.h include/Tracking/tool/LateralController.h include/Tracking/tool/SimpleLongitudinalController.h src/Tracking/tool/SimpleLongitudinalController.cpp include/Tracking/tool/VTF.h src/Tracking/tool/VTF.cpp include/Tracking/tool/Filter.h src/Tracking/tool/Filter.cpp include/Tracking/rule/Clipping.h src/Tracking/rule/Clipping.cpp include/Tracking/rule/Lowpass.h src/Tracking/rule/Lowpass.cpp include/Tracking/rule/Limiting.h src/Tracking/rule/Limiting.cpp include/Tracking/rule/Custom.h src/Tracking/rule/Custom.cpp include/Planner/type/ConstantAccelerationCurve.h)
+        include/Tracking/component/interface/LongitudinalController.h include/Tracking/component/interface/LateralController.h include/Tracking/component/SimpleLongitudinalController.h src/Tracking/component/SimpleLongitudinalController.cpp include/Tracking/component/VTF.h src/Tracking/component/VTF.cpp include/Tracking/tool/Filter.h src/Tracking/tool/Filter.cpp include/Tracking/rule/Clipping.h src/Tracking/rule/Clipping.cpp include/Tracking/rule/Lowpass.h src/Tracking/rule/Lowpass.cpp include/Tracking/rule/Limiting.h src/Tracking/rule/Limiting.cpp include/Tracking/rule/Custom.h src/Tracking/rule/Custom.cpp include/Planner/type/ConstantAccelerationCurve.h include/Tracking/component/PCPID.h src/Tracking/component/PCPID.cpp)
 target_link_libraries(autotune_Tracking
     ${catkin_LIBRARIES}
 )

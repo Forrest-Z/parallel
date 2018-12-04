@@ -63,21 +63,21 @@ namespace nox::app
             bool has_from_lane = hdmap.Roads.find(connection.from) != hdmap.Roads.end();
             bool has_to_lane = hdmap.Roads.find(connection.to) != hdmap.Roads.end();
 
-            using tb = std::tuple<bool, bool>;
-            Switch(tb(has_from_lane, has_to_lane))
-                Case(tb(true, true))
+            using is = std::tuple<bool, bool>;
+            Switch(is(has_from_lane, has_to_lane))
+                Case(is(true, true))
                 {
                     Update(hdmap.Roads[connection.from], roadLink, hdmap.Roads[connection.to]);
                 }
-                Case(tb(true, false))
+                Case(is(true, false))
                 {
                     Update(hdmap.Roads[connection.from], roadLink);
                 }
-                Case(tb(false, true))
+                Case(is(false, true))
                 {
                     Update(roadLink, hdmap.Roads[connection.to]);
                 }
-                Case(tb(false, false))
+                Case(is(false, false))
                 {
                     Update(roadLink);
                 }

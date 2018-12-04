@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "LongitudinalController.h"
+#include "Tracking/component/interface/LongitudinalController.h"
 
 namespace nox::app
 {
