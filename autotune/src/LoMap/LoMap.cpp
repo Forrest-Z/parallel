@@ -23,6 +23,13 @@ void LoMap::Initialize()
 #endif
 }
 
+void LoMap::Terminate()
+{
+    _scene_maintainer.reset();
+    _scene_server.UnSubscribe();
+    _scene_generator.Finish();
+}
+
 bool LoMap::ProcessOnvehicle_state(nav_msgs::Odometry vehicle_state)
 {
     type::Odometry state;
@@ -116,4 +123,5 @@ bool LoMap::ProcessOntraffic_lights(traffic_light::msg_traffic_light_list lights
 #endif
     return true;
 }
+
 

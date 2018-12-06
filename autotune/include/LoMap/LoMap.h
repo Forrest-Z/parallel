@@ -28,6 +28,8 @@ namespace nox::app
     protected:
         void Initialize() override;
 
+        void Terminate() override;
+
         bool ProcessOnvehicle_state(nav_msgs::Odometry vehicle_state) override;
 
         bool ProcessOnobstacles(nox_msgs::ObstacleArray obstacles) override;

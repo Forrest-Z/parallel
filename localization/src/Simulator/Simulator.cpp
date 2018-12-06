@@ -34,6 +34,7 @@ void Simulator::Initialize()
 )", _positioning ? "ON" : "OFF",
     _driving     ? "ON" : "OFF");
 
+        fflush(stdout);
         Console::Screen::ClearStyle();
     };
 

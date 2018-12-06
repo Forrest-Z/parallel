@@ -20,7 +20,7 @@ namespace nox::app
         const double dError = vehicle.pose.t.DistanceTo(matched_point.pose.t) *
             math::PointOnLine(vehicle.pose.x, vehicle.pose.y, matched_point.pose.x, matched_point.pose.y, matched_point.pose.theta);
 
-        const double ff = FeedForward(v, matched_point.kappa);
+        const double ff = FeedForward(v, -matched_point.kappa);
         const double fb = FeedBack(aError, dError);
         const double in = Integral(_integral, dError * v * 0.05 * std::cos(aError));
         _integral = in;
@@ -45,7 +45,7 @@ original| %10.6lf | %10.6lf | %10.6lf |
    sum  | %10.6lf |
 --------------------------------------------------------------------
 )", "v", "aError/deg", "dError", "kappa",
-v, aError * 180.0 / M_PI, dError, matched_point.kappa,
+v, aError * 180.0 / M_PI, dError, -matched_point.kappa,
 "FF", "FB", "IN",
 Kff, Kfb, Kin,
 ff, fb, in,
