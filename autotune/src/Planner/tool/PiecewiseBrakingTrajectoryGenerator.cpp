@@ -19,8 +19,8 @@ namespace nox::app
         if (comfort_stop_dist > s_dist)
         {
             double stop_d = ComputeStopDeceleration(s_dist, v_curr);
-            double stop_t = v_curr / stop_d;
-            ptr_trajectory->PushSegment(-stop_d, stop_t);
+            double stop_t = (0 - v_curr) / stop_d;
+            ptr_trajectory->PushSegment(stop_d, stop_t);
 
             if (ptr_trajectory->Boundary() < max_time)
             {
@@ -103,6 +103,15 @@ namespace nox::app
     double PiecewiseBrakingTrajectoryGenerator::ComputeStopDeceleration(
         const double dist, const double v)
     {
-        return v * v / dist * 0.5;
+        return -v * v / dist * 0.5;
+    }
+
+    Ptr<math::Parametric<1>>
+    PiecewiseBrakingTrajectoryGenerator::Generate(double s_curr, double v_curr, double v_target, double dec)
+    {
+        auto ptr_traj = New<PiecewiseAccelerationCurve>(s_curr, v_curr);
+        double t = (v_target - v_curr) / dec;
+        ptr_traj->PushSegment(dec, t);
+        return ptr_traj;
     }
 }

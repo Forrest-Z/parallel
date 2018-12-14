@@ -10,6 +10,7 @@ void PlannerModule::OnStart()
     /// 配置节点
     SetFrequency( 20.000000 );
     Viewer::Instance()->SetRender(New< Rviz >());
+    Viewer::Instance()->SetName(Module::GetNodeName());
 
     // TODO： 看门狗
 

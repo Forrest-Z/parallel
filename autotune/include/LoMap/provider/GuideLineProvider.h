@@ -62,6 +62,8 @@ namespace nox::app
 
         void SetEndLine(Ptr<ControlLine> controlLine);
 
+        void SetEndLines(const vector<Ptr<ControlLine>> & controlLines);
+
     private:
         Material<MD5<type::Map>>    _hdmap;
         MD5<vector<Ptr<GuideLine>>> _guideLines;

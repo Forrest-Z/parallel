@@ -33,11 +33,10 @@ namespace nox::app
         virtual Result<bool> Plan(const Frame & frame, type::Trajectory & result) = 0;
 
         /**
-         * 检查目标轨迹在frame下的合理性
-         * @param trajectory 目标轨迹
-         * @param frame 当前规划信息
+         * 检查frame.stitch轨迹在frame下的合理性
+         * @param frame 当前规划信息，其中包含上一条规划的轨迹
          * @return 检查状态
          */
-        virtual Result<bool> Check(const type::Trajectory & trajectory, const Frame & frame) = 0;
+        virtual Result<bool> Check(const Frame & frame) = 0;
     };
 }

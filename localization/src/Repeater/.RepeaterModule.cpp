@@ -10,6 +10,7 @@ void RepeaterModule::OnStart()
     /// 配置节点
     SetFrequency( 20.000000 );
     Viewer::Instance()->SetRender(New< None >());
+    Viewer::Instance()->SetName(Module::GetNodeName());
 
     // TODO： 看门狗
 
@@ -71,7 +72,7 @@ void RepeaterModule::OnFinish()
 void RepeaterModule::InitMailbox()
 {
     
-    mailboxes.localization.Subscribe({"/gps/Localization"});
+    mailboxes.localization.Subscribe({"Localization"});
     mailboxes.localization.SetValidity(1000);
     mailboxes.chassis.Subscribe({"chassis"});
     mailboxes.chassis.SetValidity(1000);

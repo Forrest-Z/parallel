@@ -19,7 +19,8 @@
 #include <Planner/type/ReferenceLine.h>
 #include <Planner/tool/TrajectoryStitcher.h>
 #include <Planner/tool/DecisionMaker.h>
-#include <Planner/impl/PlannerBase.h>
+#include <Planner/PlannerBase.h>
+#include <Planner/impl/BrakingPlanner.h>
 #include <memory>
 #include <vector>
 
@@ -44,15 +45,17 @@ namespace nox::app
         void Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Trajectory> &trajectory) override;
 
     public:
-        Result<bool> Process(type::Trajectory & last_trajectory);
+        Result<bool> Process(type::Trajectory & last_trajectory, type::Trajectory & result);
+
+        Result<bool> CouldExtend(const PlannerBase::Frame &frame);
 
         /**
          * 进行规划流程处理
          * @param vehicle 车
          * @param scene  场景（包含车道线、障碍物、红绿灯灯物件）
-         * @param result 传入的是空轨迹，或上一条轨迹，再使用之返回规划结果
+         * @param new_trajectory 传入的是空轨迹，或上一条轨迹，再使用之返回规划结果
          */
-        Result<bool> Plan(PlannerBase::Frame & frame, type::Trajectory &result, bool enable_stitch = true);
+        Result<bool> Plan(PlannerBase::Frame & frame, type::Trajectory &new_trajectory, bool should_replan = true);
 
 
     private:
@@ -62,6 +65,7 @@ namespace nox::app
         vector< Ptr<DecisionMaker> > _deciders;
         Ptr<TrajectoryStitcher>      _trajectoryStitcher;
         Ptr<PlannerBase>             _algorithm;
+        BrakingPlanner               _braking;
 
         mailbox::Service<nox_msgs::GetScene> _scene_server;
         mailbox::Topic<geometry_msgs::Point> _trajectory_plotter;
@@ -73,6 +77,7 @@ namespace nox::app
                 double _replan_distance = 2.0;
                 double _replan_time = 1.0;
                 double _extend_time = 6.0;
+                double _speed_diff  = 2.0;
             } _threshold;
 
             struct

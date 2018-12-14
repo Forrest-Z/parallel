@@ -1,12 +1,57 @@
 #include <Planner/type/ReferenceLine.h>
 #include <nox>
+#include <cmath>
+#include <Planner/PlannerConfig.h>
 USING_NAMESPACE_NOX;
 using namespace nox::app;
 
 
 ReferenceLine::ReferenceLine(const GuideLine &guideLine)
     : GuideLine(guideLine)
-{}
+{
+    Setup();
+}
+
+ReferenceLine &ReferenceLine::operator=(const GuideLine &guideLine)
+{
+    GuideLine::operator=(guideLine);
+    Setup();
+    return *this;
+}
+
+
+void ReferenceLine::Setup()
+{
+    //region 重置所有成员
+    _priority = {1, 1, 1, 1};
+    _killed = false;
+    _stop_lines.clear();
+    _speed_controls.Clear();
+    //endregion
+
+    //region 处理停止线
+    for(auto & i : stop)
+    {
+        for(auto & j : i.data)
+        {
+            _stop_lines.push_back(j);
+        }
+    }
+
+    std::sort(_stop_lines.begin(), _stop_lines.end());
+    _stop_lines.emplace_back(Length() * 10);
+    //endregion
+
+    //region 处理速度信息
+    for(auto & i : speed)
+    {
+        for(auto & j : i.data)
+        {
+            _speed_controls.PushBack(j.s, j.v);
+        }
+    }
+    //endregion
+}
 
 void ReferenceLine::AddCost(ReferenceLine::Priority priority, double cost)
 {
@@ -26,12 +71,12 @@ bool ReferenceLine::IsPriorThan(const ReferenceLine &other) const
     return false;
 }
 
-bool ReferenceLine::IsReachedEnd(Ptr<type::Vehicle> vehicle) const
+bool ReferenceLine::IsReachedEnd(const Vehicle & vehicle) const
 {
-    auto nearest_index = path.QueryNearestByPosition(vehicle->pose.t);
+    auto nearest_index = path.QueryNearestByPosition(vehicle.pose.t);
     auto nearest_point = path[nearest_index];
 
-    return (path.Back().s - nearest_point.s) < vehicle->param.length.x * 1.5;
+    return (path.Back().s - nearest_point.s) < vehicle.param.length.x;
 }
 
 math::Frenet ReferenceLine::CalculateFrenet(const Pose &pose) const
@@ -46,10 +91,9 @@ math::Frenet ReferenceLine::CalculateFrenet(double x, double y, double theta) co
     return frenet;
 }
 
-math::Frenet ReferenceLine::CalculateFrenet(Ptr<type::Vehicle> vehicle) const
+math::Frenet ReferenceLine::CalculateFrenet(const Vehicle & vehicle) const
 {
-    assert(vehicle);
-    return CalculateFrenet(vehicle->pose);
+    return CalculateFrenet(vehicle.pose);
 }
 
 double ReferenceLine::Length() const
@@ -57,18 +101,16 @@ double ReferenceLine::Length() const
     return path.Length();
 }
 
-double ReferenceLine::CruisingSpeed() const
+double ReferenceLine::CruisingSpeed(double s) const
 {
-    return 20.0 / 3.6;
-    if(speedLimits.empty())
-        return 5.0;
-    else
-        return speedLimits.front().v.Upper;
-}
+    double v_max = 20.0 / 3.6;
 
-double ReferenceLine::StopPoint() const
-{
-    return stopLine.value_or(real::MAX).s;
+    for(auto & i : _speed_controls[s])
+    {
+        v_max = std::max<double>(v_max, i.data.Upper);
+    }
+
+    return v_max;
 }
 
 void ReferenceLine::Kill()
@@ -76,20 +118,60 @@ void ReferenceLine::Kill()
     _killed = true;
 }
 
-bool ReferenceLine::Dead() const
+bool ReferenceLine::IsDead() const
 {
     return _killed;
 }
 
-bool ReferenceLine::IsBeyondStopLine(const Pose &pose) const
+Result<bool> ReferenceLine::IsNormal(const Trajectory &trajectory, const Vehicle &vehicle) const
 {
-    if(not stopLine)
-        return false;
-    else
-    {
-        auto frenet = CalculateFrenet(pose);
-        return frenet.s > stopLine.value().s;
-    }
+    auto frenet = CalculateFrenet(vehicle);
+
+    if(IsOverStopLine(frenet.s, vehicle.param.length.x))
+        return Result(false, "Trajectory is over the stop line");
+
+    double stop_line = GetNextStopLine(frenet.s);
+    if(trajectory.Back().s >= stop_line)
+        return Result(false, "Trajectory cross the stop line.");
+
+    return true;
 }
+
+double ReferenceLine::GetNextStopLine(double s) const
+{
+    size_t index = math::UpperBound(
+        _stop_lines.begin(),
+        _stop_lines.end(),
+        s,
+        [](double s_, const StopLine & o)
+        {
+            return s_ < o.s;
+        }
+    );
+
+    return _stop_lines[index].s;
+}
+
+bool ReferenceLine::IsOverStopLine(double s, double th) const
+{
+    size_t index = math::BinaryMatch(
+        _stop_lines.begin(),
+        _stop_lines.end(),
+        s,
+        [](const StopLine & o, double s_)
+        {
+            return o.s < s_;
+        },
+        [](const StopLine & lower, const StopLine & upper, double s_)
+        {
+            return s_ - lower.s < upper.s - s_;
+        }
+    );
+
+    return abs(_stop_lines[index].s - s) < th;
+}
+
+
+
 
 

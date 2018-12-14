@@ -33,14 +33,19 @@ namespace nox::app
                 return Produce();
             else
             {
-                auto cmp = [](const Odometry & p, double t)
-                {
-                    return p.timeStamp.Get<Second>() < t;
-                };
-
-                auto it = std::lower_bound(_states.begin(), _states.end(), time_, cmp);
-                size_t index = std::distance(_states.begin(), it);
-                index = std::min<size_t>(index, _states.size() - 1);
+                size_t index = math::BinaryMatch(
+                    _states.begin(),
+                    _states.end(),
+                    time_,
+                    [](const Odometry & p, double t)
+                    {
+                        return p.timeStamp.Get<Second>() < t;
+                    },
+                    [](const Odometry & lower, const Odometry & upper, double t)
+                    {
+                        return t - lower.timeStamp.Get<Second>() < upper.timeStamp.Get<Second>() - t;
+                    }
+                );
 
                 MD5<Odometry> result;
                 result.data() = _states[index];

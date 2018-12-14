@@ -1,14 +1,15 @@
 #include <LoMap/tool/GuideLineBuilder.h>
-#include <LoMap/provider/StopLineProvider.h>
+#include <LoMap/LoMapConfig.h>
 #include <iostream>
 #include <nox>
 
+
 namespace nox::app
 {
-    void GuideLineBuilder::BuildPathUsingSpline(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine)
+    void GuideLineBuilder::BuildPathUsingSpline(const ControlLine & controlLine, GuideLine & guideLine)
     {
         //region 初始化第一个控制点（之后迭代更新第二个点）
-        auto first_line = controlLine->segments[0]->GetFunction();
+        auto first_line = controlLine.segments[0]->GetFunction();
         auto [x, y] = first_line->Calculate(0, 0);
         auto [dx, dy] = first_line->Calculate(1, 0);
         math::Derivative<1> x0, x1{x, dx}, y0, y1{y, dy};
@@ -22,7 +23,7 @@ namespace nox::app
         bool is_finished = false;
         //endregion
 
-        for(auto & i : controlLine->segments)
+        for(auto & i : controlLine.segments)
         {
             //region 获得当前分段
             auto s = i->Length();
@@ -109,20 +110,20 @@ namespace nox::app
             anchors.front().enforced = true;
             anchors.back().enforced = true;
         }
-        guideLine->path = smoother.Smooth(anchors);
+        guideLine.path = smoother.Smooth(anchors);
         //endregion
     }
 
-    void GuideLineBuilder::BuildPathUsingCubic(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine, double density)
+    void GuideLineBuilder::BuildPathUsingCubic(const ControlLine & controlLine, GuideLine & guideLine, double density)
     {
         //region 初始化第一个控制点（之后迭代更新第二个点）
-        auto first_line = controlLine->segments[0]->GetFunction();
+        auto first_line = controlLine.segments[0]->GetFunction();
         auto [x, y] = first_line->Calculate(0, 0);
         auto [dx, dy] = first_line->Calculate(1, 0);
         math::Derivative<1> x0, x1{x, dx}, y0, y1{y, dy};
         //endregion
 
-        for(auto & i : controlLine->segments)
+        for(auto & i : controlLine.segments)
         {
             //region 获得当前分段
             auto s = i->Length();
@@ -160,9 +161,9 @@ namespace nox::app
             for(double ds : range(0.0, density, s - density))
             {
                 PathPoint point(curve_x, curve_y, ds / s);
-                guideLine->path.Add(point);
+                guideLine.path.Add(point);
 
-                size_t index = guideLine->path.Size() - 1;
+                size_t index = guideLine.path.Size() - 1;
                 if(ds < 3.0)
                     head_index.push_back(index);
                 if(ds > s - 3.0)
@@ -175,23 +176,23 @@ namespace nox::app
             {
                 auto head_size = head_index.size();
                 auto head_normal_index = head_index[0] + head_size;
-                auto end = guideLine->path.Size();
+                auto end = guideLine.path.Size();
 
                 if(head_normal_index >= end)
                 {
                     for(auto k : head_index)
                     {
-                        guideLine->path[k].kappa = 0;
-                        guideLine->path[k].dkappa = 0;
+                        guideLine.path[k].kappa = 0;
+                        guideLine.path[k].dkappa = 0;
                     }
                 }
                 else
                 {
-                    auto & head = guideLine->path[head_normal_index];
+                    auto & head = guideLine.path[head_normal_index];
                     for(auto k : head_index)
                     {
-                        guideLine->path[k].kappa = head.kappa;
-                        guideLine->path[k].dkappa = 0;
+                        guideLine.path[k].kappa = head.kappa;
+                        guideLine.path[k].dkappa = 0;
                     }
                 }
 
@@ -203,23 +204,23 @@ namespace nox::app
             {
                 auto tail_size = tail_index.size();
                 auto tail_normal_index = tail_index[0] - tail_size;
-                auto end = guideLine->path.Size();
+                auto end = guideLine.path.Size();
 
                 if(tail_normal_index >= end)
                 {
                     for(auto k : tail_index)
                     {
-                        guideLine->path[k].kappa = 0;
-                        guideLine->path[k].dkappa = 0;
+                        guideLine.path[k].kappa = 0;
+                        guideLine.path[k].dkappa = 0;
                     }
                 }
                 else
                 {
-                    auto & tail = guideLine->path[tail_normal_index];
+                    auto & tail = guideLine.path[tail_normal_index];
                     for(auto k : tail_index)
                     {
-                        guideLine->path[k].kappa = tail.kappa;
-                        guideLine->path[k].dkappa = 0;
+                        guideLine.path[k].kappa = tail.kappa;
+                        guideLine.path[k].dkappa = 0;
                     }
                 }
             }
@@ -227,12 +228,12 @@ namespace nox::app
         }
     }
 
-    void GuideLineBuilder::BuildPathUsingCC_Dubins(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine)
+    void GuideLineBuilder::BuildPathUsingCC_Dubins(const ControlLine & controlLine, GuideLine & guideLine)
     {
         std::vector<tool::AnchorPoint> anchors;
-        anchors.emplace_back(controlLine->segments[0]->Front());
+        anchors.emplace_back(controlLine.segments[0]->Front());
 
-        for(auto & i : controlLine->segments)
+        for(auto & i : controlLine.segments)
         {
             anchors.emplace_back(i->Back());
         }
@@ -242,21 +243,20 @@ namespace nox::app
         config.type = tool::Smoother::CC_Dubins;
         smoother.SetConfig(config);
 
-        guideLine->path = smoother.Smooth(anchors);
+        guideLine.path = smoother.Smooth(anchors);
     }
 
-    void GuideLineBuilder::BuildStopLine(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine)
+    void GuideLineBuilder::BuildStopLine(const ControlLine & controlLine, GuideLine & guideLine)
     {
-        for(auto & i : controlLine->stopPoints)
+        for(auto & i : controlLine.stopPoints)
         {
-            auto   nearest_index = guideLine->path.QueryNearestByPosition(i);
-            auto & nearest_point = guideLine->path[nearest_index];
-            guideLine->SetStopLine(StopLine(nearest_point.s));
-            guideLine->AddStopLine(StopLineProvider::DeadEnd, StopLine(nearest_point.s));
+            auto   nearest_index = guideLine.path.QueryNearestByPosition(i);
+            auto & nearest_point = guideLine.path[nearest_index];
+            guideLine.stop.Add(key::DeadEnd, nearest_point.s);
         }
     }
 
-    void GuideLineBuilder::BuildPathUsingSpline2(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine)
+    void GuideLineBuilder::BuildPathUsingSpline2(const ControlLine & controlLine, GuideLine & guideLine)
     {
         BuildPathUsingCubic(controlLine, guideLine);
 
@@ -270,10 +270,10 @@ namespace nox::app
 
         smoother.SetConfig(config);
 
-        guideLine->path = smoother.Smooth(guideLine->path);
+        guideLine.path = smoother.Smooth(guideLine.path);
     }
 
-    void GuideLineBuilder::BuildPathUsingSpline3(Ptr<ControlLine> controlLine, Ptr<GuideLine> guideLine)
+    void GuideLineBuilder::BuildPathUsingSpline3(const ControlLine & controlLine, GuideLine & guideLine)
     {
         tool::Smoother::Config config;
         config.density = 0.3;
@@ -284,7 +284,36 @@ namespace nox::app
         smoother.SetConfig(config);
 
         BuildPathUsingCubic(controlLine, guideLine, 1);
+    }
 
+    void GuideLineBuilder::BuildYellowZone(const ControlLine & controlLine, GuideLine & guideLine)
+    {
+        // FIXME：此处仅简单地限制路口处的速度（需要根据地图速度来调整）
+
+        if(controlLine.junction_begin_index != -1)
+        {
+            auto & lane = *controlLine.segments[controlLine.junction_begin_index];
+            auto frenet_end = guideLine.path.FrenetAtPosition(lane.Back().pose.t);
+
+            guideLine.speed.Add(key::Junction,
+                std::max(0.0, frenet_end.s - 40),
+                frenet_end.s,
+                0, 15.0 / 3.6
+            );
+        }
+
+        if(controlLine.junction_end_index != -1)
+        {
+            auto & lane_begin = *controlLine.segments[controlLine.junction_begin_index + 1];
+            auto & lane_end   = *controlLine.segments[controlLine.junction_end_index];
+            auto frenet_begin = guideLine.path.FrenetAtPosition(lane_begin.Front().pose.t);
+            auto frenet_end   = guideLine.path.FrenetAtPosition(lane_end.Back().pose.t);
+
+            guideLine.speed.Add(key::Junction,
+                frenet_begin.s, frenet_end.s,
+                0, 15.0 / 3.6
+            );
+        }
     }
 
 

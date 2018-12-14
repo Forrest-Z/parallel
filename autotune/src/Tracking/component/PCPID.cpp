@@ -15,41 +15,47 @@ namespace nox::app
     double PCPID::Calculate(const type::Trajectory &path, const type::Vehicle &vehicle)
     {
         const auto matched_point = path.PointAtPosition(vehicle.pose.t);
-        const double v = vehicle.v.x;
+        const double vx = vehicle.v.x;
+        const double vy = vehicle.v.y;
+        const double w  = vehicle.w.z;
+        const double kappa = -matched_point.kappa;
         const double aError = vehicle.pose.theta - matched_point.pose.theta;
         const double dError = vehicle.pose.t.DistanceTo(matched_point.pose.t) *
             math::PointOnLine(vehicle.pose.x, vehicle.pose.y, matched_point.pose.x, matched_point.pose.y, matched_point.pose.theta);
 
-        const double ff = FeedForward(v, -matched_point.kappa);
+        const double ff = FeedForward(vx, kappa);
         const double fb = FeedBack(aError, dError);
-        const double in = Integral(_integral, dError * v * 0.05 * std::cos(aError));
+        const double in = Integral(_integral, dError * vx * 0.05 * std::cos(aError));
+        const double dp = Damping(vx, vy, w, kappa, aError);
         _integral = in;
 
-        double Kff, Kfb, Kin;
-        PickPID(v, Kff, Kfb, Kin);
+        double Kff, Kfb, Kin, Kdp;
+        PickPID(vx, Kff, Kfb, Kin, Kdp);
 
         const double sff = Kff * ff;
         const double sfb = Kfb * fb;
         const double sin = Kin * in;
-        const double result = sff + sfb + sin;
+        const double sdp = Kdp * dp;
+        const double result = sff + sfb + sin + sdp;
 
         Logger::I("PCPID").Print(R"(
 --------------------------------------------------------------------
-[Input ]| %10s | %10s | %10s | %10s |
-        | %10.6lf | %10.6lf | %10.6lf | %10.6lf |
+[Input ]| %10s | %10s | %10s | %10s | %10s | %10s |
+        | %10.6lf | %10.6lf | %10.6lf | %10.6lf | %10.6lf | %10.6lf |
 --------------------------------------------------------------------
-[ Item ]| %10s | %10s | %10s |
- weight | %10.6lf | %10.6lf | %10.6lf |
-original| %10.6lf | %10.6lf | %10.6lf |
- in deg | %10.6lf | %10.6lf | %10.6lf |
+[ Item ]| %10s | %10s | %10s | %10s |
+ weight | %10.6lf | %10.6lf | %10.6lf | %10.6lf |
+original| %10.6lf | %10.6lf | %10.6lf | %10.6lf |
+ in deg | %10.6lf | %10.6lf | %10.6lf | %10.6lf |
    sum  | %10.6lf |
 --------------------------------------------------------------------
-)", "v", "aError/deg", "dError", "kappa",
-v, aError * 180.0 / M_PI, dError, -matched_point.kappa,
-"FF", "FB", "IN",
-Kff, Kfb, Kin,
-ff, fb, in,
-ff * 180.0 / M_PI, fb * 180.0 / M_PI, in * 180.0 / M_PI,
+)",
+"vx", "vy", "w", "aError/deg", "dError", "kappa",
+vx, vy, w, aError * 180.0 / M_PI, dError, kappa,
+"FF", "FB", "IN", "DP",
+Kff, Kfb, Kin, Kdp,
+ff, fb, in, dp,
+ff * 180.0 / M_PI, fb * 180.0 / M_PI, in * 180.0 / M_PI, dp * 180.0 / M_PI,
 result
 );
 
@@ -88,24 +94,30 @@ result
         return result;
     }
 
-    void PCPID::PickPID(double v, double & Kff, double & Kfb, double & Kin)
+    void PCPID::PickPID(double v, double & Kff, double & Kfb, double & Kin, double & Kdp)
     {
         auto & vv = _param._pcpid.Kv;
-        auto it = math::Extremum(vv.begin(), vv.end(), [&](const double & lhs, const double & rhs)
+        size_t index = math::Extremum(vv.begin(), vv.end(), [&](const double & lhs, const double & rhs)
         {
             return std::abs(lhs - v) < std::abs(rhs - v);
         });
 
-        size_t index = std::distance(vv.begin(), it);
-        index = std::min<size_t>(index, vv.size() - 1);
-
         auto & vff = _param._pcpid.Kff;
         auto & vfb = _param._pcpid.Kfb;
         auto & vin = _param._pcpid.Kin;
+        auto & vdp = _param._pcpid.Kdp;
 
         Kff = vff.empty() ? 0 : vff[std::min(index, vff.size() - 1)];
         Kfb = vfb.empty() ? 0 : vfb[std::min(index, vfb.size() - 1)];
         Kin = vin.empty() ? 0 : vin[std::min(index, vin.size() - 1)];
+        Kdp = vdp.empty() ? 0 : vdp[std::min(index, vdp.size() - 1)];
+    }
+
+    double PCPID::Damping(double vx, double vy, double w, double curvature, double aError)
+    {
+        return w - vx / (curvature + real::Epsilon) * (
+            std::cos(aError) - std::tan(vy / (vx + real::Epsilon) * std::sin(aError))
+        );
     }
 
 

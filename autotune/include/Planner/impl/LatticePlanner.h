@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include <Planner/impl/PlannerBase.h>
+#include <Planner/PlannerBase.h>
 
 namespace nox::app
 {
@@ -19,7 +19,7 @@ namespace nox::app
             nox::type::Trajectory       & result,
             double                      & cost);
 
-        Result<bool> Check(const type::Trajectory &trajectory, const Frame &frame) override;
+        Result<bool> Check(const Frame &frame) override;
 
     public:
         struct

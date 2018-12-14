@@ -1,5 +1,5 @@
 #include <LoMap/provider/TrafficLightProvider.h>
-#include <LoMap/provider/StopLineProvider.h>
+#include <LoMap/LoMapConfig.h>
 USING_NAMESPACE_NOX;
 
 namespace nox::app
@@ -21,7 +21,7 @@ namespace nox::app
             if(not Process())
             {
                 for(auto & i : _output.data())
-                    i->ClearStopLine(StopLineProvider::TrafficLight);
+                    i->stop.Clear(key::TrafficLight);
             }
         }
 
@@ -53,7 +53,7 @@ namespace nox::app
         auto connection = junction->RoadLinks.begin()->first;
         auto roadLink = junction->RoadLinks.begin()->second;
 
-        if(roadLink->direction bitand signal.direction) // 路口方向与绿灯方向一致时，不需要操作
+        if(signal.direction bitand roadLink->direction) // 路口方向与绿灯方向一致时，不需要操作
             return false;
 
         auto road_it = map.Roads.find(connection.from);
@@ -78,7 +78,7 @@ namespace nox::app
         for(auto & i : _output.data())
         {
             auto point = i->path.PointAtPosition(last_point.pose.t);
-            i->AddStopLine(StopLineProvider::TrafficLight, StopLine(point.s));
+            i->stop.Add(key::TrafficLight, point.s);
         }
 
         return true;

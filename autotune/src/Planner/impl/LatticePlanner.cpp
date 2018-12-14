@@ -39,7 +39,7 @@ Result<bool> LatticePlanner::Plan(const PlannerBase::Frame & frame, type::Trajec
 
     for(auto & i : frame.references)
     {
-        if(not i->Dead())
+        if(not i->IsDead())
             references_heap.push(i);
     }
 
@@ -79,6 +79,8 @@ Result<bool> LatticePlanner::Plan(const PlannerBase::Frame & frame, type::Trajec
             error_msg += FormatOut("Guide Line [id: %lu]: %s\n", i->id, planning_result.Message().c_str());
         }
     }
+
+    frame.stitch->Add(init_point); // 把pop back的点还回去，保证外边的frame是不变的。
 
     if(results_heap.empty())
         return Result(false, "all guide lines are suck.\n" + error_msg);
@@ -217,27 +219,25 @@ void LatticePlanner::ComputeFrentState(
     Logger::D("Planner").Print("Init Frenet: s(%lf, %lf, %lf), l(%lf, %lf, %lf)", s[0], s[1], s[2], l[0], l[1], l[2]);
 }
 
-Result<bool> LatticePlanner::Check(const type::Trajectory &trajectory, const PlannerBase::Frame &frame)
+Result<bool> LatticePlanner::Check(const PlannerBase::Frame &frame)
 {
     //region 检查碰撞
+    auto & trajectory = *frame.stitch;
     auto reference = New<ReferenceLine>();
     reference->path = trajectory.ToPath();
 
-    auto frenet = reference->CalculateFrenet(frame.vehicle);
+    auto frenet = reference->CalculateFrenet(*frame.vehicle);
     CollisionChecker collisionChecker(frame.scene, frenet.s, frenet.l, reference, trajectory.Back().t);
 
     if(collisionChecker.InCollision(trajectory))
         return Result(false, "Checking: Trajectory is in collision.");
     //endregion
 
-    //region 检查停止线
-    // 简单实现，直接取最后一个点来判断
-    const auto & last_point = trajectory.Back();
-
+    //region 检查轨迹是否符合引导线要求
     for(auto & i : frame.references)
     {
-        if(i->IsBeyondStopLine(last_point.pose))
-            return Result(false, "Checking: Trajectory is beyond stop line.");
+        if(auto r = i->IsNormal(trajectory, *frame.vehicle); r.Fail())
+            return Result(false, "Checking: Trajectory dosen't meet the requirement of guide line: " + r.Message());
     }
     //endregion
 

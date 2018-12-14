@@ -12,4 +12,14 @@
 namespace nox::app
 {
     caching(type::Vehicle, EgoVehicle);
+
+    namespace key /// 用于模块间唯一标识某些信息的id集合
+    {
+#define DeclKey(_name_) const type::scene::ID _name_ = __COUNTER__ + 1
+
+        const type::scene::ID Unknown = 0;
+        DeclKey(TrafficLight);
+        DeclKey(DeadEnd);
+        DeclKey(Junction);
+    }
 }

@@ -12,7 +12,7 @@ using std::endl;
 
 void Planner::Initialize()
 {
-    _trajectoryStitcher = New<TrajectoryStitcher>(); // TODO: 参数初始化
+    _trajectoryStitcher = New<TrajectoryStitcher>();
     _algorithm = New<LatticePlanner>();
 
     InitializeDeciders();
@@ -48,7 +48,6 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
 {
     static system::Timer timer;
 
-
     //region 更新车的状态以及规划场景
     timer.Start();
     _vehicle.From(vehicle_state);
@@ -69,11 +68,11 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
     //endregion
 
     //region 进行规划
-    Trajectory planning_trajectory;
+    Trajectory last_trajectory, new_trajectory;
     if(mailboxes.trajectory.SendHistoryCount() != 0)
-        planning_trajectory.From(mailboxes.trajectory.LastSend());
+        last_trajectory.From(mailboxes.trajectory.LastSend());
 
-    auto result = Process(planning_trajectory);
+    auto result = Process(last_trajectory, new_trajectory);
     //endregion
 
     //region 处理规划结果
@@ -81,35 +80,31 @@ void Planner::Process(nav_msgs::Odometry vehicle_state, optional<nox_msgs::Traje
     {
         Logger::W("Planner") << result.Message();
     }
-    else
-    {
-        trajectory.emplace();
-        planning_trajectory.To(trajectory.value());
-        planning_trajectory.Refresh({"trajectory"});
-    }
+
+    trajectory.emplace();
+    new_trajectory.To(trajectory.value());
+    new_trajectory.Refresh({"trajectory"});
     //endregion
 }
 
 
-Result<bool> Planner::Plan(PlannerBase::Frame & frame, type::Trajectory &trajectory, bool enable_stitch)
+Result<bool> Planner::Plan(PlannerBase::Frame & frame, type::Trajectory &new_trajectory, bool should_replan)
 {
     /// 1. 计算缝合轨迹，或裁短规划轨迹
-    if(enable_stitch)
+    auto & last_trajectory = *frame.stitch;
+    if(should_replan)
     {
-        bool is_replan = false;
-        trajectory = _trajectoryStitcher->FromLastTrajectoryByPosition(_vehicle, trajectory, &is_replan);
+        last_trajectory = _trajectoryStitcher->InitialTrajectory(_vehicle);
     }
     else
     {
-        auto nearest_index = trajectory.QueryNearestByPosition(_vehicle.pose.t);
-        auto nearest_point = trajectory[nearest_index];
-        auto forward_index  = trajectory.QueryNearestByTime(nearest_point.t + _param._reserve._forward_time);
-        auto backward_index = trajectory.QueryNearestByTime(nearest_point.t - _param._reserve._backward_time);
+        auto nearest_index = last_trajectory.QueryNearestByPosition(_vehicle.pose.t);
+        auto nearest_point = last_trajectory[nearest_index];
+        auto forward_index  = last_trajectory.QueryNearestByTime(nearest_point.t + _param._reserve._forward_time);
+        auto backward_index = last_trajectory.QueryNearestByTime(nearest_point.t - _param._reserve._backward_time);
 
-        trajectory = trajectory.SubTrajectory(backward_index, forward_index);
+        last_trajectory = last_trajectory.SubTrajectory(backward_index, forward_index);
     }
-
-    frame.stitch = AddressOf(trajectory);
 
     /// 2. 运用决策器，决策信息放在ReferenceLine中
     for(auto & decider : _deciders)
@@ -118,7 +113,7 @@ Result<bool> Planner::Plan(PlannerBase::Frame & frame, type::Trajectory &traject
     }
 
     /// 3. 运用规划器
-    auto planning_result = _algorithm->Plan(frame, trajectory);
+    auto planning_result = _algorithm->Plan(frame, new_trajectory);
 
     /// 4. 返回处理结果
     if(planning_result.OK())
@@ -127,70 +122,72 @@ Result<bool> Planner::Plan(PlannerBase::Frame & frame, type::Trajectory &traject
     }
     else
     {
-        return Result(false, "Unable to plan because of " + planning_result.Message());
+        _braking.Plan(frame, new_trajectory);
+        return Result(false, "Unable to plan because of " + planning_result.Message() + "Braking ...");
     }
 }
 
-Result<bool> Planner::Process(type::Trajectory &last_trajectory)
+Result<bool> Planner::Process(type::Trajectory & last_trajectory, type::Trajectory & new_trajectory)
 {
-    //region 初始化
     Result<bool> result;
-    PlannerBase::Frame frame;
+    PlannerBase::Frame frame; // FIXME: 没必要每一帧都全新构造
     frame.scene = AddressOf(_scene);
     frame.vehicle = AddressOf(_vehicle);
+    frame.stitch = AddressOf(last_trajectory);
 
     for(auto & i : _scene.GuideLines)
     {
         frame.references.push_back(New<ReferenceLine>(*i.second));
     }
-    //endregion
 
-    /// 1. 当上一条轨迹为空时，直接重规划
-    if (last_trajectory.Empty())
+    if(auto r = CouldExtend(frame); r.Fail())
     {
-        result = Plan(frame, last_trajectory);
+        Logger::W("Planner") << "Trajectory has to re-plan because of: " << r.Message();
+        result = Plan(frame, new_trajectory);
+    }
+    else if(r.Message() != "no need")
+    {
+        if(r = Plan(frame, new_trajectory, false); r.Fail())
+        {
+            // 如果延长规划失败，则全部重规划
+            Logger::W("Planner") << "Extend last trajectory failed because of: " << r.Message();
+            result = Plan(frame, new_trajectory);
+        }
     }
     else
-    {
-        /// 2. 先检验上一条轨迹的合理性
-        auto nearest_index = last_trajectory.QueryNearestByPosition(_vehicle.pose.t);
-        auto nearest_point = last_trajectory[nearest_index];
-
-        /// 3. 若车已经远离上一条轨迹，则重规划
-        if (_vehicle.pose.t.DistanceTo(nearest_point.pose.t) > _param._threshold._replan_distance)
-        {
-            result = Plan(frame, last_trajectory);
-        }
-        else
-        {
-            /// 4. 若车没有远离轨迹，优先考虑续用该条轨迹，判断上一条轨迹终点与当前位置的关系
-            auto last_point = last_trajectory.Back();
-
-            /// 5. 若当前位置离终点太近，则直接重规划
-            if(last_point.t - nearest_point.t < _param._threshold._replan_time or last_point.s - nearest_point.s < _param._threshold._replan_distance)
-            {
-                result = Plan(frame, last_trajectory);
-            }
-            else if(auto check_result = _algorithm->Check(last_trajectory, frame); check_result.Fail())
-            {
-                /// 6. 否则检查是否该轨迹是否会发生碰撞，会的话也直接重规划
-                Logger::W("Planner") << "Check last trajectory failed. Because of " << check_result.Message();
-                result = Plan(frame, last_trajectory);
-            }
-            else if(last_point.t - nearest_point.t < _param._threshold._extend_time)
-            {
-                /// 7. 若当前没啥问题，则判断剩余时间，到一定阈值则延长规划。
-                if(result = Plan(frame, last_trajectory, false); result.Fail())
-                {
-                    /// 8. 如果延长规划失败，则全部重规划
-                    Logger::W("Planner") << "Extend last trajectory failed";
-                    result = Plan(frame, last_trajectory);
-                }
-            }
-        }
-    }
+        new_trajectory = last_trajectory;
 
     return result;
+}
+
+Result<bool> Planner::CouldExtend(const PlannerBase::Frame &frame)
+{
+    auto & last_trajectory = *frame.stitch;
+    auto & vehicle = *frame.vehicle;
+
+    if(last_trajectory.Empty())
+        return Result(false, "Last trajectory is empty.");
+
+    if(auto r = _trajectoryStitcher->Check(last_trajectory, vehicle); r.Fail())
+        return r;
+
+    auto nearest_index = last_trajectory.QueryNearestByPosition(vehicle.pose.t);
+    auto nearest_point = last_trajectory[nearest_index];
+    auto last_point = last_trajectory.Back();
+
+    if( last_point.t - nearest_point.t < _param._threshold._replan_time or
+        last_point.s - nearest_point.s < _param._threshold._replan_distance)
+    {
+        return Result(false, "Vehicle is nearly reach the end of the trajectory.");
+    }
+
+    if(auto r = _algorithm->Check(frame); r.Fail())
+        return r;
+
+    if(last_point.t - nearest_point.t < _param._threshold._extend_time)
+        return Result(true);
+    else
+        return Result(true, "no need");
 }
 
 

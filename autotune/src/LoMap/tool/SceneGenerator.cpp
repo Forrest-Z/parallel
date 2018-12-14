@@ -20,10 +20,7 @@ namespace nox::app
         /// 5. 附上红绿灯信息
         guideLines = _traffic_light_provider.Produce(map, guideLines);
 
-        /// 6. 处理所有停止线信息
-        _stop_line_provider.Produce(guideLines);
-
-        /// 7. 将所有信息整合进ready scene
+        /// 6. 将所有信息整合进ready scene
         Locking(_ready_scene)
         {
             _scene_provider.Produce(guideLines, obstacles, vehicle_state, _ready_scene);

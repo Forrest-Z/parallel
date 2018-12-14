@@ -16,7 +16,6 @@
 #pragma once
 
 #include ".LoMapModule.h"
-#include <LoMap/tool/SceneMaintainer.h>
 #include <LoMap/tool/SceneGenerator.h>
 
 namespace nox::app
@@ -49,7 +48,6 @@ namespace nox::app
 
     private:
         mailbox::Service<nox_msgs::GetScene> _scene_server;
-        Ptr<SceneMaintainer> _scene_maintainer;
         SceneGenerator _scene_generator;
     };
 }

@@ -145,21 +145,21 @@ STPoint::STPoint(double t, nox::type::Range s)
     : t(t), s(s)
 {}
 
-struct STPointComparator
-{
-    bool operator()(const STPoint & a, const STPoint & b)
-    {
-        return a.t < b.t;
-    }
-};
-
 nox::type::Range STObstacle::EstimateAtTime(double t) const
 {
-    STPoint target;
-    target.t = t;
-
-    auto it = std::lower_bound(trajectory.begin(), trajectory.end(), target, STPointComparator());
-    size_t index = std::distance(trajectory.begin(), it);
+    size_t index = math::BinaryMatch(
+        trajectory.begin(),
+        trajectory.end(),
+        t,
+        [](const STPoint & p, double t)
+        {
+            return p.t < t;
+        },
+        [](const STPoint & lower, const STPoint & upper, double t)
+        {
+            return t - lower.t < upper.t - t;
+        }
+    );
 
     if(index == trajectory.size() - 1)
         return trajectory.back().s;

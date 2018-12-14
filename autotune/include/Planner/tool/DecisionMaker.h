@@ -4,7 +4,7 @@
 #pragma once
 
 #include <Planner/type/ReferenceLine.h>
-#include <Planner/impl/PlannerBase.h>
+#include <Planner/PlannerBase.h>
 #include <memory>
 #include <vector>
 

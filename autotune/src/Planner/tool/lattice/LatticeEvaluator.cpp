@@ -23,17 +23,18 @@ LatticeEvaluator::LatticeEvaluator(
     InitParameter();
     ComputeLonGuideVelocity();
 
+    double s = _init_state[0];
     double start_time = _st_graph->TRange().Start;
     double end_time = _st_graph->TRange().End;
-    double stop_point = reference->stopLine.value_or(real::MAX).s;
     double vehicle_length = vehicle->param.length.x;
+    double stop_line = reference->GetNextStopLine(s);
 
     for(auto & lon_traj : lon_bundles)
     {
         double lon_end_s = lon_traj->Calculate(0, end_time);
 
         /// 若轨迹的终点跑到了停止点后边，则不予考虑
-        if(_init_state[0] < stop_point and lon_end_s + vehicle_length - _param._stop_in_range_threshold > stop_point)
+        if(s < stop_line and lon_end_s + vehicle_length - _param._stop_in_range_threshold > stop_line)
             continue;
 
         /// 不满足车辆的约束（加速度、速度等边界内），则不予考虑
@@ -61,17 +62,19 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
 {
     _reference_v.clear();
 
+    double s = _init_state[0];
     double cruise_v = _reference_line->CruisingSpeed();
+    double stop_line = _reference_line->GetNextStopLine(s);
 
-    if(_reference_line->stopLine)
+    if(stop_line <= _reference_line->Length())
     {
         //region 有需要停止的目标，按速度为零计算
-        double ds = _reference_line->StopPoint() - _init_state[0];
+        double ds = stop_line - _init_state[0];
 
         if(ds < _param._stop_in_range_threshold)
         {
             //region 已经在停止点附近，因此整条轨迹速度为零
-            PiecewiseAccelerationCurve lon_traj(_init_state[0], 0);
+            PiecewiseAccelerationCurve lon_traj(s, 0);
             lon_traj.PushSegment(0, _param._planning_temporal_length);
 
             for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))
@@ -88,8 +91,8 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
 
             auto lon_traj = PiecewiseBrakingTrajectoryGenerator::Generate
             (
-                _reference_line->StopPoint(), _init_state[0],
-                cruise_v,
+                stop_line, 
+                s, cruise_v,
                 _init_state[1], a_comfort, d_comfort,
                 _param._planning_temporal_length
             );
@@ -106,7 +109,7 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
     else
     {
         //region 没有停止的目标，按轨迹巡航速度计算
-        PiecewiseAccelerationCurve lon_traj(_init_state[0], cruise_v);
+        PiecewiseAccelerationCurve lon_traj(s, cruise_v);
         lon_traj.PushSegment(0, _param._planning_temporal_length);
 
         for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))

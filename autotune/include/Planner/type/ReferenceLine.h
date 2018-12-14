@@ -6,11 +6,15 @@
 #include <nox>
 #include <array>
 
+using namespace nox::type;
+using nox::container::Result;
+
 namespace nox::app
 {
-    class ReferenceLine : public type::GuideLine
+    class ReferenceLine :
+        public GuideLine
     {
-    public:
+    public: /// 构造器
         enum Priority
         {
             _0 = 0, _1, _2, _3,
@@ -22,7 +26,14 @@ namespace nox::app
 
         ReferenceLine() = default;
 
-        ReferenceLine(const type::GuideLine & guideLine);
+        ReferenceLine(const ReferenceLine & other) = default;
+
+        ReferenceLine(const GuideLine & guideLine);
+
+        ReferenceLine &operator=(const ReferenceLine & other) = default;
+
+        ReferenceLine &operator=(const GuideLine & guideLine);
+
 
     public: /// 操作接口
         void AddCost(Priority priority, double cost);
@@ -32,30 +43,50 @@ namespace nox::app
          */
         void Kill();
 
+    public: /// 信息接口
+        double Length() const;
+
+        /**
+         * 根据位置信息，得到那一点引导线的速度
+         * @param s 引导线s距离
+         * @return s距离处的速度（无速度信息，则返回默认速度）
+         */
+        double CruisingSpeed(double s = -1) const;
+
     public: /// 查询接口
         bool IsPriorThan(const ReferenceLine &other) const;
 
-        bool IsReachedEnd(Ptr<type::Vehicle> vehicle) const;
+        bool IsReachedEnd(const Vehicle & vehicle) const;
 
-        bool IsBeyondStopLine(const Pose & pose) const;
+        bool IsDead() const;
 
-        double Length() const;
+        /**
+         * 判断位置是否在停止线上
+         * @param position 欲判断的位置
+         * @param th 范围阈值
+         * @return 是否压着停止线
+         */
+        bool IsOverStopLine(double s, double th) const;
 
-        double CruisingSpeed() const;
+        Result<bool> IsNormal(const Trajectory &trajectory, const Vehicle &vehicle) const;
 
-        double StopPoint() const;
-
-        bool Dead() const;
 
     public: /// 工具接口
-        math::Frenet CalculateFrenet(Ptr<type::Vehicle> vehicle) const;
+        math::Frenet CalculateFrenet(const Vehicle & vehicle) const;
 
         math::Frenet CalculateFrenet(const Pose & pose) const;
 
         math::Frenet CalculateFrenet(double x, double y, double theta) const;
 
+        double GetNextStopLine(double s) const;
+
+    private: /// 内部处理函数
+        void Setup();
+
     private:
-        std::array<double, 4> _priority{1, 1, 1, 1};
-        bool _killed = false;
+        std::array<double, 4>       _priority{1, 1, 1, 1};      // 引导线优先级{绝对的，重要的，普通的，无关痛痒的}
+        bool                        _killed = false;            // 是否不可使用
+        std::vector<StopLine>       _stop_lines;                // 有序的引导线信息
+        container::Segment<Bound>   _speed_controls;            // 速度控制段信息
     };
 }

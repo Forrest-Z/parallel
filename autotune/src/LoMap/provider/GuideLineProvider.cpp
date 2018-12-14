@@ -88,14 +88,17 @@ namespace nox::app
     void GuideLineProvider::Update(Ptr<Road> road)
     {
         auto controlLines = GenerateControlLines(road);
-        for(auto & i : controlLines)
-            SetEndLine(i);
+        SetEndLines(controlLines);
         AddGuideLines(controlLines);
     }
 
     void GuideLineProvider::Update(Ptr<RoadLink> roadLink)
     {
         auto controlLines = GenerateControlLines(roadLink);
+
+        for(auto & i : controlLines)
+            i->junction_end_index = i->segments.size() - 1;
+
         AddGuideLines(controlLines);
     }
 
@@ -108,6 +111,8 @@ namespace nox::app
 
         for(size_t i = 0, end = end_index.size(); i < end; ++i)
         {
+            controlLines[i]->junction_begin_index = controlLines[i]->segments.size() - 1;
+
             //region 选择通过路口的所有车道
             auto junction_controlLines = GenerateControlLines(roadLink, end_index[i]);
             assert(junction_controlLines.size() <= 1);
@@ -116,7 +121,10 @@ namespace nox::app
             if(junction_controlLines.empty())
                 controlLines[i]->passable = false; // 追加cost
             else
+            {
                 AppendControlLine(controlLines[i], junction_controlLines[0]);
+                controlLines[i]->junction_end_index = controlLines[i]->segments.size() - 1;
+            }
         }
 
         AddGuideLines(controlLines);
@@ -131,6 +139,8 @@ namespace nox::app
 
         for(size_t i = 0, end = controlLines.size(); i < end; ++i)
         {
+            controlLines[i]->junction_end_index = controlLines[i]->segments.size() - 1;
+
             //region 选择所有通过下一个路段的所有车道
             vector<int> path{next_index[i]};
             auto next_controlLines = GenerateControlLines(road, path);
@@ -157,6 +167,8 @@ namespace nox::app
 
         for(size_t i = 0, end = controlLines.size(); i < end; ++i)
         {
+            controlLines[i]->junction_begin_index = controlLines[i]->segments.size() - 1;
+
             //region 选择通过路口的各个车道（可能不存在）
             vector<int> next_index;
             auto junction_controlLines = GenerateControlLines(roadLink, end_index[i], &next_index);
@@ -172,6 +184,7 @@ namespace nox::app
             {
                 //region 追加通过路口的车道，并且选择从该车道通过下一个路段的所有车道
                 AppendControlLine(controlLines[i], junction_controlLines[0]);
+                controlLines[i]->junction_end_index = controlLines[i]->segments.size() - 1;
 
                 vector<int> path{next_index[0]};
                 auto next_controlLines = GenerateControlLines(out_road, path);
@@ -183,6 +196,7 @@ namespace nox::app
                 {
                     auto longer_controlLine = New<ControlLine>(*controlLines[i]);
                     AppendControlLine(longer_controlLine, j);
+                    SetEndLine(longer_controlLine);
                     AddGuideLine(longer_controlLine);
                 }
                 //endregion
@@ -198,8 +212,12 @@ namespace nox::app
         guideLine->id = id;
         guideLine->passable = controlLine->passable;
 
-        GuideLineBuilder::BuildPathUsingSpline2(controlLine, guideLine);
-        GuideLineBuilder::BuildStopLine(controlLine, guideLine);
+        auto & controlLine_ = *controlLine;
+        auto & guideLine_   = *guideLine;
+
+        GuideLineBuilder::BuildPathUsingSpline2(controlLine_, guideLine_);
+        GuideLineBuilder::BuildStopLine(controlLine_, guideLine_);
+        GuideLineBuilder::BuildYellowZone(controlLine_, guideLine_);
 
         _guideLines.data().push_back(guideLine);
     }
@@ -352,5 +370,9 @@ namespace nox::app
         controlLine->stopPoints.push_back(controlLine->segments.back()->Back().pose.t);
     }
 
-
+    void GuideLineProvider::SetEndLines(const vector<Ptr<ControlLine>> &controlLines)
+    {
+        for(auto i : controlLines)
+            SetEndLine(i);
+    }
 }

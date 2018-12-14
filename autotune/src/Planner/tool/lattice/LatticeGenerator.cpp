@@ -32,12 +32,15 @@ void LatticeGenerator::GenerateBundles(Ptr<ReferenceLine> reference, lattice::Bu
 
 void LatticeGenerator::GenerateLongitudinalBundle(Ptr<ReferenceLine> reference, lattice::Bundle &result) const
 {
-    GenerateSpeedProfilesForCruising(reference->CruisingSpeed(), result);
+    double s = _init_lon_state[0];
+    GenerateSpeedProfilesForCruising(reference->CruisingSpeed(s), result);
     GenerateSpeedProfilesForObstacles(result);
-    if(reference->stopLine)
+
+    double next_stop_line = reference->GetNextStopLine(s);
+    if(next_stop_line <= reference->Length())
     {
-        Logger::D("LatticeGenerator") << "Stop Line: " << reference->stopLine.value().s;
-        GenerateSpeedProfilesForStopping(reference->StopPoint() - _param._vehicle_length, result);
+        Logger::D("LatticeGenerator") << "Stop Line: " << next_stop_line;
+        GenerateSpeedProfilesForStopping(next_stop_line - _param._vehicle_length, result);
     }
 }
 
@@ -95,8 +98,8 @@ void LatticeGenerator::GenerateQuarticBundle(
     {
         auto lattice_curve = std::make_shared<lattice::Curve>(
             Ptr<math::Parametric<1>>(new math::QuarticCurve(
-                init_state[0], init_state[1], init_state[2],
-                end_state[1], end_state[2],
+                init_state,
+                end_state,
                 end_state.t
             ))
         );
@@ -116,8 +119,8 @@ void LatticeGenerator::GenerateQuinticBundle(
     {
         auto lattice_curve = std::make_shared<lattice::Curve>(
             Ptr<math::Parametric<1>>(new math::QuinticCurve(
-                init_state[0], init_state[1], init_state[2],
-                end_state[0], end_state[1], end_state[2],
+                init_state,
+                end_state,
                 end_state.t
             ))
         );
