@@ -78,7 +78,7 @@ namespace message_traits
 
 
 // BOOLTRAITS {'IsFixedSize': False, 'IsMessage': True, 'HasHeader': True}
-// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/autoware_msgs/msg']}
+// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/home/yul/Documents/lidar_process/src/jsk/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/home/yul/Documents/lidar_process/src/autoware_msgs/msg']}
 
 // !!!!!!!!!!! ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_parsed_fields', 'constants', 'fields', 'full_name', 'has_header', 'header_present', 'names', 'package', 'parsed_fields', 'short_name', 'text', 'types']
 
@@ -121,12 +121,12 @@ struct MD5Sum< ::autoware_msgs::DetectedObjectArray_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "d360796682d5aaa5d9244996f9cea815";
+    return "967a3be2c35a86fc07c857f81099e734";
   }
 
   static const char* value(const ::autoware_msgs::DetectedObjectArray_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0xd360796682d5aaa5ULL;
-  static const uint64_t static_value2 = 0xd9244996f9cea815ULL;
+  static const uint64_t static_value1 = 0x967a3be2c35a86fcULL;
+  static const uint64_t static_value2 = 0x07c857f81099e734ULL;
 };
 
 template<class ContainerAllocator>
@@ -167,32 +167,55 @@ string frame_id\n\
 \n\
 ================================================================================\n\
 MSG: autoware_msgs/DetectedObject\n\
-std_msgs/Header header\n\
+std_msgs/Header                 header\n\
 \n\
-uint32 id\n\
-string label\n\
+uint32                          id\n\
+string                          label\n\
+float32                         score   #Score as defined by the detection, Optional\n\
+std_msgs/ColorRGBA              color   # Define this object specific color\n\
 \n\
-geometry_msgs/Pose pose\n\
-geometry_msgs/Vector3 dimensions\n\
-geometry_msgs/Vector3 variance\n\
-geometry_msgs/Twist velocity\n\
+################ 3D BB\n\
+string                          space_frame #3D Space coordinate frame of the object, required if pose and dimensions are defines\n\
+geometry_msgs/Pose              pose\n\
+geometry_msgs/Vector3           dimensions\n\
+geometry_msgs/Vector3           variance\n\
+geometry_msgs/Twist             velocity\n\
+geometry_msgs/Twist             acceleration\n\
 \n\
-geometry_msgs/PolygonStamped convex_hull\n\
-autoware_msgs/LaneArray candidate_trajectories\n\
+sensor_msgs/PointCloud2         pointcloud\n\
 \n\
-bool pose_reliable\n\
-bool velocity_reliable\n\
+geometry_msgs/PolygonStamped    convex_hull\n\
+autoware_msgs/LaneArray         candidate_trajectories\n\
 \n\
-# Behavior State of the Detected Object\n\
-# FORWARD_STATE			= 0\n\
-# STOPPING_STATE 		= 1\n\
-# BRANCH_LEFT_STATE		= 2\n\
-# BRANCH_RIGHT_STATE	= 3 \n\
-# YIELDING_STATE		= 4\n\
-# ACCELERATING_STATE	= 5\n\
-# SLOWDOWN_STATE 		= 6\n\
+bool                            pose_reliable\n\
+bool                            velocity_reliable\n\
+bool                            acceleration_reliable\n\
 \n\
-uint32 behavior_state\n\
+############### 2D Rect\n\
+string                          image_frame # Image coordinate Frame,        Required if x,y,w,h defined\n\
+int32                           x           # X coord in image space(pixel) of the initial point of the Rect\n\
+int32                           y           # Y coord in image space(pixel) of the initial point of the Rect\n\
+int32                           width       # Width of the Rect in pixels\n\
+int32                           height      # Height of the Rect in pixels\n\
+float32                         angle       # Angle [0 to 2*PI), allow rotated rects\n\
+\n\
+sensor_msgs/Image               roi_image\n\
+\n\
+############### Indicator information\n\
+uint8                          indicator_state # INDICATOR_LEFT = 0, INDICATOR_RIGHT = 1, INDICATOR_BOTH = 2, INDICATOR_NONE = 3\n\
+\n\
+############### Behavior State of the Detected Object\n\
+uint8                           behavior_state # FORWARD_STATE = 0, STOPPING_STATE = 1, BRANCH_LEFT_STATE = 2, BRANCH_RIGHT_STATE = 3, YIELDING_STATE = 4, ACCELERATING_STATE = 5, SLOWDOWN_STATE = 6\n\
+\n\
+#\n\
+string[]                        user_defined_info\n\
+================================================================================\n\
+MSG: std_msgs/ColorRGBA\n\
+float32 r\n\
+float32 g\n\
+float32 b\n\
+float32 a\n\
+\n\
 ================================================================================\n\
 MSG: geometry_msgs/Pose\n\
 # A representation of pose in free space, composed of position and orientation. \n\
@@ -234,6 +257,54 @@ Vector3  linear\n\
 Vector3  angular\n\
 \n\
 ================================================================================\n\
+MSG: sensor_msgs/PointCloud2\n\
+# This message holds a collection of N-dimensional points, which may\n\
+# contain additional information such as normals, intensity, etc. The\n\
+# point data is stored as a binary blob, its layout described by the\n\
+# contents of the \"fields\" array.\n\
+\n\
+# The point cloud data may be organized 2d (image-like) or 1d\n\
+# (unordered). Point clouds organized as 2d images may be produced by\n\
+# camera depth sensors such as stereo or time-of-flight.\n\
+\n\
+# Time of sensor data acquisition, and the coordinate frame ID (for 3d\n\
+# points).\n\
+Header header\n\
+\n\
+# 2D structure of the point cloud. If the cloud is unordered, height is\n\
+# 1 and width is the length of the point cloud.\n\
+uint32 height\n\
+uint32 width\n\
+\n\
+# Describes the channels and their layout in the binary data blob.\n\
+PointField[] fields\n\
+\n\
+bool    is_bigendian # Is this data bigendian?\n\
+uint32  point_step   # Length of a point in bytes\n\
+uint32  row_step     # Length of a row in bytes\n\
+uint8[] data         # Actual point data, size is (row_step*height)\n\
+\n\
+bool is_dense        # True if there are no invalid points\n\
+\n\
+================================================================================\n\
+MSG: sensor_msgs/PointField\n\
+# This message holds the description of one point entry in the\n\
+# PointCloud2 message format.\n\
+uint8 INT8    = 1\n\
+uint8 UINT8   = 2\n\
+uint8 INT16   = 3\n\
+uint8 UINT16  = 4\n\
+uint8 INT32   = 5\n\
+uint8 UINT32  = 6\n\
+uint8 FLOAT32 = 7\n\
+uint8 FLOAT64 = 8\n\
+\n\
+string name      # Name of field\n\
+uint32 offset    # Offset from start of point struct\n\
+uint8  datatype  # Datatype enumeration, see above\n\
+uint32 count     # How many elements in the field\n\
+\n\
+================================================================================\n\
 MSG: geometry_msgs/PolygonStamped\n\
 # This represents a Polygon with reference coordinate frame and timestamp\n\
 Header header\n\
@@ -259,26 +330,48 @@ float32 y\n\
 float32 z\n\
 ================================================================================\n\
 MSG: autoware_msgs/LaneArray\n\
-lane[] lanes\n\
+Lane[] lanes\n\
 ================================================================================\n\
-MSG: autoware_msgs/lane\n\
+MSG: autoware_msgs/Lane\n\
 Header header\n\
 int32 increment\n\
 int32 lane_id\n\
-waypoint[] waypoints\n\
+Waypoint[] waypoints\n\
+\n\
+uint32 lane_index\n\
+float32 cost\n\
+float32 closest_object_distance\n\
+float32 closest_object_velocity\n\
+bool is_blocked\n\
 \n\
 ================================================================================\n\
-MSG: autoware_msgs/waypoint\n\
+MSG: autoware_msgs/Waypoint\n\
 # global id\n\
 int32 gid \n\
 # local id\n\
 int32 lid\n\
 geometry_msgs/PoseStamped pose\n\
 geometry_msgs/TwistStamped twist\n\
-dtlane dtlane\n\
+DTLane dtlane\n\
 int32 change_flag\n\
 WaypointState wpstate\n\
 \n\
+uint32 lane_id\n\
+uint32 left_lane_id\n\
+uint32 right_lane_id\n\
+uint32 stop_line_id\n\
+float32 cost\n\
+float32 time_cost\n\
+\n\
+# Lane Direction\n\
+# FORWARD				= 0\n\
+# FORWARD_LEFT	 		= 1\n\
+# FORWARD_RIGHT			= 2\n\
+# BACKWARD				= 3 \n\
+# BACKWARD_LEFT			= 4\n\
+# BACKWARD_RIGHT		= 5\n\
+# STANDSTILL	 		= 6\n\
+uint32 direction\n\
 ================================================================================\n\
 MSG: geometry_msgs/PoseStamped\n\
 # A Pose with reference coordinate frame and timestamp\n\
@@ -292,7 +385,7 @@ Header header\n\
 Twist twist\n\
 \n\
 ================================================================================\n\
-MSG: autoware_msgs/dtlane\n\
+MSG: autoware_msgs/DTLane\n\
 float64 dist\n\
 float64 dir\n\
 float64 apara\n\
@@ -320,6 +413,36 @@ uint8 stopline_state\n\
   uint8 TYPE_STOP=2\n\
 # 1 is stopline, 2 is stop which 2 can only be released manually.\n\
 uint64 event_state\n\
+\n\
+================================================================================\n\
+MSG: sensor_msgs/Image\n\
+# This message contains an uncompressed image\n\
+# (0, 0) is at top-left corner of image\n\
+#\n\
+\n\
+Header header        # Header timestamp should be acquisition time of image\n\
+                     # Header frame_id should be optical frame of camera\n\
+                     # origin of frame should be optical center of camera\n\
+                     # +x should point to the right in the image\n\
+                     # +y should point down in the image\n\
+                     # +z should point into to plane of the image\n\
+                     # If the frame_id here and the frame_id of the CameraInfo\n\
+                     # message associated with the image conflict\n\
+                     # the behavior is undefined\n\
+\n\
+uint32 height         # image height, that is, number of rows\n\
+uint32 width          # image width, that is, number of columns\n\
+\n\
+# The legal values for encoding are in file src/image_encodings.cpp\n\
+# If you want to standardize a new string format, join\n\
+# ros-users@lists.sourceforge.net and send an email proposing a new encoding.\n\
+\n\
+string encoding       # Encoding of pixels -- channel meaning, ordering, size\n\
+                      # taken from the list of strings in include/sensor_msgs/image_encodings.h\n\
+\n\
+uint8 is_bigendian    # is this data bigendian?\n\
+uint32 step           # Full row length in bytes\n\
+uint8[] data          # actual matrix data, size is (step * rows)\n\
 ";
   }
 

@@ -51,7 +51,8 @@ struct CloudCluster_
     , eigen_vectors()
     , fpfh_descriptor()
     , bounding_box()
-    , convex_hull()  {
+    , convex_hull()
+    , indicator_state(0)  {
     }
   CloudCluster_(const ContainerAllocator& _alloc)
     : header(_alloc)
@@ -69,7 +70,8 @@ struct CloudCluster_
     , eigen_vectors(_alloc)
     , fpfh_descriptor(_alloc)
     , bounding_box(_alloc)
-    , convex_hull(_alloc)  {
+    , convex_hull(_alloc)
+    , indicator_state(0)  {
   (void)_alloc;
     }
 
@@ -123,6 +125,9 @@ struct CloudCluster_
    typedef  ::geometry_msgs::PolygonStamped_<ContainerAllocator>  _convex_hull_type;
   _convex_hull_type convex_hull;
 
+   typedef uint32_t _indicator_state_type;
+  _indicator_state_type indicator_state;
+
 
 
 
@@ -158,7 +163,7 @@ namespace message_traits
 
 
 // BOOLTRAITS {'IsFixedSize': False, 'IsMessage': True, 'HasHeader': True}
-// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/autoware_msgs/msg']}
+// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/home/yul/Documents/lidar_process/src/jsk/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/home/yul/Documents/lidar_process/src/autoware_msgs/msg']}
 
 // !!!!!!!!!!! ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_parsed_fields', 'constants', 'fields', 'full_name', 'has_header', 'header_present', 'names', 'package', 'parsed_fields', 'short_name', 'text', 'types']
 
@@ -201,12 +206,12 @@ struct MD5Sum< ::autoware_msgs::CloudCluster_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "d79f3de19e797fd29b6fdf347509c864";
+    return "ee7b21b447ceefba70710356a4b6162b";
   }
 
   static const char* value(const ::autoware_msgs::CloudCluster_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0xd79f3de19e797fd2ULL;
-  static const uint64_t static_value2 = 0x9b6fdf347509c864ULL;
+  static const uint64_t static_value1 = 0xee7b21b447ceefbaULL;
+  static const uint64_t static_value2 = 0x70710356a4b6162bULL;
 };
 
 template<class ContainerAllocator>
@@ -249,6 +254,13 @@ std_msgs/Float32MultiArray fpfh_descriptor \n\
 \n\
 jsk_recognition_msgs/BoundingBox bounding_box\n\
 geometry_msgs/PolygonStamped convex_hull\n\
+\n\
+# Indicator information\n\
+# INDICATOR_LEFT 0\n\
+# INDICATOR_RIGHT 1\n\
+# INDICATOR_BOTH 2\n\
+# INDICATOR_NONE 3\n\
+uint32 indicator_state\n\
 ================================================================================\n\
 MSG: std_msgs/Header\n\
 # Standard metadata for higher-level stamped data types.\n\
@@ -466,6 +478,7 @@ namespace serialization
       stream.next(m.fpfh_descriptor);
       stream.next(m.bounding_box);
       stream.next(m.convex_hull);
+      stream.next(m.indicator_state);
     }
 
     ROS_DECLARE_ALLINONE_SERIALIZER
@@ -533,6 +546,8 @@ struct Printer< ::autoware_msgs::CloudCluster_<ContainerAllocator> >
     s << indent << "convex_hull: ";
     s << std::endl;
     Printer< ::geometry_msgs::PolygonStamped_<ContainerAllocator> >::stream(s, indent + "  ", v.convex_hull);
+    s << indent << "indicator_state: ";
+    Printer<uint32_t>::stream(s, indent + "  ", v.indicator_state);
   }
 };
 

@@ -25,7 +25,9 @@ namespace nox::app
         /// Override your process functions ...
 
     protected:
+
         void Process(nox_msgs::Location localization, nox_msgs::Chassis chassis,
+                     geometry_msgs::TwistWithCovarianceStamped Velocity,
                      optional<nav_msgs::Odometry> &vehicle_state) override;
     };
 }

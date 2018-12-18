@@ -20,5 +20,5 @@ Steering:
   Min: -540
   Ratio: -15.0
   Offset: -10.0
-SpeedLimit: 40
-BaseSpeed: 5
+SpeedLimit: 40.0
+BaseSpeed: 5.0

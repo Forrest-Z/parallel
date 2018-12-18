@@ -19,6 +19,10 @@ FeasibleRegion::FeasibleRegion(double s, double v, double a)
     double max_deceleration = -_longitudinal_acceleration.Lower;
     _t_at_zero_speed = v / max_deceleration;
     _s_at_zero_speed = s + v * v / (2.0 * max_deceleration);
+
+    double comfort_max_deceleration = -_comfort_lon_acceleration.Lower;
+    _comfort_t_at_zero_speed = v / comfort_max_deceleration;
+    _comfort_s_at_zero_speed = s + v * v / (2.0 * comfort_max_deceleration);
 }
 
 double FeasibleRegion::SUpper(double t) const
@@ -63,7 +67,7 @@ double FeasibleRegion::ComfortVUpper(double t) const
 
 double FeasibleRegion::ComfortVLower(double t) const
 {
-    if(t < _t_at_zero_speed)
+    if(t < _comfort_t_at_zero_speed)
         return _v + _comfort_lon_acceleration.Lower * t;
     else
         return _base_speed;

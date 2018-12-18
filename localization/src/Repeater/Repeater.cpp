@@ -3,8 +3,9 @@
 using namespace nox::app;
 USING_NAMESPACE_NOX;
 
+
 void Repeater::Process(nox_msgs::Location localization, nox_msgs::Chassis chassis,
-                       optional<nav_msgs::Odometry> &vehicle_state)
+                       geometry_msgs::TwistWithCovarianceStamped Velocity, optional<nav_msgs::Odometry> &vehicle_state)
 {
     vehicle_state.emplace();
 
@@ -13,6 +14,7 @@ void Repeater::Process(nox_msgs::Location localization, nox_msgs::Chassis chassi
     odometry.pose.y = localization.y;
     odometry.pose.theta = Degree(localization.yaw + 90).Get<Radian>();
     odometry.v.x = chassis.speed / 3.6;
+
 
     /// 进行位置偏移矫正（临时）
     double theta = odometry.pose.theta;
@@ -23,6 +25,13 @@ void Repeater::Process(nox_msgs::Location localization, nox_msgs::Chassis chassi
 
     odometry.pose.x = odometry.pose.t.x + lx * cos_theta - ly * sin_theta;
     odometry.pose.y = odometry.pose.t.y + lx * sin_theta + ly * cos_theta;
+
+    double vx = Velocity.twist.twist.linear.x;
+    double vy = Velocity.twist.twist.linear.y;
+    double wz = Velocity.twist.twist.angular.z;
+
+    odometry.v.y = vy * cos_theta - vx * sin_theta;
+    odometry.w.z = wz;
 
     odometry.To(vehicle_state.value());
     vehicle_state.value().header.frame_id = "world";

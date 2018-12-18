@@ -22,9 +22,9 @@ namespace nox::app
             double stop_t = (0 - v_curr) / stop_d;
             ptr_trajectory->PushSegment(stop_d, stop_t);
 
-            if (ptr_trajectory->Boundary() < max_time)
+            if (ptr_trajectory->Upper() < max_time)
             {
-                ptr_trajectory->PushSegment(0.0, max_time - ptr_trajectory->Boundary());
+                ptr_trajectory->PushSegment(0.0, max_time - ptr_trajectory->Upper());
             }
             return ptr_trajectory;
         }
@@ -40,9 +40,9 @@ namespace nox::app
             ptr_trajectory->PushSegment(0.0, t_cruise);
             ptr_trajectory->PushSegment(-d_comfort, t_dec);
 
-            if (ptr_trajectory->Boundary() < max_time)
+            if (ptr_trajectory->Upper() < max_time)
             {
-                ptr_trajectory->PushSegment(0.0, max_time - ptr_trajectory->Boundary());
+                ptr_trajectory->PushSegment(0.0, max_time - ptr_trajectory->Upper());
             }
             return ptr_trajectory;
 
@@ -64,9 +64,9 @@ namespace nox::app
                 ptr_trajectory->PushSegment(0.0, t_cruise);
                 ptr_trajectory->PushSegment(-d_comfort, t_dec);
 
-                if (ptr_trajectory->Boundary() < max_time)
+                if (ptr_trajectory->Upper() < max_time)
                 {
-                    ptr_trajectory->PushSegment(0.0, max_time - ptr_trajectory->Boundary());
+                    ptr_trajectory->PushSegment(0.0, max_time - ptr_trajectory->Upper());
                 }
                 return ptr_trajectory;
             }
@@ -84,9 +84,9 @@ namespace nox::app
                 ptr_trajectory->PushSegment(a_comfort, t_acc);
                 ptr_trajectory->PushSegment(-d_comfort, t_dec);
 
-                if (ptr_trajectory->Boundary() < max_time)
+                if (ptr_trajectory->Upper() < max_time)
                 {
-                    ptr_trajectory->PushSegment(0.0, max_time - ptr_trajectory->Boundary());
+                    ptr_trajectory->PushSegment(0.0, max_time - ptr_trajectory->Upper());
                 }
                 return ptr_trajectory;
             }

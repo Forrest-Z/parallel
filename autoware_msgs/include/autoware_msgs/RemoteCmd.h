@@ -83,7 +83,7 @@ namespace message_traits
 
 
 // BOOLTRAITS {'IsFixedSize': False, 'IsMessage': True, 'HasHeader': True}
-// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/autoware_msgs/msg']}
+// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/home/yul/Documents/lidar_process/src/jsk/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/home/yul/Documents/lidar_process/src/autoware_msgs/msg']}
 
 // !!!!!!!!!!! ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_parsed_fields', 'constants', 'fields', 'full_name', 'has_header', 'header_present', 'names', 'package', 'parsed_fields', 'short_name', 'text', 'types']
 
@@ -175,10 +175,10 @@ string frame_id\n\
 ================================================================================\n\
 MSG: autoware_msgs/VehicleCmd\n\
 Header header\n\
-autoware_msgs/steer_cmd steer_cmd\n\
-autoware_msgs/accel_cmd accel_cmd\n\
-autoware_msgs/brake_cmd brake_cmd\n\
-autoware_msgs/lamp_cmd lamp_cmd\n\
+autoware_msgs/SteerCmd steer_cmd\n\
+autoware_msgs/AccelCmd accel_cmd\n\
+autoware_msgs/BrakeCmd brake_cmd\n\
+autoware_msgs/LampCmd lamp_cmd\n\
 int32 gear\n\
 int32 mode\n\
 geometry_msgs/TwistStamped twist_cmd\n\
@@ -186,22 +186,22 @@ autoware_msgs/ControlCommand ctrl_cmd\n\
 int32 emergency\n\
 \n\
 ================================================================================\n\
-MSG: autoware_msgs/steer_cmd\n\
+MSG: autoware_msgs/SteerCmd\n\
 Header header\n\
 int32 steer\n\
 \n\
 ================================================================================\n\
-MSG: autoware_msgs/accel_cmd\n\
+MSG: autoware_msgs/AccelCmd\n\
 Header header\n\
 int32 accel\n\
 \n\
 ================================================================================\n\
-MSG: autoware_msgs/brake_cmd\n\
+MSG: autoware_msgs/BrakeCmd\n\
 Header header\n\
 int32 brake\n\
 \n\
 ================================================================================\n\
-MSG: autoware_msgs/lamp_cmd\n\
+MSG: autoware_msgs/LampCmd\n\
 Header header\n\
 int32 l\n\
 int32 r\n\

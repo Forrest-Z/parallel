@@ -42,6 +42,7 @@ namespace nox::app
 
         /**
          * 为引导线，根据control line的信息，创建边界信息（地图边界、车道边界）
+         * 要求：guideLine已经计算好path
          */
         static void BuildBoundary(const ControlLine & controlLine, GuideLine & guideLine);
     };

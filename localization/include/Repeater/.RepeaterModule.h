@@ -20,13 +20,14 @@ namespace nox::app
 
         virtual void Terminate();
 
-        virtual void Process( nox_msgs::Location localization, nox_msgs::Chassis chassis,  optional<nav_msgs::Odometry> & vehicle_state );
+        virtual void Process( nox_msgs::Location localization, nox_msgs::Chassis chassis, geometry_msgs::TwistWithCovarianceStamped Velocity,  optional<nav_msgs::Odometry> & vehicle_state );
 
         
 
         
         void OnlocalizationFail( optional<nav_msgs::Odometry> & vehicle_state );
         void OnchassisFail( optional<nav_msgs::Odometry> & vehicle_state );
+        void OnVelocityFail( optional<nav_msgs::Odometry> & vehicle_state );
 
     protected: /// 参数成员、插件成员、信道成员
         struct
@@ -44,6 +45,7 @@ namespace nox::app
             
             mailbox::Topic<nox_msgs::Location> localization;
             mailbox::Topic<nox_msgs::Chassis> chassis;
+            mailbox::Topic<geometry_msgs::TwistWithCovarianceStamped> Velocity;
             mailbox::Topic<nav_msgs::Odometry> vehicle_state;
         } mailboxes;
 

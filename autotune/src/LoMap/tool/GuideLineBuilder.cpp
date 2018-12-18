@@ -316,6 +316,20 @@ namespace nox::app
         }
     }
 
+    void GuideLineBuilder::BuildBoundary(const ControlLine &controlLine, GuideLine &guideLine)
+    {
+        for(auto & i : controlLine.segments)
+        {
+            if(*i & (Lane::Leftmost | Lane::Rightmost))
+            {
+                auto begin = guideLine.path.FrenetAtPosition(i->Front().pose.t);
+                auto end   = guideLine.path.FrenetAtPosition(i->Back().pose.t);
+
+
+            }
+        }
+    }
+
 
 }
 

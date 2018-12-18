@@ -18,16 +18,16 @@ namespace nox::app
         const double vx = vehicle.v.x;
         const double vy = vehicle.v.y;
         const double w  = vehicle.w.z;
-        const double kappa = -matched_point.kappa;
+        const double kappa = matched_point.kappa;
         const double aError = vehicle.pose.theta - matched_point.pose.theta;
-        const double dError = vehicle.pose.t.DistanceTo(matched_point.pose.t) *
+        double dError = vehicle.pose.t.DistanceTo(matched_point.pose.t) *
             math::PointOnLine(vehicle.pose.x, vehicle.pose.y, matched_point.pose.x, matched_point.pose.y, matched_point.pose.theta);
+        dError += _param._vehicle.Physical.Lb * std::sin(aError);
 
         const double ff = FeedForward(vx, kappa);
         const double fb = FeedBack(aError, dError);
-        const double in = Integral(_integral, dError * vx * 0.05 * std::cos(aError));
+        const double in = Integral(dError * vx * 0.05 * std::cos(aError));
         const double dp = Damping(vx, vy, w, kappa, aError);
-        _integral = in;
 
         double Kff, Kfb, Kin, Kdp;
         PickPID(vx, Kff, Kfb, Kin, Kdp);
@@ -82,16 +82,16 @@ result
 
     double PCPID::FeedBack(double aError, double dError)
     {
-        double ela = dError + _param._pcpid.xla * std::sin(aError);
-        double heading = _param._pcpid.Kp / _param._vehicle.Physical.Cornering.Front * ela;
+        double ela = dError + (_param._pcpid.xla + _param._vehicle.Physical.La)* std::sin(aError);
+        double heading = -2 * _param._pcpid.Kp / _param._vehicle.Physical.Cornering.Front * ela;
 
         return heading;
     }
 
-    double PCPID::Integral(double last_value, double e)
+    double PCPID::Integral(double e)
     {
-        double result = last_value + e;
-        return result;
+        _integral = _integral + e;
+        return -_integral;
     }
 
     void PCPID::PickPID(double v, double & Kff, double & Kfb, double & Kin, double & Kdp)
@@ -115,9 +115,11 @@ result
 
     double PCPID::Damping(double vx, double vy, double w, double curvature, double aError)
     {
-        return w - vx / (curvature + real::Epsilon) * (
-            std::cos(aError) - std::tan(vy / (vx + real::Epsilon) * std::sin(aError))
+        double heading = w - vx * curvature  * (
+            std::cos(aError) - std::tan(vy / (vx + real::Epsilon)) * std::sin(aError)
         );
+        heading *= _param._pcpid.Ky;
+        return heading;
     }
 
 

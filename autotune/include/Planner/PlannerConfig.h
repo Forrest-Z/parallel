@@ -21,5 +21,6 @@ namespace nox::app
         DeclKey(TrafficLight);
         DeclKey(DeadEnd);
         DeclKey(Junction);
+        DeclKey(MapEdge);
     }
 }

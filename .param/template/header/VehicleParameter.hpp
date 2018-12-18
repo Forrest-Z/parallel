@@ -47,8 +47,8 @@ namespace nox::parameter
             double Offset;
         } Steering;
 
-        int SpeedLimit;
-        int BaseSpeed;
+        double SpeedLimit;
+        double BaseSpeed;
 
     public:
 
@@ -90,8 +90,8 @@ namespace nox::parameter
                 Steering.Offset = node["Offset"].as<double>();
             }
 
-            SpeedLimit = node["SpeedLimit"].as<int>();
-            BaseSpeed = node["BaseSpeed"].as<int>();
+            SpeedLimit = node["SpeedLimit"].as<double>();
+            BaseSpeed = node["BaseSpeed"].as<double>();
 
             return true;
         }

@@ -20,7 +20,7 @@ namespace nox::app
         }
     }
 
-    double ConstantAccelerationCurve::Boundary() const
+    double ConstantAccelerationCurve::Upper() const
     {
         return _t;
     }

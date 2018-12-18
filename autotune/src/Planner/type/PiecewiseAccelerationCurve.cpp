@@ -17,7 +17,7 @@ void PiecewiseAccelerationCurve::PushSegment(double a, double dt)
     if(segment_size != 0)
     {
         auto segment = GetSegment(segment_size - 1);
-        double dt0 = segment->Boundary();
+        double dt0 = segment->Upper();
         s0 = segment->Calculate(0, dt0);
         v0 = segment->Calculate(1, dt0);
     }

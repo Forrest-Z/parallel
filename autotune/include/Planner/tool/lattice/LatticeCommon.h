@@ -40,7 +40,7 @@ namespace nox::app::lattice
 
         double Calculate(size_t order, double param) const override;
 
-        double Boundary() const override;
+        double Upper() const override;
 
     private:
         Ptr<math::Parametric<1>> _curve;

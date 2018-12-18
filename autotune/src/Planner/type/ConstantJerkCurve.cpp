@@ -71,7 +71,7 @@ double ConstantJerkCurve::end_acceleration() const
     return a1_;
 }
 
-double ConstantJerkCurve::Boundary() const
+double ConstantJerkCurve::Upper() const
 {
     return param_;
 }

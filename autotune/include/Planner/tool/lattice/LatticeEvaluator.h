@@ -90,7 +90,7 @@ namespace nox::app
             {
                 /// 位置与速度的权衡
                 double _s_travelled = 10.0;
-                double _v_reached = 2.0;
+                double _v_reached = 5.0;
 
                 /// 侧向偏移在不同方向的惩罚系数
                 double _opposite_side_offset = 10.0;
@@ -101,7 +101,7 @@ namespace nox::app
                 {
                     double _lon_objective = 10.0;
                     double _lon_comfort = 5.0;
-                    double _lon_collision = 20;
+                    double _lon_collision = 2;
                     double _centripetal_acc = 15;
                     double _lat_offset = 2.0;
                     double _lat_comfort = 10.0;

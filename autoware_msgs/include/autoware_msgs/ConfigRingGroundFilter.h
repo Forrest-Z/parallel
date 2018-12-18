@@ -27,19 +27,13 @@ struct ConfigRingGroundFilter_
     : sensor_model()
     , sensor_height(0.0)
     , max_slope(0.0)
-    , point_distance(0.0)
-    , min_point(0.0)
-    , clipping_thres(0.0)
-    , gap_thres(0.0)  {
+    , vertical_thres(0.0)  {
     }
   ConfigRingGroundFilter_(const ContainerAllocator& _alloc)
     : sensor_model(_alloc)
     , sensor_height(0.0)
     , max_slope(0.0)
-    , point_distance(0.0)
-    , min_point(0.0)
-    , clipping_thres(0.0)
-    , gap_thres(0.0)  {
+    , vertical_thres(0.0)  {
   (void)_alloc;
     }
 
@@ -54,17 +48,8 @@ struct ConfigRingGroundFilter_
    typedef float _max_slope_type;
   _max_slope_type max_slope;
 
-   typedef float _point_distance_type;
-  _point_distance_type point_distance;
-
-   typedef float _min_point_type;
-  _min_point_type min_point;
-
-   typedef float _clipping_thres_type;
-  _clipping_thres_type clipping_thres;
-
-   typedef float _gap_thres_type;
-  _gap_thres_type gap_thres;
+   typedef float _vertical_thres_type;
+  _vertical_thres_type vertical_thres;
 
 
 
@@ -101,7 +86,7 @@ namespace message_traits
 
 
 // BOOLTRAITS {'IsFixedSize': False, 'IsMessage': True, 'HasHeader': False}
-// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/autoware_msgs/msg']}
+// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/home/yul/Documents/lidar_process/src/jsk/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/home/yul/Documents/lidar_process/src/autoware_msgs/msg']}
 
 // !!!!!!!!!!! ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_parsed_fields', 'constants', 'fields', 'full_name', 'has_header', 'header_present', 'names', 'package', 'parsed_fields', 'short_name', 'text', 'types']
 
@@ -144,12 +129,12 @@ struct MD5Sum< ::autoware_msgs::ConfigRingGroundFilter_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "29b10a55bebbea4ca5fa23de06d152d0";
+    return "35af9608c7f7db50fdce10fd09cce39f";
   }
 
   static const char* value(const ::autoware_msgs::ConfigRingGroundFilter_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0x29b10a55bebbea4cULL;
-  static const uint64_t static_value2 = 0xa5fa23de06d152d0ULL;
+  static const uint64_t static_value1 = 0x35af9608c7f7db50ULL;
+  static const uint64_t static_value2 = 0xfdce10fd09cce39fULL;
 };
 
 template<class ContainerAllocator>
@@ -171,10 +156,7 @@ struct Definition< ::autoware_msgs::ConfigRingGroundFilter_<ContainerAllocator> 
     return "string sensor_model\n\
 float32 sensor_height\n\
 float32 max_slope\n\
-float32 point_distance\n\
-float32 min_point\n\
-float32 clipping_thres\n\
-float32 gap_thres\n\
+float32 vertical_thres\n\
 ";
   }
 
@@ -196,10 +178,7 @@ namespace serialization
       stream.next(m.sensor_model);
       stream.next(m.sensor_height);
       stream.next(m.max_slope);
-      stream.next(m.point_distance);
-      stream.next(m.min_point);
-      stream.next(m.clipping_thres);
-      stream.next(m.gap_thres);
+      stream.next(m.vertical_thres);
     }
 
     ROS_DECLARE_ALLINONE_SERIALIZER
@@ -224,14 +203,8 @@ struct Printer< ::autoware_msgs::ConfigRingGroundFilter_<ContainerAllocator> >
     Printer<float>::stream(s, indent + "  ", v.sensor_height);
     s << indent << "max_slope: ";
     Printer<float>::stream(s, indent + "  ", v.max_slope);
-    s << indent << "point_distance: ";
-    Printer<float>::stream(s, indent + "  ", v.point_distance);
-    s << indent << "min_point: ";
-    Printer<float>::stream(s, indent + "  ", v.min_point);
-    s << indent << "clipping_thres: ";
-    Printer<float>::stream(s, indent + "  ", v.clipping_thres);
-    s << indent << "gap_thres: ";
-    Printer<float>::stream(s, indent + "  ", v.gap_thres);
+    s << indent << "vertical_thres: ";
+    Printer<float>::stream(s, indent + "  ", v.vertical_thres);
   }
 };
 

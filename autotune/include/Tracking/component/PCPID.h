@@ -25,7 +25,7 @@ namespace nox::app
 
         double Damping(double vx, double vy, double w, double curvature, double aError);
 
-        double Integral(double last_value, double e);
+        double Integral(double e);
 
         void PickPID(double v, double & Kff, double & Kfb, double & Kin, double & Kdp);
 

@@ -5,9 +5,11 @@
 #include <Planner/rule/StopLine.h>
 #include <Planner/rule/Passable.h>
 #include <nox>
+#include <iostream>
 
 using namespace nox::app;
 USING_NAMESPACE_NOX;
+using std::cout;
 using std::endl;
 
 void Planner::Initialize()

@@ -152,7 +152,7 @@ double LatticeEvaluator::Evaluate(
     double centripetal_acc_cost = CentripetalAccelerationCost(lon_traj, lat_traj);
 
     analyze(5. Cost of lateral offsets);
-    double evaluation_horizon = std::min(_param._planning_distance, std::max(lon_traj->Boundary(), lat_traj->Boundary()));
+    double evaluation_horizon = std::min(_param._planning_distance, std::max(lon_traj->Upper(), lat_traj->Upper()));
     double lat_offset_cost    = LatOffsetCost(lat_traj, evaluation_horizon);
 
     analyze(6. Cost of lateral comfort);
@@ -183,7 +183,7 @@ double LatticeEvaluator::Evaluate(
 
 double LatticeEvaluator::LonObjectiveCost(const Ptr<lattice::Curve> &lon_traj) const
 {
-    double t_max = lon_traj->Boundary();
+    double t_max = lon_traj->Upper();
     double ds = lon_traj->Calculate(0, t_max) - lon_traj->Calculate(0, 0);
 
     double speed_cost_sqr_sum = 0;
@@ -218,8 +218,8 @@ double LatticeEvaluator::LonCollisionCost(const Ptr<lattice::Curve> &lon_traj) c
 
         for(auto & i : _st_graph->Obstacles())
         {
-            auto obstalce = _st_graph->GetObstacle(i.first);
-            auto s_range = obstalce->EstimateAtTime(t);
+            auto obstacle = _st_graph->GetObstacle(i.first);
+            auto s_range = obstacle->EstimateAtTime(t);
 
             double ds = 0; /// 离障碍物的安全距离
             if(s < s_range.Start - _param._lon_collision_yield_buffer)

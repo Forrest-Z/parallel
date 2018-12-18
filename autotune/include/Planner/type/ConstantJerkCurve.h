@@ -16,7 +16,7 @@ namespace nox::app
 
         double Calculate(size_t order, double t) const override;
 
-        double Boundary() const override;
+        double Upper() const override;
 
         double start_position() const;
 

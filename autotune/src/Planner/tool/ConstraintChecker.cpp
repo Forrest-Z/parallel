@@ -12,7 +12,7 @@ ConstraintChecker::ConstraintChecker(nox::Ptr<nox::type::Vehicle> vehicle)
 
 bool ConstraintChecker::CheckLongitudinal(nox::Ptr<nox::math::Parametric<1>> lon_traj) const
 {
-    for(double t : range(0, _param._time_resolution, lon_traj->Boundary()))
+    for(double t : range(0, _param._time_resolution, lon_traj->Upper()))
     {
         double v = lon_traj->Calculate(1, t);
         if(v > _vehicle->param.limit.lon.v)

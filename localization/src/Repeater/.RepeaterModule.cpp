@@ -30,6 +30,7 @@ void RepeaterModule::OnRun()
     
     nox_msgs::Location localization_in;
     nox_msgs::Chassis chassis_in;
+    geometry_msgs::TwistWithCovarianceStamped Velocity_in;
     
     if(!mailboxes.localization.IsFresh())
     {
@@ -53,11 +54,22 @@ void RepeaterModule::OnRun()
     else
         chassis_in = mailboxes.chassis.Get();
 
+    if(!mailboxes.Velocity.IsFresh())
+    {
+        status = false;
+        
+        optional<nav_msgs::Odometry> vehicle_state_out;
+        OnVelocityFail( vehicle_state_out );
+        ProcessOutput( vehicle_state_out );
+    }
+    else
+        Velocity_in = mailboxes.Velocity.Get();
+
     if(status)
     {
         
         optional<nav_msgs::Odometry> vehicle_state_out;
-        Process( localization_in, chassis_in,  vehicle_state_out );
+        Process( localization_in, chassis_in, Velocity_in,  vehicle_state_out );
         ProcessOutput( vehicle_state_out );
     }
 }
@@ -76,6 +88,8 @@ void RepeaterModule::InitMailbox()
     mailboxes.localization.SetValidity(1000);
     mailboxes.chassis.Subscribe({"chassis"});
     mailboxes.chassis.SetValidity(1000);
+    mailboxes.Velocity.Subscribe({"/gps/vel"});
+    mailboxes.Velocity.SetValidity(1000);
     
     mailboxes.vehicle_state.Advertise({"vehicle_state"});
 }
@@ -100,6 +114,7 @@ void RepeaterModule::TerminateMailbox()
     
     mailboxes.localization.UnSubscribe();
     mailboxes.chassis.UnSubscribe();
+    mailboxes.Velocity.UnSubscribe();
 }
 
 void RepeaterModule::TerminatePlugin()
@@ -124,7 +139,7 @@ void RepeaterModule::Terminate()
     // Do Nothing ...
 }
 
-void RepeaterModule::Process( nox_msgs::Location localization, nox_msgs::Chassis chassis,  optional<nav_msgs::Odometry> & vehicle_state )
+void RepeaterModule::Process( nox_msgs::Location localization, nox_msgs::Chassis chassis, geometry_msgs::TwistWithCovarianceStamped Velocity,  optional<nav_msgs::Odometry> & vehicle_state )
 {
     
     vehicle_state.reset();
@@ -137,6 +152,11 @@ void RepeaterModule::OnlocalizationFail( optional<nav_msgs::Odometry> & vehicle_
     vehicle_state.reset();
 }
 void RepeaterModule::OnchassisFail( optional<nav_msgs::Odometry> & vehicle_state )
+{
+    
+    vehicle_state.reset();
+}
+void RepeaterModule::OnVelocityFail( optional<nav_msgs::Odometry> & vehicle_state )
 {
     
     vehicle_state.reset();

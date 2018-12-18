@@ -32,6 +32,9 @@ namespace nox::app
         double _t_at_zero_speed;
         double _s_at_zero_speed;
         double _base_speed;
+        
+        double _comfort_t_at_zero_speed;
+        double _comfort_s_at_zero_speed;
 
         type::Bound _longitudinal_acceleration;
         type::Bound _comfort_lon_acceleration;

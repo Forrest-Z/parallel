@@ -16,10 +16,10 @@
 #include <ros/message_operations.h>
 
 #include <std_msgs/Header.h>
-#include <autoware_msgs/steer_cmd.h>
-#include <autoware_msgs/accel_cmd.h>
-#include <autoware_msgs/brake_cmd.h>
-#include <autoware_msgs/lamp_cmd.h>
+#include <autoware_msgs/SteerCmd.h>
+#include <autoware_msgs/AccelCmd.h>
+#include <autoware_msgs/BrakeCmd.h>
+#include <autoware_msgs/LampCmd.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <autoware_msgs/ControlCommand.h>
 
@@ -61,16 +61,16 @@ struct VehicleCmd_
    typedef  ::std_msgs::Header_<ContainerAllocator>  _header_type;
   _header_type header;
 
-   typedef  ::autoware_msgs::steer_cmd_<ContainerAllocator>  _steer_cmd_type;
+   typedef  ::autoware_msgs::SteerCmd_<ContainerAllocator>  _steer_cmd_type;
   _steer_cmd_type steer_cmd;
 
-   typedef  ::autoware_msgs::accel_cmd_<ContainerAllocator>  _accel_cmd_type;
+   typedef  ::autoware_msgs::AccelCmd_<ContainerAllocator>  _accel_cmd_type;
   _accel_cmd_type accel_cmd;
 
-   typedef  ::autoware_msgs::brake_cmd_<ContainerAllocator>  _brake_cmd_type;
+   typedef  ::autoware_msgs::BrakeCmd_<ContainerAllocator>  _brake_cmd_type;
   _brake_cmd_type brake_cmd;
 
-   typedef  ::autoware_msgs::lamp_cmd_<ContainerAllocator>  _lamp_cmd_type;
+   typedef  ::autoware_msgs::LampCmd_<ContainerAllocator>  _lamp_cmd_type;
   _lamp_cmd_type lamp_cmd;
 
    typedef int32_t _gear_type;
@@ -123,7 +123,7 @@ namespace message_traits
 
 
 // BOOLTRAITS {'IsFixedSize': False, 'IsMessage': True, 'HasHeader': True}
-// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/autoware_msgs/msg']}
+// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/home/yul/Documents/lidar_process/src/jsk/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/home/yul/Documents/lidar_process/src/autoware_msgs/msg']}
 
 // !!!!!!!!!!! ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_parsed_fields', 'constants', 'fields', 'full_name', 'has_header', 'header_present', 'names', 'package', 'parsed_fields', 'short_name', 'text', 'types']
 
@@ -191,10 +191,10 @@ struct Definition< ::autoware_msgs::VehicleCmd_<ContainerAllocator> >
   static const char* value()
   {
     return "Header header\n\
-autoware_msgs/steer_cmd steer_cmd\n\
-autoware_msgs/accel_cmd accel_cmd\n\
-autoware_msgs/brake_cmd brake_cmd\n\
-autoware_msgs/lamp_cmd lamp_cmd\n\
+autoware_msgs/SteerCmd steer_cmd\n\
+autoware_msgs/AccelCmd accel_cmd\n\
+autoware_msgs/BrakeCmd brake_cmd\n\
+autoware_msgs/LampCmd lamp_cmd\n\
 int32 gear\n\
 int32 mode\n\
 geometry_msgs/TwistStamped twist_cmd\n\
@@ -220,22 +220,22 @@ time stamp\n\
 string frame_id\n\
 \n\
 ================================================================================\n\
-MSG: autoware_msgs/steer_cmd\n\
+MSG: autoware_msgs/SteerCmd\n\
 Header header\n\
 int32 steer\n\
 \n\
 ================================================================================\n\
-MSG: autoware_msgs/accel_cmd\n\
+MSG: autoware_msgs/AccelCmd\n\
 Header header\n\
 int32 accel\n\
 \n\
 ================================================================================\n\
-MSG: autoware_msgs/brake_cmd\n\
+MSG: autoware_msgs/BrakeCmd\n\
 Header header\n\
 int32 brake\n\
 \n\
 ================================================================================\n\
-MSG: autoware_msgs/lamp_cmd\n\
+MSG: autoware_msgs/LampCmd\n\
 Header header\n\
 int32 l\n\
 int32 r\n\
@@ -320,16 +320,16 @@ struct Printer< ::autoware_msgs::VehicleCmd_<ContainerAllocator> >
     Printer< ::std_msgs::Header_<ContainerAllocator> >::stream(s, indent + "  ", v.header);
     s << indent << "steer_cmd: ";
     s << std::endl;
-    Printer< ::autoware_msgs::steer_cmd_<ContainerAllocator> >::stream(s, indent + "  ", v.steer_cmd);
+    Printer< ::autoware_msgs::SteerCmd_<ContainerAllocator> >::stream(s, indent + "  ", v.steer_cmd);
     s << indent << "accel_cmd: ";
     s << std::endl;
-    Printer< ::autoware_msgs::accel_cmd_<ContainerAllocator> >::stream(s, indent + "  ", v.accel_cmd);
+    Printer< ::autoware_msgs::AccelCmd_<ContainerAllocator> >::stream(s, indent + "  ", v.accel_cmd);
     s << indent << "brake_cmd: ";
     s << std::endl;
-    Printer< ::autoware_msgs::brake_cmd_<ContainerAllocator> >::stream(s, indent + "  ", v.brake_cmd);
+    Printer< ::autoware_msgs::BrakeCmd_<ContainerAllocator> >::stream(s, indent + "  ", v.brake_cmd);
     s << indent << "lamp_cmd: ";
     s << std::endl;
-    Printer< ::autoware_msgs::lamp_cmd_<ContainerAllocator> >::stream(s, indent + "  ", v.lamp_cmd);
+    Printer< ::autoware_msgs::LampCmd_<ContainerAllocator> >::stream(s, indent + "  ", v.lamp_cmd);
     s << indent << "gear: ";
     Printer<int32_t>::stream(s, indent + "  ", v.gear);
     s << indent << "mode: ";

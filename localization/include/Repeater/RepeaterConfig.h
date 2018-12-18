@@ -11,6 +11,7 @@
 #include "../../../.param/template/Parameter.h"
 #include "../../../.plugin/Plugin.h"
 #include <old_nox_msgs.h>
+#include <geometry_msgs/TwistWithCovarianceStamped.h>
 
 namespace nox::app
 {

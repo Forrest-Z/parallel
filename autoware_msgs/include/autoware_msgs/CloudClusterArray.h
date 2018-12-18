@@ -78,7 +78,7 @@ namespace message_traits
 
 
 // BOOLTRAITS {'IsFixedSize': False, 'IsMessage': True, 'HasHeader': True}
-// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/autoware_msgs/msg']}
+// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/home/yul/Documents/lidar_process/src/jsk/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/home/yul/Documents/lidar_process/src/autoware_msgs/msg']}
 
 // !!!!!!!!!!! ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_parsed_fields', 'constants', 'fields', 'full_name', 'has_header', 'header_present', 'names', 'package', 'parsed_fields', 'short_name', 'text', 'types']
 
@@ -121,12 +121,12 @@ struct MD5Sum< ::autoware_msgs::CloudClusterArray_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "e8f793f47ee2bf0298da4f506e07b572";
+    return "5bdd7c958335da845b88351aab5141d4";
   }
 
   static const char* value(const ::autoware_msgs::CloudClusterArray_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0xe8f793f47ee2bf02ULL;
-  static const uint64_t static_value2 = 0x98da4f506e07b572ULL;
+  static const uint64_t static_value1 = 0x5bdd7c958335da84ULL;
+  static const uint64_t static_value2 = 0x5b88351aab5141d4ULL;
 };
 
 template<class ContainerAllocator>
@@ -191,6 +191,13 @@ std_msgs/Float32MultiArray fpfh_descriptor \n\
 \n\
 jsk_recognition_msgs/BoundingBox bounding_box\n\
 geometry_msgs/PolygonStamped convex_hull\n\
+\n\
+# Indicator information\n\
+# INDICATOR_LEFT 0\n\
+# INDICATOR_RIGHT 1\n\
+# INDICATOR_BOTH 2\n\
+# INDICATOR_NONE 3\n\
+uint32 indicator_state\n\
 ================================================================================\n\
 MSG: sensor_msgs/PointCloud2\n\
 # This message holds a collection of N-dimensional points, which may\n\

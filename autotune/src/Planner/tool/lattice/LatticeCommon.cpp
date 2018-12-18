@@ -27,7 +27,7 @@ Curve::Curve(nox::Ptr<nox::math::Parametric<1>> curve)
 
 double Curve::Calculate(size_t order, double param) const
 {
-    double boundary = _curve->Boundary();
+    double boundary = _curve->Upper();
     if(param < boundary)
     {
         return _curve->Calculate(order, param);
@@ -51,9 +51,9 @@ double Curve::Calculate(size_t order, double param) const
     }
 }
 
-double Curve::Boundary() const
+double Curve::Upper() const
 {
-    return _curve->Boundary();
+    return _curve->Upper();
 }
 
 Combination::Combination(nox::Ptr<Curve> lon, nox::Ptr<Curve> lat)

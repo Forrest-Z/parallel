@@ -15,7 +15,7 @@
 #include <ros/builtin_message_traits.h>
 #include <ros/message_operations.h>
 
-#include <autoware_msgs/lane.h>
+#include <autoware_msgs/Lane.h>
 
 namespace autoware_msgs
 {
@@ -34,7 +34,7 @@ struct LaneArray_
 
 
 
-   typedef std::vector< ::autoware_msgs::lane_<ContainerAllocator> , typename ContainerAllocator::template rebind< ::autoware_msgs::lane_<ContainerAllocator> >::other >  _lanes_type;
+   typedef std::vector< ::autoware_msgs::Lane_<ContainerAllocator> , typename ContainerAllocator::template rebind< ::autoware_msgs::Lane_<ContainerAllocator> >::other >  _lanes_type;
   _lanes_type lanes;
 
 
@@ -72,7 +72,7 @@ namespace message_traits
 
 
 // BOOLTRAITS {'IsFixedSize': False, 'IsMessage': True, 'HasHeader': False}
-// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/media/yarten/DATA/Project/ROS/Parallel/src/autoware_msgs/msg']}
+// {'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'pcl_msgs': ['/opt/ros/melodic/share/pcl_msgs/cmake/../msg'], 'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'jsk_footstep_msgs': ['/opt/ros/melodic/share/jsk_footstep_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'jsk_recognition_msgs': ['/home/yul/Documents/lidar_process/src/jsk/jsk_recognition_msgs/msg'], 'actionlib_msgs': ['/opt/ros/melodic/share/actionlib_msgs/cmake/../msg'], 'autoware_msgs': ['/home/yul/Documents/lidar_process/src/autoware_msgs/msg']}
 
 // !!!!!!!!!!! ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_parsed_fields', 'constants', 'fields', 'full_name', 'has_header', 'header_present', 'names', 'package', 'parsed_fields', 'short_name', 'text', 'types']
 
@@ -115,12 +115,12 @@ struct MD5Sum< ::autoware_msgs::LaneArray_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "f8840d62beb8769b379eb808f0e5640f";
+    return "ca01c32675aeaa32240193d4d3f7e07a";
   }
 
   static const char* value(const ::autoware_msgs::LaneArray_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0xf8840d62beb8769bULL;
-  static const uint64_t static_value2 = 0x379eb808f0e5640fULL;
+  static const uint64_t static_value1 = 0xca01c32675aeaa32ULL;
+  static const uint64_t static_value2 = 0x240193d4d3f7e07aULL;
 };
 
 template<class ContainerAllocator>
@@ -139,13 +139,19 @@ struct Definition< ::autoware_msgs::LaneArray_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "lane[] lanes\n\
+    return "Lane[] lanes\n\
 ================================================================================\n\
-MSG: autoware_msgs/lane\n\
+MSG: autoware_msgs/Lane\n\
 Header header\n\
 int32 increment\n\
 int32 lane_id\n\
-waypoint[] waypoints\n\
+Waypoint[] waypoints\n\
+\n\
+uint32 lane_index\n\
+float32 cost\n\
+float32 closest_object_distance\n\
+float32 closest_object_velocity\n\
+bool is_blocked\n\
 \n\
 ================================================================================\n\
 MSG: std_msgs/Header\n\
@@ -166,17 +172,33 @@ time stamp\n\
 string frame_id\n\
 \n\
 ================================================================================\n\
-MSG: autoware_msgs/waypoint\n\
+MSG: autoware_msgs/Waypoint\n\
 # global id\n\
 int32 gid \n\
 # local id\n\
 int32 lid\n\
 geometry_msgs/PoseStamped pose\n\
 geometry_msgs/TwistStamped twist\n\
-dtlane dtlane\n\
+DTLane dtlane\n\
 int32 change_flag\n\
 WaypointState wpstate\n\
 \n\
+uint32 lane_id\n\
+uint32 left_lane_id\n\
+uint32 right_lane_id\n\
+uint32 stop_line_id\n\
+float32 cost\n\
+float32 time_cost\n\
+\n\
+# Lane Direction\n\
+# FORWARD				= 0\n\
+# FORWARD_LEFT	 		= 1\n\
+# FORWARD_RIGHT			= 2\n\
+# BACKWARD				= 3 \n\
+# BACKWARD_LEFT			= 4\n\
+# BACKWARD_RIGHT		= 5\n\
+# STANDSTILL	 		= 6\n\
+uint32 direction\n\
 ================================================================================\n\
 MSG: geometry_msgs/PoseStamped\n\
 # A Pose with reference coordinate frame and timestamp\n\
@@ -230,7 +252,7 @@ float64 x\n\
 float64 y\n\
 float64 z\n\
 ================================================================================\n\
-MSG: autoware_msgs/dtlane\n\
+MSG: autoware_msgs/DTLane\n\
 float64 dist\n\
 float64 dir\n\
 float64 apara\n\
@@ -301,7 +323,7 @@ struct Printer< ::autoware_msgs::LaneArray_<ContainerAllocator> >
       s << indent << "  lanes[" << i << "]: ";
       s << std::endl;
       s << indent;
-      Printer< ::autoware_msgs::lane_<ContainerAllocator> >::stream(s, indent + "    ", v.lanes[i]);
+      Printer< ::autoware_msgs::Lane_<ContainerAllocator> >::stream(s, indent + "    ", v.lanes[i]);
     }
   }
 };
