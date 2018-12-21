@@ -218,6 +218,7 @@ namespace nox::app
         GuideLineBuilder::BuildPathUsingSpline2(controlLine_, guideLine_);
         GuideLineBuilder::BuildStopLine(controlLine_, guideLine_);
         GuideLineBuilder::BuildYellowZone(controlLine_, guideLine_);
+        GuideLineBuilder::BuildBoundary(controlLine_, guideLine_);
 
         _guideLines.data().push_back(guideLine);
     }
@@ -246,6 +247,7 @@ namespace nox::app
                 auto lane = section->Lanes[path[i]];
 
                 controlLine->segments.push_back(lane);
+                controlLine->sections.push_back(section);
             }
 
             if(is_illegal) return; // 如果存在非法路径（经过不存在车道），则不添加该结果
@@ -340,6 +342,7 @@ namespace nox::app
             {
                 auto controlLine = New<ControlLine>();
                 controlLine->segments.push_back(lane);
+                controlLine->sections.push_back(nullptr);
 
                 if(next_index)
                     next_index->push_back(connection.to);

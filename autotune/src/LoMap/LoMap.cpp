@@ -39,7 +39,7 @@ bool LoMap::ProcessOnobstacles(nox_msgs::ObstacleArray obstacles)
 
 bool LoMap::ProcessOnold_map(nox_msgs::Road old_map)
 {
-    // TODO
+    _scene_generator.UpdateOldMap(old_map);
     return true;
 }
 

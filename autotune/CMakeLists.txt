@@ -90,7 +90,7 @@ add_executable(autotune_Planner
         include/Planner/tool/CollisionChecker.h src/Planner/tool/CollisionChecker.cpp
         include/Planner/type/ConstantJerkCurve.h src/Planner/type/ConstantJerkCurve.cpp
         include/Planner/type/PiecewiseJerkCurve.h src/Planner/type/PiecewiseJerkCurve.cpp src/Planner/rule/StopLine.cpp
-        include/Planner/rule/StopLine.h include/Planner/rule/Passable.h src/Planner/rule/Passable.cpp include/Tracking/tool/Guardian.h src/Planner/type/ConstantAccelerationCurve.cpp include/Planner/tool/PiecewiseBrakingTrajectoryGenerator.h src/Planner/tool/PiecewiseBrakingTrajectoryGenerator.cpp include/Planner/impl/BrakingPlanner.h src/Planner/impl/BrakingPlanner.cpp)
+        include/Planner/rule/StopLine.h include/Planner/rule/Passable.h src/Planner/rule/Passable.cpp include/Tracking/tool/Guardian.h src/Planner/type/ConstantAccelerationCurve.cpp include/Planner/tool/PiecewiseBrakingTrajectoryGenerator.h src/Planner/tool/PiecewiseBrakingTrajectoryGenerator.cpp include/Planner/impl/BrakingPlanner.h src/Planner/impl/BrakingPlanner.cpp include/Planner/type/QuadraticAccelerationCurve.h src/Planner/type/QuadraticAccelerationCurve.cpp include/LoMap/provider/OldMapProvider.h include/Planner/tool/BoundaryChecker.h include/Planner/tool/lattice/LatticeCombiner.h src/Planner/tool/lattice/LatticeCombiner.cpp src/Planner/tool/BoundaryChecker.cpp)
 target_link_libraries(autotune_Planner
     ${catkin_LIBRARIES}
 )
@@ -103,7 +103,7 @@ add_executable(autotune_LoMap
         include/LoMap/tool/PoseEstimator.h src/LoMap/tool/PoseEstimator.cpp
         include/LoMap/tool/IDProvider.h src/LoMap/tool/IDProvider.cpp
         include/LoMap/tool/SceneObjectCreator.h
-        include/LoMap/LoMapConfig.h include/LoMap/tool/GuideLineBuilder.h include/LoMap/type/ControlLine.h src/LoMap/tool/GuideLineBuilder.cpp include/LoMap/pattern/SupplyChain.h include/LoMap/provider/GuideLineProvider.h src/LoMap/provider/GuideLineProvider.cpp include/LoMap/type/Material.h include/LoMap/tool/SceneGenerator.h include/LoMap/provider/MapProvider.h src/LoMap/provider/MapProvider.cpp src/LoMap/tool/SceneGenerator.cpp include/LoMap/type/MD5.h include/LoMap/provider/TrafficLightProvider.h include/LoMap/provider/VehicleStateProvider.h src/LoMap/provider/VehicleStateProvider.cpp include/LoMap/provider/ObstacleProvider.h src/LoMap/provider/ObstacleProvider.cpp src/LoMap/provider/TrafficLightProvider.cpp include/LoMap/provider/SceneProvider.h src/LoMap/provider/SceneProvider.cpp)
+        include/LoMap/LoMapConfig.h include/LoMap/tool/GuideLineBuilder.h include/LoMap/type/ControlLine.h src/LoMap/tool/GuideLineBuilder.cpp include/LoMap/pattern/SupplyChain.h include/LoMap/provider/GuideLineProvider.h src/LoMap/provider/GuideLineProvider.cpp include/LoMap/type/Material.h include/LoMap/tool/SceneGenerator.h include/LoMap/provider/MapProvider.h src/LoMap/provider/MapProvider.cpp src/LoMap/tool/SceneGenerator.cpp include/LoMap/type/MD5.h include/LoMap/provider/TrafficLightProvider.h include/LoMap/provider/VehicleStateProvider.h src/LoMap/provider/VehicleStateProvider.cpp include/LoMap/provider/ObstacleProvider.h src/LoMap/provider/ObstacleProvider.cpp src/LoMap/provider/TrafficLightProvider.cpp include/LoMap/provider/SceneProvider.h src/LoMap/provider/SceneProvider.cpp src/LoMap/provider/OldMapProvider.cpp)
 target_link_libraries(autotune_LoMap
     ${catkin_LIBRARIES}
 )
@@ -129,6 +129,17 @@ target_link_libraries(autotune_Tracking
 )
 set_target_properties(autotune_Tracking PROPERTIES OUTPUT_NAME Tracking PREFIX "")
 set_target_properties(autotune_Tracking PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../.bin/autotune/)
+
+add_executable(autotune_SimpleMap
+    include/SimpleMap/.SimpleMapModule.h src/SimpleMap/.SimpleMapModule.cpp
+    include/SimpleMap/SimpleMap.h src/SimpleMap/SimpleMap.cpp
+    include/SimpleMap/SimpleMapConfig.h
+)
+target_link_libraries(autotune_SimpleMap
+    ${catkin_LIBRARIES}
+)
+set_target_properties(autotune_SimpleMap PROPERTIES OUTPUT_NAME SimpleMap PREFIX "")
+set_target_properties(autotune_SimpleMap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../.bin/autotune/)
 
 
 #pragma nox_end()

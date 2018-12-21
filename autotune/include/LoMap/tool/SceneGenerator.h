@@ -11,6 +11,7 @@
 #include <LoMap/provider/ObstacleProvider.h>
 #include <LoMap/provider/TrafficLightProvider.h>
 #include <LoMap/provider/SceneProvider.h>
+#include <LoMap/provider/OldMapProvider.h>
 
 namespace nox::app
 {
@@ -33,6 +34,9 @@ namespace nox::app
         __asynchronous_thread
         void UpdateTrafficLight(const type::Signal & signal);
 
+        __asynchronous_thread
+        void UpdateOldMap(const nox_msgs::Road & road);
+
     protected:
         void OnStart() override;
 
@@ -46,5 +50,6 @@ namespace nox::app
         ObstacleProvider _obstacle_provider;
         TrafficLightProvider _traffic_light_provider;
         SceneProvider _scene_provider;
+        OldMapProvider _old_map_provider;
     };
 }

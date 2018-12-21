@@ -10,6 +10,7 @@ namespace nox::app
 {
     struct ControlLine
     {
+        std::vector<nox::Ptr<type::RoadSection>> sections;
         std::vector<nox::Ptr<type::Lane>> segments;
         bool                       passable = true;
         std::vector<type::Position>     stopPoints;

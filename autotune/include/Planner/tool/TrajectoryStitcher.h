@@ -17,6 +17,14 @@ namespace nox::app
          */
         Trajectory InitialTrajectory(const Vehicle & vehicle);
 
+        /**
+         * 产生短时间保持的缝合轨迹（根据当前车的位置）
+         */
+        Trajectory StitchTrajectoryByPosition(
+            const Trajectory & last_trajectory,
+            const Vehicle & vehicle,
+            double stitch_time
+        );
 
         Trajectory FromLastTrajectoryByPosition(
             const Trajectory & last_trajectory,
@@ -32,7 +40,7 @@ namespace nox::app
     public:
         struct
         {
-            double initial_stitch_time = 1.0; // 秒，产生初始轨迹的时间长度
+            double initial_stitch_time = 0.0; // 秒，产生初始轨迹的时间长度
             double stitch_time = 1.0;         // 秒，产生缝合轨迹的时间长度
             double density = 1.0;             // 米，缝合轨迹步长
 

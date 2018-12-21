@@ -28,13 +28,6 @@ namespace nox::app
             lattice::Bundle & lat
         ) const;
 
-        void Combine(
-            Ptr<ReferenceLine> reference,
-            const math::Parametric<1> & lon,
-            const math::Parametric<1> & lat,
-            type::Trajectory & result
-        ) const;
-
     private:
         using States = std::vector<lattice::State>;
 
@@ -68,6 +61,12 @@ namespace nox::app
         ) const;
 
         void GenerateQuinticBundle(
+            const lattice::State & init_state,
+            Ptr<States> end_states,
+            lattice::Bundle & result
+        ) const;
+
+        void GenerateQuadraticAccelerationBundle(
             const lattice::State & init_state,
             Ptr<States> end_states,
             lattice::Bundle & result

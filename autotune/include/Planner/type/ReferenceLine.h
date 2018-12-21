@@ -53,6 +53,8 @@ namespace nox::app
          */
         double CruisingSpeed(double s = -1) const;
 
+        Bound GetBoundary(double s) const;
+
     public: /// 查询接口
         bool IsPriorThan(const ReferenceLine &other) const;
 
@@ -88,5 +90,6 @@ namespace nox::app
         bool                        _killed = false;            // 是否不可使用
         std::vector<StopLine>       _stop_lines;                // 有序的引导线信息
         container::Segment<Bound>   _speed_controls;            // 速度控制段信息
+        container::Segment<Ptr<math::Parametric<1>>>   _boundaries;  // 边界段信息
     };
 }

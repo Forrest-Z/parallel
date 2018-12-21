@@ -4,6 +4,7 @@
 #include <Planner/tool/lattice/LatticeGenerator.h>
 #include <Planner/tool/lattice/LatticeEvaluator.h>
 #include <Planner/tool/CollisionChecker.h>
+#include <Planner/tool/BoundaryChecker.h>
 #include <nox>
 
 USING_NAMESPACE_NOX;
@@ -160,6 +161,7 @@ Result<bool> LatticePlanner::PlanOnReferenceLine(
     analyze(6. 遍历所有候选轨迹，进行碰撞检测与约束检测);
     ConstraintChecker constraint_checker(frame.vehicle);
     CollisionChecker collision_checker(frame.scene, s[0], l[0], reference);
+    BoundaryChecker boundary_checker(reference, frame.vehicle);
 
     if(not evaluator.HasNext())
         return Result(false, "Evaluator is empty");
@@ -168,13 +170,15 @@ Result<bool> LatticePlanner::PlanOnReferenceLine(
     {
         auto candidate = evaluator.Next();
 
-        Trajectory & trajectory = result;
-        generator.Combine(reference, *candidate.lon, *candidate.lat, trajectory);
+        Trajectory & trajectory = *candidate.traj;
 
-        if(!constraint_checker.CheckTrajectory(trajectory))
+        if(not constraint_checker.CheckTrajectory(trajectory))
             continue;
 
         if(collision_checker.InCollision(trajectory))
+            continue;
+
+        if(not boundary_checker.Check(trajectory, s[0]))
             continue;
 
         auto lon = std::dynamic_pointer_cast<lattice::Curve>(candidate.lon);
@@ -189,13 +193,14 @@ Result<bool> LatticePlanner::PlanOnReferenceLine(
             << "3. lat offset:      " << lat->state.cost_factor.lateral_offset << endl
             << "Cost: " << candidate.cost_sum << endl
             << "1. lon objective: " << candidate.costs[0] << endl
-            << "2. lon jerk:      " << candidate.costs[1] << endl
+            << "2. lon comfort:   " << candidate.costs[1] << endl
             << "3. lon collision: " << candidate.costs[2] << endl
             << "4. centripetal a: " << candidate.costs[3] << endl
             << "5. lat offset:    " << candidate.costs[4] << endl
             << "6. lat comfort:   " << candidate.costs[5] << endl;
 
         cost = candidate.cost_sum;
+        result = trajectory;
         return Result(true);
     }
 
@@ -238,6 +243,15 @@ Result<bool> LatticePlanner::Check(const PlannerBase::Frame &frame)
     {
         if(auto r = i->IsNormal(trajectory, *frame.vehicle); r.Fail())
             return Result(false, "Checking: Trajectory dosen't meet the requirement of guide line: " + r.Message());
+    }
+    //endregion
+
+    //region 检查轨迹是否越界
+    for(auto & i : frame.references)
+    {
+        BoundaryChecker boundaryChecker(i, frame.vehicle);
+        if(not boundaryChecker.Check(trajectory))
+            return Result(false, "Checking: Trajectory crosses the impassable boundary.");
     }
     //endregion
 

@@ -1,7 +1,7 @@
 #include <utility>
 #include <Planner/PlannerConfig.h>
 #include <utility>
-
+#include <Planner/type/QuadraticAccelerationCurve.h>
 #include <Planner/tool/lattice/LatticeGenerator.h>
 #include <nox>
 
@@ -74,7 +74,8 @@ void LatticeGenerator::GenerateSpeedProfilesForStopping(double distance, lattice
         return;
     }
 
-    GenerateQuinticBundle(_init_lon_state, end_states, lon);
+    GenerateQuadraticAccelerationBundle(_init_lon_state, end_states, lon);
+//    GenerateQuinticBundle(_init_lon_state, end_states, lon);
 }
 
 void LatticeGenerator::GenerateSpeedProfilesForObstacles(lattice::Bundle &lon) const
@@ -93,7 +94,7 @@ void LatticeGenerator::GenerateQuarticBundle(
     Ptr<LatticeGenerator::States> end_states,
     lattice::Bundle &result) const
 {
-    result.reserve(end_states->size());
+    result.reserve(end_states->size() + result.size());
     for(auto & end_state : *end_states)
     {
         auto lattice_curve = std::make_shared<lattice::Curve>(
@@ -114,10 +115,10 @@ void LatticeGenerator::GenerateQuinticBundle(
     Ptr<LatticeGenerator::States> end_states,
     lattice::Bundle &result) const
 {
-    result.reserve(end_states->size());
+    result.reserve(end_states->size() + result.size());
     for(auto & end_state : *end_states)
     {
-        auto lattice_curve = std::make_shared<lattice::Curve>(
+        auto lattice_curve = New<lattice::Curve>(
             Ptr<math::Parametric<1>>(new math::QuinticCurve(
                 init_state,
                 end_state,
@@ -126,64 +127,32 @@ void LatticeGenerator::GenerateQuinticBundle(
         );
 
         lattice_curve->state = end_state;
-
         result.push_back(lattice_curve);
     }
 }
 
-void LatticeGenerator::Combine(
-    Ptr<ReferenceLine> reference,
-    const nox::math::Parametric<1> &lon,
-    const nox::math::Parametric<1> &lat,
-    nox::type::Trajectory &result) const
+void LatticeGenerator::GenerateQuadraticAccelerationBundle(
+    const lattice::State &init_state,
+    Ptr<States> end_states,
+    lattice::Bundle &result) const
 {
-    double s0 = lon.Calculate(0, 0);
-    double s_max = reference->path.Back().s;
-    double last_s = -Real::Epsilon;
-
-    result.Clear();
-
-    for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))
+    result.reserve(end_states->size() + result.size());
+    for(auto & end_state : *end_states)
     {
-        math::Derivative<2> s, l;
-        s[0] = lon.Calculate(0, t);
-
-        if(last_s > 0)
-            s[0] = std::max(last_s, s[0]);
-        last_s = s[0];
-
-        if(s[0] > s_max) break;
-
-        s[1] = std::max(Real::Epsilon, lon.Calculate(1, t));
-        s[2] = lon.Calculate(2, t);
-
-        double ds = s[0] - s0;
-        l[0] = lat.Calculate(0, ds);
-        l[1] = lat.Calculate(1, ds);
-        l[2] = lat.Calculate(2, ds);
-
-        auto nearest_point = reference->path.PointAtDistance(s[0]);
-
-        TrajectoryPoint point;
-        math::Cartesian original_point;
-
-        math::Frenet2Cartesian(
-            math::Cartesian(nearest_point.pose.x, nearest_point.pose.y, nearest_point.pose.theta),
-            nearest_point.s, nearest_point.kappa, nearest_point.dkappa,
-            s, l,
-            original_point,
-            point.kappa,
-            point.v,
-            point.a
+        auto lattice_curve = New<lattice::Curve>(
+            Ptr<math::Parametric<1>>(new QuadraticAccelerationCurve(
+                init_state,
+                end_state,
+                end_state.t
+            ))
         );
 
-        point.pose.x = original_point.x;
-        point.pose.y = original_point.y;
-        point.pose.theta = original_point.theta;
-        point.t = t;
-
-        result.Add(point);
+        lattice_curve->state = end_state;
+        result.push_back(lattice_curve);
     }
 }
+
+
+
 
 

@@ -6,6 +6,7 @@
 #include <Planner/rule/Passable.h>
 #include <nox>
 #include <iostream>
+#include "../../../.param/template/Parameter.h"
 
 using namespace nox::app;
 USING_NAMESPACE_NOX;
@@ -42,7 +43,7 @@ void Planner::InitializeDeciders()
 void Planner::InitializeParameters()
 {
     _vehicle.param.length.x = params.Vehicle.Physical.Length;
-    _vehicle.param.length.y = params.Vehicle.Physical.Weight;
+    _vehicle.param.length.y = params.Vehicle.Physical.Width;
     _vehicle.param.baseSpeed = params.Vehicle.BaseSpeed / 3.6;
 }
 
@@ -145,7 +146,7 @@ Result<bool> Planner::Process(type::Trajectory & last_trajectory, type::Trajecto
     if(auto r = CouldExtend(frame); r.Fail())
     {
         Logger::W("Planner") << "Trajectory has to re-plan because of: " << r.Message();
-        result = Plan(frame, new_trajectory);
+        result = Plan(frame, new_trajectory, true);
     }
     else if(r.Message() != "no need")
     {

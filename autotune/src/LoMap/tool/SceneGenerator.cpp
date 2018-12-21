@@ -10,6 +10,8 @@ namespace nox::app
 
         /// 2. 从地图计算引导线
         auto guideLines = _guide_line_provider.Produce(map);
+        if(guideLines.data().empty())
+            guideLines = _old_map_provider.Produce();
 
         /// 3. 获取当前车的姿态
         auto vehicle_state = _vehicle_state_provider.Produce();
@@ -61,6 +63,11 @@ namespace nox::app
     void SceneGenerator::UpdateTrafficLight(const type::Signal &signal)
     {
         _traffic_light_provider.Update(signal);
+    }
+
+    void SceneGenerator::UpdateOldMap(const nox_msgs::Road &road)
+    {
+        _old_map_provider.Update(road);
     }
 }
 

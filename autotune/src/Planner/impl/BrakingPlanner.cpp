@@ -11,7 +11,7 @@ namespace nox::app
         //FIXME 目前只能尽可能快地刹车，之后需要不用太快刹车，且检查这条轨迹的合法性
         double dec_a = frame.vehicle->param.limit.lon.a.Lower;
         auto dec_traj = PiecewiseBrakingTrajectoryGenerator::Generate(
-            0, frame.vehicle->v.x, 0, dec_a
+            0, std::max(0.0, frame.vehicle->v.x + dec_a), 0, dec_a
         );
 
         double dt = 0.1;

@@ -27,6 +27,7 @@ void ReferenceLine::Setup()
     _killed = false;
     _stop_lines.clear();
     _speed_controls.Clear();
+    _boundaries.Clear();
     //endregion
 
     //region 处理停止线
@@ -48,6 +49,16 @@ void ReferenceLine::Setup()
         for(auto & j : i.data)
         {
             _speed_controls.PushBack(j.s, j.v);
+        }
+    }
+    //endregion
+
+    //region 处理边界信息
+    for(auto & i : boundary)
+    {
+        for(auto & j : i.data)
+        {
+            _boundaries.PushBack(j.s.Lower, j.s.Upper, j.func.Generate());
         }
     }
     //endregion
@@ -103,14 +114,14 @@ double ReferenceLine::Length() const
 
 double ReferenceLine::CruisingSpeed(double s) const
 {
-    double v_max = 20.0 / 3.6;
+    double v_max = 0;
 
     for(auto & i : _speed_controls[s])
     {
         v_max = std::max<double>(v_max, i.data.Upper);
     }
 
-    return v_max;
+    return v_max == 0 ? 20.0 / 3.6 : v_max;
 }
 
 void ReferenceLine::Kill()
@@ -169,6 +180,22 @@ bool ReferenceLine::IsOverStopLine(double s, double th) const
     );
 
     return abs(_stop_lines[index].s - s) < th;
+}
+
+Bound ReferenceLine::GetBoundary(double s) const
+{
+    Bound b(-real::MAX, real::MAX);
+
+    for(auto & i : _boundaries[s])
+    {
+        double w = i.data->Calculate(0, s);
+        if(w > 0)
+            b.Upper = std::min<double>(b.Upper, w);
+        else
+            b.Lower = std::max<double>(b.Lower, w);
+    }
+
+    return b;
 }
 
 

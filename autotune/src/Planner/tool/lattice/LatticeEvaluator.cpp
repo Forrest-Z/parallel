@@ -3,6 +3,7 @@
 #include <Planner/type/PiecewiseAccelerationCurve.h>
 #include <Planner/tool/PiecewiseBrakingTrajectoryGenerator.h>
 #include <iostream>
+#include <Planner/tool/lattice/LatticeCombiner.h>
 USING_NAMESPACE_NOX;
 using namespace nox::app;
 
@@ -45,6 +46,17 @@ LatticeEvaluator::LatticeEvaluator(
         {
             // TODO: 检查轨迹合法性
             lattice::Combination candidate(lon_traj, lat_traj);
+            candidate.traj = New<Trajectory>(LatticeCombiner::Combine(
+                *_reference_line,
+                *lon_traj,
+                *lat_traj,
+                _param._time_resolution,
+                _param._planning_temporal_length
+            ));
+
+            if(candidate.traj->Empty())
+                continue;
+
             Evaluate(candidate);
             _candidates.push(std::move(candidate));
         }
@@ -122,12 +134,13 @@ void LatticeEvaluator::ComputeLonGuideVelocity() // TODO：改成服从Speed Con
 
 void LatticeEvaluator::Evaluate(lattice::Combination &candidate) const
 {
-    candidate.cost_sum = Evaluate(candidate.lon, candidate.lat, candidate.costs) * candidate.lon->state.cost_factor.all * candidate.lat->state.cost_factor.all;
+    candidate.cost_sum = Evaluate(candidate.lon, candidate.lat, candidate.traj, candidate.costs) * candidate.lon->state.cost_factor.all * candidate.lat->state.cost_factor.all;
 }
 
 double LatticeEvaluator::Evaluate(
     const Ptr<lattice::Curve> &lon_traj,
     const Ptr<lattice::Curve> &lat_traj,
+    const Ptr<type::Trajectory> & traj,
     std::vector<double> &costs) const
 {
     // Costs: (copy from apollo)
@@ -143,13 +156,13 @@ double LatticeEvaluator::Evaluate(
     double lon_objective_cost   = LonObjectiveCost(lon_traj);
 
     analyze(2. Cost of logitudinal jerk);
-    double lon_jerk_cost        = LonComfortCost(lon_traj);
+    double lon_comfort_cost     = LonComfortCost(lon_traj);
 
     analyze(3. Cost of logitudinal collision)
     double lon_collision_cost   = LonCollisionCost(lon_traj);
 
     analyze(4. Cost of centripetal acceleration);
-    double centripetal_acc_cost = CentripetalAccelerationCost(lon_traj, lat_traj);
+    double centripetal_acc_cost = CentripetalAccelerationCost(traj);
 
     analyze(5. Cost of lateral offsets);
     double evaluation_horizon = std::min(_param._planning_distance, std::max(lon_traj->Upper(), lat_traj->Upper()));
@@ -159,14 +172,14 @@ double LatticeEvaluator::Evaluate(
     double lat_comfort_cost   = LatComfortCost(lon_traj, lat_traj);
 
     lon_objective_cost   *= _param._weight._cost._lon_objective;
-    lon_jerk_cost        *= _param._weight._cost._lon_comfort;
+    lon_comfort_cost     *= _param._weight._cost._lon_comfort;
     lon_collision_cost   *= _param._weight._cost._lon_collision;
     centripetal_acc_cost *= _param._weight._cost._centripetal_acc;
     lat_offset_cost      *= _param._weight._cost._lat_offset;
     lat_comfort_cost     *= _param._weight._cost._lat_comfort;
 
     costs.push_back(lon_objective_cost);
-    costs.push_back(lon_jerk_cost);
+    costs.push_back(lon_comfort_cost);
     costs.push_back(lon_collision_cost);
     costs.push_back(centripetal_acc_cost);
     costs.push_back(lat_offset_cost);
@@ -174,7 +187,7 @@ double LatticeEvaluator::Evaluate(
 
     return
         lon_objective_cost +
-        lon_jerk_cost +
+        lon_comfort_cost +
         lon_collision_cost +
         centripetal_acc_cost +
         lat_offset_cost +
@@ -248,8 +261,8 @@ double LatticeEvaluator::LonComfortCost(const Ptr<lattice::Curve> &lon_traj) con
     for(double t : range(0, _param._time_resolution, _param._planning_temporal_length))
     {
         double a = lon_traj->Calculate(2, t);
-        double jerk = lon_traj->Calculate(3, t);
-        double cost = jerk / _vehicle->param.limit.lon.jerk.Upper + a / _vehicle->param.limit.lon.a.Upper;
+//        double jerk = lon_traj->Calculate(3, t);
+        double cost = a / _vehicle->param.limit.lon.a.Upper; // jerk / _vehicle->param.limit.lon.jerk.Upper +
         cost_sqr_sum += cost * cost;
         cost_abs_sum += std::abs(cost);
     }
@@ -339,53 +352,14 @@ lattice::Combination LatticeEvaluator::Next()
     return std::move(result);
 }
 
-double LatticeEvaluator::CentripetalAccelerationCost(
-    const Ptr<lattice::Curve> &lon,
-    const Ptr<lattice::Curve> &lat) const
+double LatticeEvaluator::CentripetalAccelerationCost(const Ptr<type::Trajectory> & traj) const
 {
     double centripetal_acc_sum = 0;
     double centripetal_acc_sqr_sum = 0;
 
-    double t0 = _param._time_resolution;
-    double s0 = lon->Calculate(0, t0);
-    double s_max = _reference_line->path.Back().s;
-    double last_s = -Real::Epsilon;
-
-    for(double t : range(t0, _param._time_resolution, _param._planning_temporal_length))
+    for(auto & i : *traj)
     {
-        math::Derivative<2> s, l;
-        s[0] = lon->Calculate(0, t);
-
-        if(last_s > 0)
-            s[0] = std::max(last_s, s[0]);
-        last_s = s[0];
-
-        if(s[0] > s_max) break;
-
-        s[1] = std::max(Real::Epsilon, lon->Calculate(1, t));
-        s[2] = lon->Calculate(2, t);
-
-        double ds = s[0] - s0;
-        l[0] = lat->Calculate(0, ds);
-        l[1] = lat->Calculate(1, ds);
-        l[2] = lat->Calculate(2, ds);
-
-        auto nearest_point = _reference_line->path.PointAtDistance(s[0]);
-
-        TrajectoryPoint point;
-        math::Cartesian original_point;
-
-        math::Frenet2Cartesian(
-            math::Cartesian(nearest_point.pose.x, nearest_point.pose.y, nearest_point.pose.theta),
-            nearest_point.s, nearest_point.kappa, nearest_point.dkappa,
-            s, l,
-            original_point,
-            point.kappa,
-            point.v,
-            point.a
-        );
-
-        double centripetal_acc = point.v * point.v * point.kappa;
+        double centripetal_acc = i.v * i.v * i.kappa;
         centripetal_acc_sum += 1;
         centripetal_acc_sqr_sum += abs(centripetal_acc);
     }

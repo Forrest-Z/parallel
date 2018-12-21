@@ -47,6 +47,7 @@ namespace nox::app
         double Evaluate(
             const Ptr<lattice::Curve> & lon_traj,
             const Ptr<lattice::Curve> & lat_traj,
+            const Ptr<type::Trajectory> & traj,
             std::vector<double> & costs
         ) const;
 
@@ -61,7 +62,7 @@ namespace nox::app
 
         double CentripetalAccelerationCost(const Ptr<lattice::Curve> & lon_traj) const;
 
-        double CentripetalAccelerationCost(const Ptr<lattice::Curve> & lon_traj, const Ptr<lattice::Curve> & lat_traj) const;
+        double CentripetalAccelerationCost(const Ptr<type::Trajectory> & traj) const;
 
         double LatOffsetCost(const Ptr<lattice::Curve> & lat_traj, double evaluation_horizon) const;
 
@@ -90,7 +91,7 @@ namespace nox::app
             {
                 /// 位置与速度的权衡
                 double _s_travelled = 10.0;
-                double _v_reached = 5.0;
+                double _v_reached = 10.0;
 
                 /// 侧向偏移在不同方向的惩罚系数
                 double _opposite_side_offset = 10.0;
@@ -102,7 +103,7 @@ namespace nox::app
                     double _lon_objective = 10.0;
                     double _lon_comfort = 5.0;
                     double _lon_collision = 2;
-                    double _centripetal_acc = 15;
+                    double _centripetal_acc = 10.0;
                     double _lat_offset = 2.0;
                     double _lat_comfort = 10.0;
                 } _cost;

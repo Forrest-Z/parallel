@@ -26,7 +26,8 @@ namespace nox::app
          */
         static void BuildPathUsingSpline2(const ControlLine & controlLine, GuideLine & guideLine);
 
-        static void BuildPathUsingSpline3(const ControlLine & controlLine, GuideLine & guideLine);
+        static void BuildPathUsingSpline(const vector<tool::AnchorPoint> & anchors, GuideLine & guideLine);
+
 
         /**
          * 在引导线上，根据控制线上的停止点建立停止线（只取最前边的停止线）

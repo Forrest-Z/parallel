@@ -48,15 +48,10 @@ Trajectory TrajectoryStitcher::FromLastTrajectoryByPosition(
         return InitialTrajectory(vehicle);
     }
 
-    size_t nearest_index    = last_trajectory.QueryNearestByPosition(vehicle.pose.t);
-    auto & nearest_point    = last_trajectory[nearest_index];
-    size_t forward_index    = last_trajectory.QueryNearestByTime(nearest_point.t + param.stitch_time);
-    size_t backward_index   = last_trajectory.QueryNearestByTime(nearest_point.t - param.stitch_time);
-    type::Trajectory result = last_trajectory.SubTrajectory(backward_index, forward_index);
-
     if(status)
         *status = Result(true);
-    return result;
+
+    return StitchTrajectoryByPosition(last_trajectory, vehicle, param.stitch_time);
 }
 
 Result<bool> TrajectoryStitcher::Check(const Trajectory &trajectory, const Vehicle &vehicle) const
@@ -75,5 +70,30 @@ Result<bool> TrajectoryStitcher::Check(const Trajectory &trajectory, const Vehic
     if(speed_diff > param.threshold.replan.speed_diff)
         return Result(false, "Vehicle's speed is too different from the matched point on the trajectory.");
 
+    double angle_diff = abs(vehicle.pose.theta - nearest_point.pose.theta);
+    if(angle_diff > 80.0 / 180.0 * M_PI)
+        return Result(false, "Vehicle's heading is too different from the matched point on the trajectory.");
+
+
     return Result(true);
+}
+
+Trajectory TrajectoryStitcher::StitchTrajectoryByPosition(
+    const Trajectory &last_trajectory,
+    const Vehicle &vehicle,
+    double stitch_time)
+{
+    if(last_trajectory.Empty())
+        return InitialTrajectory(vehicle);
+
+    size_t nearest_index    = last_trajectory.QueryNearestByPosition(vehicle.pose.t);
+    auto & nearest_point    = last_trajectory[nearest_index];
+    size_t forward_index    = last_trajectory.QueryNearestByTime(nearest_point.t + stitch_time);
+    size_t backward_index   = last_trajectory.QueryNearestByTime(nearest_point.t - stitch_time);
+    type::Trajectory result = last_trajectory.SubTrajectory(backward_index, forward_index);
+
+    std::cout << "[backward, forward]: " << backward_index << ", " << forward_index << std::endl;
+    std::cout << "sub length: " << result.Length() << std::endl;
+
+    return result;
 }

@@ -273,19 +273,6 @@ namespace nox::app
         guideLine.path = smoother.Smooth(guideLine.path);
     }
 
-    void GuideLineBuilder::BuildPathUsingSpline3(const ControlLine & controlLine, GuideLine & guideLine)
-    {
-        tool::Smoother::Config config;
-        config.density = 0.3;
-        config.type = tool::Smoother::Spline;
-        config.anchor.density = 3.0;
-
-        tool::Smoother smoother;
-        smoother.SetConfig(config);
-
-        BuildPathUsingCubic(controlLine, guideLine, 1);
-    }
-
     void GuideLineBuilder::BuildYellowZone(const ControlLine & controlLine, GuideLine & guideLine)
     {
         // FIXME：此处仅简单地限制路口处的速度（需要根据地图速度来调整）
@@ -318,16 +305,70 @@ namespace nox::app
 
     void GuideLineBuilder::BuildBoundary(const ControlLine &controlLine, GuideLine &guideLine)
     {
-        for(auto & i : controlLine.segments)
+        auto AddBoundary = [&](auto ptr)
         {
-            if(*i & (Lane::Leftmost | Lane::Rightmost))
+            auto front = ptr->Front();
+            auto back  = ptr->Back();
+            auto begin = guideLine.path.FrenetAtPosition(front.pose.t);
+            auto end   = guideLine.path.FrenetAtPosition(back.pose.t);
+            double wb = begin.l;
+            double we = end.l;
+
+            if(*ptr & Lane::Leftmost)
             {
-                auto begin = guideLine.path.FrenetAtPosition(i->Front().pose.t);
-                auto end   = guideLine.path.FrenetAtPosition(i->Back().pose.t);
+                wb += front.width * 0.5;
+                we += back.width * 0.5;
+            }
+            else
+            {
+                wb += front.width * -0.5;
+                we += back.width * -0.5;
+            }
 
+            Boundary boundary;
+            boundary.passable = false;
+            boundary.s.Lower = begin.s;
+            boundary.s.Upper = end.s;
+            boundary.func.x = boundary.s;
+            boundary.func.type = Function::Polynomial;
 
+            if(real::IsEqual(wb, we))
+                boundary.func.coeff = math::LinearCurve(
+                    math::Derivative<0>{wb},
+                    math::Derivative<0>{we},
+                    begin.s,
+                    end.s
+                ).Coefficient();
+            else
+                boundary.func.coeff = math::CubicCurve(
+                    math::Derivative<1>{wb, 0},
+                    math::Derivative<1>{we, 0},
+                    begin.s,
+                    end.s
+                ).Coefficient();
+
+            guideLine.boundary.Add(key::MapEdge, boundary);
+        };
+
+        for(auto & i : controlLine.sections)
+        {
+            if(i != nullptr)
+            {
+                AddBoundary(i->Leftmost());
+                AddBoundary(i->Rightmost());
             }
         }
+    }
+
+    void GuideLineBuilder::BuildPathUsingSpline(const vector<tool::AnchorPoint> & anchors, GuideLine &guideLine)
+    {
+        tool::Smoother smoother;
+        tool::Smoother::Config config;
+        config.density = 0.3;
+        config.type = tool::Smoother::Spline;
+
+        smoother.SetConfig(config);
+        guideLine.path = smoother.Smooth(anchors);
     }
 
 

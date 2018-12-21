@@ -52,6 +52,7 @@ namespace nox::app::lattice
     {
         Ptr<Curve> lon;
         Ptr<Curve> lat;
+        Ptr<Trajectory> traj;
         double cost_sum = 0;       // 根据比例加权和的权重
         std::vector<double> costs; // 各种各样的cost
 

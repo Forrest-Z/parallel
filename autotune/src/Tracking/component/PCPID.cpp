@@ -20,9 +20,15 @@ namespace nox::app
         const double w  = vehicle.w.z;
         const double kappa = matched_point.kappa;
         const double aError = vehicle.pose.theta - matched_point.pose.theta;
-        double dError = vehicle.pose.t.DistanceTo(matched_point.pose.t) *
+
+        double rear_dError = vehicle.pose.t.DistanceTo(matched_point.pose.t) *
             math::PointOnLine(vehicle.pose.x, vehicle.pose.y, matched_point.pose.x, matched_point.pose.y, matched_point.pose.theta);
-        dError += _param._vehicle.Physical.Lb * std::sin(aError);
+        double center_dError = rear_dError + _param._vehicle.Physical.Lb * std::sin(aError);
+        double dError;
+        if(abs(rear_dError) < abs(center_dError))
+            dError = rear_dError;
+        else
+            dError = center_dError;
 
         const double ff = FeedForward(vx, kappa);
         const double fb = FeedBack(aError, dError);
@@ -96,6 +102,7 @@ result
 
     void PCPID::PickPID(double v, double & Kff, double & Kfb, double & Kin, double & Kdp)
     {
+        v *= 3.6;
         auto & vv = _param._pcpid.Kv;
         size_t index = math::Extremum(vv.begin(), vv.end(), [&](const double & lhs, const double & rhs)
         {

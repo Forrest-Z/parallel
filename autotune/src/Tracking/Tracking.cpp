@@ -24,9 +24,8 @@ void Tracking::Initialize()
 
     _lat_controller->Initialize();
 
-
     _lon_filter.AddRule<rule::Lowpass>(5);
-    _lon_filter.AddRule<rule::Clipping>(8);
+    _lon_filter.AddRule<rule::Clipping>(GetPeriod(), 8);
     _lon_filter.AddRule<rule::Limiting>(params.Vehicle.Steering.Min, params.Vehicle.Steering.Max);
 
     _timer.Start();

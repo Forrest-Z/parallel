@@ -18,7 +18,7 @@ Physical:
 Steering:
   Max: 540
   Min: -540
-  Ratio: -15.0
-  Offset: -10.0
+  Ratio: 15.0
+  Offset: 0.0
 SpeedLimit: 40.0
 BaseSpeed: 5.0
