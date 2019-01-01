@@ -245,6 +245,9 @@ double LatticeEvaluator::LonCollisionCost(const Ptr<lattice::Curve> &lon_traj) c
             }
 
             double cost = std::exp(-ds * ds / (2.0 * sigma * sigma));
+            if(not obstacle->is_static)
+                cost *= 0.1;
+
             cost_sqr_sum += cost * cost;
             cost_abs_sum += cost;
         }

@@ -20,14 +20,12 @@ namespace nox::app
 
         virtual void Terminate();
 
-        virtual void Process( nox_msgs::Location localization, nox_msgs::Chassis chassis, geometry_msgs::TwistWithCovarianceStamped Velocity,  optional<nav_msgs::Odometry> & vehicle_state );
+        virtual void Process( optional<nox_msgs::Location> gps_localization, nox_msgs::Chassis chassis, optional<geometry_msgs::TwistWithCovarianceStamped> Velocity, optional<nox_msgs::Location> lidar_localization,  optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & localization );
 
         
 
         
-        void OnlocalizationFail( optional<nav_msgs::Odometry> & vehicle_state );
-        void OnchassisFail( optional<nav_msgs::Odometry> & vehicle_state );
-        void OnVelocityFail( optional<nav_msgs::Odometry> & vehicle_state );
+        void OnchassisFail( optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & localization );
 
     protected: /// 参数成员、插件成员、信道成员
         struct
@@ -43,10 +41,12 @@ namespace nox::app
         struct
         {
             
-            mailbox::Topic<nox_msgs::Location> localization;
+            mailbox::Topic<nox_msgs::Location> gps_localization;
             mailbox::Topic<nox_msgs::Chassis> chassis;
             mailbox::Topic<geometry_msgs::TwistWithCovarianceStamped> Velocity;
+            mailbox::Topic<nox_msgs::Location> lidar_localization;
             mailbox::Topic<nav_msgs::Odometry> vehicle_state;
+            mailbox::Topic<nox_msgs::Location> localization;
         } mailboxes;
 
     protected: /// 框架生命周期管理代码
@@ -69,7 +69,7 @@ namespace nox::app
 
         void TerminatePlugin();
 
-        void ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state );
+        void ProcessOutput( optional<nav_msgs::Odometry> & vehicle_state, optional<nox_msgs::Location> & localization );
 
     private: /// 框架成员
         struct

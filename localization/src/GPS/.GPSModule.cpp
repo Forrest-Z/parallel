@@ -28,12 +28,14 @@ void GPSModule::OnRun()
 {
     bool status = true;
     
-    
     if(status)
     {
         
         optional<nav_msgs::Odometry> vehicle_state_out;
-        Process(  vehicle_state_out );
+        Process( 
+             
+            vehicle_state_out 
+        );
         ProcessOutput( vehicle_state_out );
     }
 }

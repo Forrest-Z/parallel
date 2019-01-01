@@ -28,17 +28,16 @@ void RepeaterModule::OnRun()
 {
     bool status = true;
     
-    optional<autoware_msgs::DetectedObjectArray> jsk_obstacles_in;
-    
-    if(!mailboxes.jsk_obstacles.IsFresh()) {} 
-    else
-        jsk_obstacles_in = mailboxes.jsk_obstacles.Get();
 
     if(status)
     {
         
         optional<nox_msgs::ObstacleArray> obstacles_out;
-        Process( jsk_obstacles_in,  obstacles_out );
+        Process( 
+            
+            mailboxes.jsk_obstacles.IsFresh() ? mailboxes.jsk_obstacles.Get() : optional<autoware_msgs::DetectedObjectArray>(), 
+            obstacles_out 
+        );
         ProcessOutput( obstacles_out );
     }
 }
@@ -54,7 +53,7 @@ void RepeaterModule::InitMailbox()
 {
     
     mailboxes.jsk_obstacles.Subscribe({"detected_objects"});
-    mailboxes.jsk_obstacles.SetValidity(1000);
+    mailboxes.jsk_obstacles.SetValidity(Millisecond(1000));
     
     mailboxes.obstacles.Advertise({"obstacles"});
 }

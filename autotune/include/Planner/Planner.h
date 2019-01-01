@@ -76,14 +76,14 @@ namespace nox::app
             {
                 double _replan_distance = 2.0;
                 double _replan_time = 1.0;
-                double _extend_time = 6.0;
+                double _extend_time = 8.0; // 剩下都少时间时，发生延长动作
                 double _speed_diff  = 2.0;
             } _threshold;
 
             struct
             {
                 double _backward_time = 1.0;
-                double _forward_time = 4.0;
+                double _forward_time = 1.0; // 延长轨迹时，在当前位置前边多长时间开始延长
             } _reserve;
         } _param;
     };

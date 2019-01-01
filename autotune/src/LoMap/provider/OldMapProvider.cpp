@@ -59,7 +59,7 @@ namespace nox::app
         GuideLineBuilder::BuildPathUsingSpline(anchors, *guideLine);
         AddSpeedControl(speeds, *guideLine);
         AddDeadEnd(*guideLine);
-        AddBoundary(*guideLine);
+//        AddBoundary(*guideLine);
         _guideLines.data().push_back(guideLine);
         return _guideLines;
     }

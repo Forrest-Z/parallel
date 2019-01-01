@@ -22,7 +22,7 @@ bool Repeater::ProcessOnjsk_obstacles(autoware_msgs::DetectedObjectArray jsk_obs
         Pose pose;
         pose.From(obstacle.pose);
 
-        if(real::IsZero(obstacle.speed) or true) // 强制设置速度为0
+        if(real::IsZero(obstacle.speed)) // 强制设置速度为0
         {
             nox_msgs::TrajectoryPoint point;
             pose.To(point.info.pose);

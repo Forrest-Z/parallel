@@ -15,9 +15,9 @@ namespace nox::app
     class GuideLineProvider
     {
     public:
-        MD5<vector<Ptr<GuideLine>>> Produce(const MD5<type::Map> & map);
+        MD5<vector<Ptr<GuideLine>>> Produce(const MD5<type::Map> & map, const MD5<Odometry> & vehicle_state);
 
-    private:
+    private: /// 生成半成品引导线
         void Update();
 
         void Update(Ptr<Road> road);
@@ -64,8 +64,22 @@ namespace nox::app
 
         void SetEndLines(const vector<Ptr<ControlLine>> & controlLines);
 
+    private: /// 生成细化的引导线
+        void Generate();
+
+        void BuildBoundary();
+
     private:
         Material<MD5<type::Map>>    _hdmap;
+        Material<MD5<Odometry>>     _vehicle_state;
+
+        struct SFP // 半成品
+        {
+            Ptr<ControlLine> _controlLine;
+            Ptr<type::DiscretePath> _path;
+        };
+
+        vector<SFP>                 _sfps;
         MD5<vector<Ptr<GuideLine>>> _guideLines;
     };
 }

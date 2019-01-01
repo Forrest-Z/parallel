@@ -28,23 +28,19 @@ void SimulatorModule::OnRun()
 {
     bool status = true;
     
-    optional<geometry_msgs::PoseWithCovarianceStamped> obstacle_in;
-    optional<nav_msgs::Odometry> vehicle_state_in;
-    
-    if(!mailboxes.obstacle.IsFresh()) {} 
-    else
-        obstacle_in = mailboxes.obstacle.Get();
 
-    if(!mailboxes.vehicle_state.IsFresh()) {} 
-    else
-        vehicle_state_in = mailboxes.vehicle_state.Get();
 
     if(status)
     {
         
         optional<nox_msgs::ObstacleArray> obstacles_out;
         optional<traffic_light::msg_traffic_light_list> traffic_lights_out;
-        Process( obstacle_in, vehicle_state_in,  obstacles_out, traffic_lights_out );
+        Process( 
+            
+            mailboxes.obstacle.IsFresh() ? mailboxes.obstacle.Get() : optional<geometry_msgs::PoseWithCovarianceStamped>(),
+            mailboxes.vehicle_state.IsFresh() ? mailboxes.vehicle_state.Get() : optional<nav_msgs::Odometry>(), 
+            obstacles_out, traffic_lights_out 
+        );
         ProcessOutput( obstacles_out, traffic_lights_out );
     }
 }
@@ -60,9 +56,9 @@ void SimulatorModule::InitMailbox()
 {
     
     mailboxes.obstacle.Subscribe({"initialpose"});
-    mailboxes.obstacle.SetValidity(1000);
+    mailboxes.obstacle.SetValidity(Millisecond(1000));
     mailboxes.vehicle_state.Subscribe({"vehicle_state"});
-    mailboxes.vehicle_state.SetValidity(1000);
+    mailboxes.vehicle_state.SetValidity(Millisecond(1000));
     
     mailboxes.obstacles.Advertise({"virtual_obstacles"});
     mailboxes.traffic_lights.Advertise({"traffic_light_state"});

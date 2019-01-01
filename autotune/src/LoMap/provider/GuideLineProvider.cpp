@@ -5,14 +5,20 @@ using namespace std;
 
 namespace nox::app
 {
-    MD5<vector<Ptr<nox::type::GuideLine>>> GuideLineProvider::Produce(const MD5<type::Map> &map)
+    MD5<vector<Ptr<GuideLine>>>
+    GuideLineProvider::Produce(const MD5<Map> &map, const MD5<Odometry> &vehicle_state)
     {
         _hdmap.Update(map);
+        _vehicle_state.Update(vehicle_state);
 
         if(_hdmap.IsFresh())
         {
             Update();
-            Logger::D("GuideLineProvider") << "Generate Guide Lines: " << _guideLines.data().size();
+            Generate();
+        }
+        else if(_vehicle_state.IsFresh())
+        {
+            Generate();
         }
 
         return _guideLines;
@@ -20,9 +26,8 @@ namespace nox::app
 
     void GuideLineProvider::Update()
     {
-        auto map = _hdmap.Get();
-        auto hdmap = map.data();
-        _guideLines.reset({}, map.md5());
+        auto hdmap = _hdmap.Get().data();
+        _sfps.clear();
 
         for(auto & i : hdmap.Roads)
         {
@@ -196,7 +201,6 @@ namespace nox::app
                 {
                     auto longer_controlLine = New<ControlLine>(*controlLines[i]);
                     AppendControlLine(longer_controlLine, j);
-                    SetEndLine(longer_controlLine);
                     AddGuideLine(longer_controlLine);
                 }
                 //endregion
@@ -206,21 +210,12 @@ namespace nox::app
 
     void GuideLineProvider::AddGuideLine(Ptr<ControlLine> controlLine)
     {
-        static scene::ID id = 0;
+        SFP sfp;
+        sfp._controlLine = controlLine;
+        sfp._path = New<DiscretePath>();
 
-        auto guideLine = New<GuideLine>();
-        guideLine->id = id;
-        guideLine->passable = controlLine->passable;
-
-        auto & controlLine_ = *controlLine;
-        auto & guideLine_   = *guideLine;
-
-        GuideLineBuilder::BuildPathUsingSpline2(controlLine_, guideLine_);
-        GuideLineBuilder::BuildStopLine(controlLine_, guideLine_);
-        GuideLineBuilder::BuildYellowZone(controlLine_, guideLine_);
-        GuideLineBuilder::BuildBoundary(controlLine_, guideLine_);
-
-        _guideLines.data().push_back(guideLine);
+        GuideLineBuilder::BuildPathUsingCubic(*controlLine, *sfp._path);
+        _sfps.push_back(sfp);
     }
 
     vector<Ptr<ControlLine>> GuideLineProvider::GenerateControlLines(Ptr<Road> road, const vector<int> &path_,
@@ -377,5 +372,88 @@ namespace nox::app
     {
         for(auto i : controlLines)
             SetEndLine(i);
+    }
+
+    void GuideLineProvider::Generate()
+    {
+        auto vehicle_state = _vehicle_state.Get().data();
+        _guideLines.reset({}, Clock::us());
+
+        for(auto & i : _sfps)
+        {
+            auto & controlLine = *i._controlLine;
+            auto & path = *i._path;
+            if(path.Empty()) continue;
+
+            //region 采集在车附近的锚点
+            auto   nearest_point = path.PointAtPosition(vehicle_state.pose.t);
+            size_t begin_index = path.QueryNearestByDistance(nearest_point.s - 5); // 100米需要参数化吗
+            size_t end_index   = path.QueryNearestByDistance(nearest_point.s + 100);
+
+            if(begin_index == end_index) continue;
+
+            vector<AnchorPoint> anchors;
+
+            for(size_t j = begin_index; j <= end_index; ++j)
+            {
+                auto & p = path[j];
+                if(not anchors.empty() and p.s - anchors.back().s < 1.0 and j!= end_index)
+                    continue;
+
+                anchors.emplace_back(p);
+                auto & anchor = anchors.back();
+                anchor.lateralBound = 0.1;
+                anchor.longitudinalBound = 2;
+            }
+
+            anchors.front().lateralBound = anchors.front().longitudinalBound = real::Epsilon;
+            anchors.back().lateralBound = anchors.back().longitudinalBound = real::Epsilon;
+            anchors.front().enforced = anchors.back().enforced = true;
+            //endregion
+
+            //region 为引导线贴上各种信息
+            static scene::ID id = 0;
+            auto guideLine = New<GuideLine>();
+            auto & guideLine_ = *guideLine;
+
+            guideLine->id = id;
+            guideLine->passable = controlLine.passable;
+
+            GuideLineBuilder::BuildPathUsingSpline(anchors, guideLine_);
+            GuideLineBuilder::BuildStopLine(controlLine, guideLine_);
+            GuideLineBuilder::BuildYellowZone(controlLine, guideLine_);
+            //endregion
+
+            _guideLines.data().push_back(guideLine);
+        }
+
+        BuildBoundary();
+    }
+
+    void GuideLineProvider::BuildBoundary()
+    {
+        for(size_t i = 0, size = _guideLines.data().size(); i < size; ++i)
+        {
+            auto & curr = *_guideLines.data()[i];
+
+            for(auto & p : curr.path)
+            {
+                p.bound.Upper = p.width * 0.5;
+                p.bound.Lower = -p.width * 0.5;
+                for(size_t j = 0; j < size; ++j)
+                {
+                    if(i == j) continue;
+                    auto & other = *_guideLines.data()[j];
+                    auto q = other.path.PointAtPosition(p.pose.t);
+
+                    if(q.s > other.path.Length() or q.s < 0)
+                        continue;
+
+                    double l = q.LateralTo(p);
+                    p.bound.Upper = std::max<double>(l + 0.5 * q.width, p.bound.Upper);
+                    p.bound.Lower = std::min<double>(l - 0.5 * q.width, p.bound.Lower);
+                }
+            }
+        }
     }
 }

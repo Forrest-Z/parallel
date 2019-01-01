@@ -8,13 +8,13 @@ namespace nox::app
         /// 1. 获取高精地图
         auto map = _map_provider.Produce();
 
-        /// 2. 从地图计算引导线
-        auto guideLines = _guide_line_provider.Produce(map);
+        /// 2. 获取当前车的姿态
+        auto vehicle_state = _vehicle_state_provider.Produce();
+
+        /// 3. 从地图计算引导线
+        auto guideLines = _guide_line_provider.Produce(map, vehicle_state);
         if(guideLines.data().empty())
             guideLines = _old_map_provider.Produce();
-
-        /// 3. 获取当前车的姿态
-        auto vehicle_state = _vehicle_state_provider.Produce();
 
         /// 4. 获得障碍物信息
         auto obstacles = _obstacle_provider.Produce(_vehicle_state_provider);

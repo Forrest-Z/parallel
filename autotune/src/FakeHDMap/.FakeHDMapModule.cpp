@@ -28,12 +28,14 @@ void FakeHDMapModule::OnRun()
 {
     bool status = true;
     
-    
     if(status)
     {
         
         optional<std_msgs::String> hdmap_out;
-        Process(  hdmap_out );
+        Process( 
+             
+            hdmap_out 
+        );
         ProcessOutput( hdmap_out );
     }
 }

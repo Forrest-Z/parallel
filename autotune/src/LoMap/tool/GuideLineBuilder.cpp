@@ -114,13 +114,14 @@ namespace nox::app
         //endregion
     }
 
-    void GuideLineBuilder::BuildPathUsingCubic(const ControlLine & controlLine, GuideLine & guideLine, double density)
+    void GuideLineBuilder::BuildPathUsingCubic(const ControlLine &controlLine, type::DiscretePath &path, double density)
     {
         //region 初始化第一个控制点（之后迭代更新第二个点）
         auto first_line = controlLine.segments[0]->GetFunction();
         auto [x, y] = first_line->Calculate(0, 0);
         auto [dx, dy] = first_line->Calculate(1, 0);
         math::Derivative<1> x0, x1{x, dx}, y0, y1{y, dy};
+        path.Clear();
         //endregion
 
         for(auto & i : controlLine.segments)
@@ -161,9 +162,10 @@ namespace nox::app
             for(double ds : range(0.0, density, s - density))
             {
                 PathPoint point(curve_x, curve_y, ds / s);
-                guideLine.path.Add(point);
+                point.width = i->WidthAtDistance(ds);
+                path.Add(point);
 
-                size_t index = guideLine.path.Size() - 1;
+                size_t index = path.Size() - 1;
                 if(ds < 3.0)
                     head_index.push_back(index);
                 if(ds > s - 3.0)
@@ -176,23 +178,23 @@ namespace nox::app
             {
                 auto head_size = head_index.size();
                 auto head_normal_index = head_index[0] + head_size;
-                auto end = guideLine.path.Size();
+                auto end = path.Size();
 
                 if(head_normal_index >= end)
                 {
                     for(auto k : head_index)
                     {
-                        guideLine.path[k].kappa = 0;
-                        guideLine.path[k].dkappa = 0;
+                        path[k].kappa = 0;
+                        path[k].dkappa = 0;
                     }
                 }
                 else
                 {
-                    auto & head = guideLine.path[head_normal_index];
+                    auto & head = path[head_normal_index];
                     for(auto k : head_index)
                     {
-                        guideLine.path[k].kappa = head.kappa;
-                        guideLine.path[k].dkappa = 0;
+                        path[k].kappa = head.kappa;
+                        path[k].dkappa = 0;
                     }
                 }
 
@@ -204,28 +206,33 @@ namespace nox::app
             {
                 auto tail_size = tail_index.size();
                 auto tail_normal_index = tail_index[0] - tail_size;
-                auto end = guideLine.path.Size();
+                auto end = path.Size();
 
                 if(tail_normal_index >= end)
                 {
                     for(auto k : tail_index)
                     {
-                        guideLine.path[k].kappa = 0;
-                        guideLine.path[k].dkappa = 0;
+                        path[k].kappa = 0;
+                        path[k].dkappa = 0;
                     }
                 }
                 else
                 {
-                    auto & tail = guideLine.path[tail_normal_index];
+                    auto & tail = path[tail_normal_index];
                     for(auto k : tail_index)
                     {
-                        guideLine.path[k].kappa = tail.kappa;
-                        guideLine.path[k].dkappa = 0;
+                        path[k].kappa = tail.kappa;
+                        path[k].dkappa = 0;
                     }
                 }
             }
             //endregion
         }
+    }
+
+    void GuideLineBuilder::BuildPathUsingCubic(const ControlLine & controlLine, GuideLine & guideLine, double density)
+    {
+        BuildPathUsingCubic(controlLine, guideLine.path, density);
     }
 
     void GuideLineBuilder::BuildPathUsingCC_Dubins(const ControlLine & controlLine, GuideLine & guideLine)
@@ -283,7 +290,7 @@ namespace nox::app
             auto frenet_end = guideLine.path.FrenetAtPosition(lane.Back().pose.t);
 
             guideLine.speed.Add(key::Junction,
-                std::max(0.0, frenet_end.s - 40),
+                std::max(0.0, frenet_end.s - 50),
                 frenet_end.s,
                 0, 15.0 / 3.6
             );
@@ -305,14 +312,41 @@ namespace nox::app
 
     void GuideLineBuilder::BuildBoundary(const ControlLine &controlLine, GuideLine &guideLine)
     {
-        auto AddBoundary = [&](auto ptr)
+        auto & path = guideLine.path;
+        double length = path.Length();
+
+        auto AddBoundary = [&](Ptr<Lane> ptr)
         {
             auto front = ptr->Front();
             auto back  = ptr->Back();
-            auto begin = guideLine.path.FrenetAtPosition(front.pose.t);
-            auto end   = guideLine.path.FrenetAtPosition(back.pose.t);
+            auto begin = path.FrenetAtPosition(front.pose.t);
+            auto end   = path.FrenetAtPosition(back.pose.t);
+            double sb = begin.s;
+            double se = end.s;
             double wb = begin.l;
             double we = end.l;
+
+            if(sb > length or se < 0)
+                return;
+
+            if(sb < 0 or se > length)
+            {
+                auto lane_path = ptr->Discretize(1);
+
+                if(sb < 0)
+                {
+                    front = lane_path.PointAtPosition(path.Front().pose.t);
+                    sb = 0;
+                    wb = path.Front().LateralTo(front);
+                }
+
+                if(se > length)
+                {
+                    back = lane_path.PointAtPosition(path.Back().pose.t);
+                    se = length;
+                    we = path.Back().LateralTo(back);
+                }
+            }
 
             if(*ptr & Lane::Leftmost)
             {
@@ -327,8 +361,8 @@ namespace nox::app
 
             Boundary boundary;
             boundary.passable = false;
-            boundary.s.Lower = begin.s;
-            boundary.s.Upper = end.s;
+            boundary.s.Lower = sb;
+            boundary.s.Upper = se;
             boundary.func.x = boundary.s;
             boundary.func.type = Function::Polynomial;
 
@@ -336,15 +370,15 @@ namespace nox::app
                 boundary.func.coeff = math::LinearCurve(
                     math::Derivative<0>{wb},
                     math::Derivative<0>{we},
-                    begin.s,
-                    end.s
+                    sb,
+                    se
                 ).Coefficient();
             else
                 boundary.func.coeff = math::CubicCurve(
                     math::Derivative<1>{wb, 0},
                     math::Derivative<1>{we, 0},
-                    begin.s,
-                    end.s
+                    sb,
+                    se
                 ).Coefficient();
 
             guideLine.boundary.Add(key::MapEdge, boundary);
@@ -370,7 +404,5 @@ namespace nox::app
         smoother.SetConfig(config);
         guideLine.path = smoother.Smooth(anchors);
     }
-
-
 }
 

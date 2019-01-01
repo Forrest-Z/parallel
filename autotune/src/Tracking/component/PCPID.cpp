@@ -19,7 +19,7 @@ namespace nox::app
         const double vy = vehicle.v.y;
         const double w  = vehicle.w.z;
         const double kappa = matched_point.kappa;
-        const double aError = vehicle.pose.theta - matched_point.pose.theta;
+        const double aError = Radian(vehicle.pose.theta - matched_point.pose.theta).Warp(Angle::Radian);
 
         double rear_dError = vehicle.pose.t.DistanceTo(matched_point.pose.t) *
             math::PointOnLine(vehicle.pose.x, vehicle.pose.y, matched_point.pose.x, matched_point.pose.y, matched_point.pose.theta);

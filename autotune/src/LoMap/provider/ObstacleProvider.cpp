@@ -1,6 +1,9 @@
 #include <LoMap/provider/ObstacleProvider.h>
 #include <LoMap/LoMapConfig.h>
+#include <iostream>
 USING_NAMESPACE_NOX;
+using namespace std;
+
 namespace nox::app
 {
 

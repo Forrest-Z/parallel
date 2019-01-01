@@ -26,8 +26,16 @@ namespace nox::app
 
     protected:
 
-        void Process(nox_msgs::Location localization, nox_msgs::Chassis chassis,
-                     geometry_msgs::TwistWithCovarianceStamped Velocity,
-                     optional<nav_msgs::Odometry> &vehicle_state) override;
+        void Process(nox_msgs::Location localization,
+                     nox_msgs::Chassis chassis,
+                     optional<geometry_msgs::TwistWithCovarianceStamped> Velocity,
+                     optional<nav_msgs::Odometry> &vehicle_state,
+                     optional<nox_msgs::Location> &location,
+                     double lx, double ly);
+
+        void Process(optional<nox_msgs::Location> gps_localization, nox_msgs::Chassis chassis,
+                     optional<geometry_msgs::TwistWithCovarianceStamped> Velocity,
+                     optional<nox_msgs::Location> lidar_localization, optional<nav_msgs::Odometry> &vehicle_state,
+                     optional<nox_msgs::Location> &localization) override;
     };
 }

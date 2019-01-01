@@ -48,6 +48,7 @@ void STGraph::AddStaticObstacle(const nox::type::Obstacle &obstacle)
     auto st_obstacle = New<STObstacle>();
     st_obstacle->trajectory.emplace_back(boundary.t.Start, boundary.s);
     st_obstacle->trajectory.emplace_back(boundary.t.End, boundary.s);
+    st_obstacle->is_static = true;
     _obstacles[obstacle.id] = st_obstacle;
 }
 

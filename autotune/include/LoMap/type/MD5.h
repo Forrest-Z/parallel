@@ -23,6 +23,8 @@ namespace nox::app
 
         MD5(const MD5 & other) = default;
 
+        MD5(MD5 && other) = default;
+
         MD5(MD5 & other) = default;
 
         MD5 &operator=(const MD5 & other) = default;

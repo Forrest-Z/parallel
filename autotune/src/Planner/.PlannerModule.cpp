@@ -28,9 +28,7 @@ void PlannerModule::OnRun()
 {
     bool status = true;
     
-    nav_msgs::Odometry vehicle_state_in;
-    
-    if(!mailboxes.vehicle_state.IsFresh())
+    if(not mailboxes.vehicle_state.IsFresh())
     {
         status = false;
         
@@ -38,14 +36,16 @@ void PlannerModule::OnRun()
         Onvehicle_stateFail( trajectory_out );
         ProcessOutput( trajectory_out );
     }
-    else
-        vehicle_state_in = mailboxes.vehicle_state.Get();
 
     if(status)
     {
         
         optional<nox_msgs::Trajectory> trajectory_out;
-        Process( vehicle_state_in,  trajectory_out );
+        Process( 
+            
+            mailboxes.vehicle_state.Get(), 
+            trajectory_out 
+        );
         ProcessOutput( trajectory_out );
     }
 }
@@ -61,7 +61,7 @@ void PlannerModule::InitMailbox()
 {
     
     mailboxes.vehicle_state.Subscribe({"vehicle_state"});
-    mailboxes.vehicle_state.SetValidity(1000);
+    mailboxes.vehicle_state.SetValidity(Millisecond(1000));
     
     mailboxes.trajectory.Advertise({"trajectory"});
 }

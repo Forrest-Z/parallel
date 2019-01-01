@@ -47,9 +47,9 @@ Result<bool> LatticePlanner::Plan(const PlannerBase::Frame & frame, type::Trajec
     string error_msg;
     bool is_optimal_reference_line = true;
     auto init_point = frame.stitch->Back();
-    frame.stitch->PopBack();
+    // frame.stitch->PopBack();
 
-    Logger::I("LatticePlanner")
+    Logger::D("LatticePlanner")
         << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << endl
         << "Start to plan ...";
 
@@ -81,7 +81,7 @@ Result<bool> LatticePlanner::Plan(const PlannerBase::Frame & frame, type::Trajec
         }
     }
 
-    frame.stitch->Add(init_point); // 把pop back的点还回去，保证外边的frame是不变的。
+    // frame.stitch->Add(init_point); // 把pop back的点还回去，保证外边的frame是不变的。
 
     if(results_heap.empty())
         return Result(false, "all guide lines are suck.\n" + error_msg);

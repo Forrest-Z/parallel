@@ -40,7 +40,7 @@ void ReferenceLine::Setup()
     }
 
     std::sort(_stop_lines.begin(), _stop_lines.end());
-    _stop_lines.emplace_back(Length() * 10);
+    _stop_lines.emplace_back(real::MAX);
     //endregion
 
     //region 处理速度信息
@@ -142,7 +142,8 @@ Result<bool> ReferenceLine::IsNormal(const Trajectory &trajectory, const Vehicle
         return Result(false, "Trajectory is over the stop line");
 
     double stop_line = GetNextStopLine(frenet.s);
-    if(trajectory.Back().s >= stop_line)
+    auto frenet_back = CalculateFrenet(trajectory.Back().pose);
+    if(frenet_back.s >= stop_line)
         return Result(false, "Trajectory cross the stop line.");
 
     return true;
@@ -194,6 +195,11 @@ Bound ReferenceLine::GetBoundary(double s) const
         else
             b.Lower = std::max<double>(b.Lower, w);
     }
+
+    size_t nearest_index = path.QueryNearestByDistance(s);
+    auto & nearest_point = path[nearest_index];
+    b.Upper = std::min<double>(b.Upper, nearest_point.bound.Upper);
+    b.Lower = std::max<double>(b.Lower, nearest_point.bound.Lower);
 
     return b;
 }

@@ -28,46 +28,27 @@ void LoMapModule::OnRun()
 {
     bool status = true;
     
-    optional<nav_msgs::Odometry> vehicle_state_in;
-    optional<nox_msgs::ObstacleArray> obstacles_in;
-    optional<nox_msgs::Road> old_map_in;
-    optional<std_msgs::String> hdmap_in;
-    optional<nox_msgs::ObstacleArray> virtual_obstacles_in;
-    optional<traffic_light::msg_traffic_light_list> traffic_lights_in;
-    optional<nox_msgs::Trajectory> simple_map_in;
-    
-    if(!mailboxes.vehicle_state.IsFresh()) {} 
-    else
-        vehicle_state_in = mailboxes.vehicle_state.Get();
 
-    if(!mailboxes.obstacles.IsFresh()) {} 
-    else
-        obstacles_in = mailboxes.obstacles.Get();
 
-    if(!mailboxes.old_map.IsFresh()) {} 
-    else
-        old_map_in = mailboxes.old_map.Get();
 
-    if(!mailboxes.hdmap.IsFresh()) {} 
-    else
-        hdmap_in = mailboxes.hdmap.Get();
 
-    if(!mailboxes.virtual_obstacles.IsFresh()) {} 
-    else
-        virtual_obstacles_in = mailboxes.virtual_obstacles.Get();
 
-    if(!mailboxes.traffic_lights.IsFresh()) {} 
-    else
-        traffic_lights_in = mailboxes.traffic_lights.Get();
 
-    if(!mailboxes.simple_map.IsFresh()) {} 
-    else
-        simple_map_in = mailboxes.simple_map.Get();
 
     if(status)
     {
         
-        Process( vehicle_state_in, obstacles_in, old_map_in, hdmap_in, virtual_obstacles_in, traffic_lights_in, simple_map_in  );
+        Process( 
+            
+            mailboxes.vehicle_state.IsFresh() ? mailboxes.vehicle_state.Get() : optional<nav_msgs::Odometry>(),
+            mailboxes.obstacles.IsFresh() ? mailboxes.obstacles.Get() : optional<nox_msgs::ObstacleArray>(),
+            mailboxes.old_map.IsFresh() ? mailboxes.old_map.Get() : optional<nox_msgs::Road>(),
+            mailboxes.hdmap.IsFresh() ? mailboxes.hdmap.Get() : optional<std_msgs::String>(),
+            mailboxes.virtual_obstacles.IsFresh() ? mailboxes.virtual_obstacles.Get() : optional<nox_msgs::ObstacleArray>(),
+            mailboxes.traffic_lights.IsFresh() ? mailboxes.traffic_lights.Get() : optional<traffic_light::msg_traffic_light_list>(),
+            mailboxes.simple_map.IsFresh() ? mailboxes.simple_map.Get() : optional<nox_msgs::Trajectory>() 
+             
+        );
         ProcessOutput(  );
     }
 }
@@ -83,19 +64,19 @@ void LoMapModule::InitMailbox()
 {
     
     mailboxes.vehicle_state.Subscribe({"vehicle_state"});
-    mailboxes.vehicle_state.SetValidity(1000);
+    mailboxes.vehicle_state.SetValidity(Millisecond(1000));
     mailboxes.obstacles.Subscribe({"obstacles"});
-    mailboxes.obstacles.SetValidity(1000);
+    mailboxes.obstacles.SetValidity(Millisecond(1000));
     mailboxes.old_map.Subscribe({"RoadPlanning"});
-    mailboxes.old_map.SetValidity(1000);
+    mailboxes.old_map.SetValidity(Millisecond(1000));
     mailboxes.hdmap.Subscribe({"map_to_planner"});
-    mailboxes.hdmap.SetValidity(1000);
+    mailboxes.hdmap.SetValidity(Millisecond(1000));
     mailboxes.virtual_obstacles.Subscribe({"virtual_obstacles"});
-    mailboxes.virtual_obstacles.SetValidity(1000);
+    mailboxes.virtual_obstacles.SetValidity(Millisecond(1000));
     mailboxes.traffic_lights.Subscribe({"traffic_light_state"});
-    mailboxes.traffic_lights.SetValidity(1000);
+    mailboxes.traffic_lights.SetValidity(Millisecond(1000));
     mailboxes.simple_map.Subscribe({"simple_map"});
-    mailboxes.simple_map.SetValidity(1000);
+    mailboxes.simple_map.SetValidity(Millisecond(1000));
     
 }
 

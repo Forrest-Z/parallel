@@ -34,9 +34,9 @@ namespace nox::parameter
         double wrmax;
         struct
         {
-            int Steer_comp;
-            int R_road;
-            int Kappa_filter;
+            double Steer_comp;
+            double R_road;
+            double Kappa_filter;
         } Option;
 
 
@@ -61,9 +61,9 @@ namespace nox::parameter
                 const Node & tmp = node["Option"];
                 const Node & node = tmp;
 
-                Option.Steer_comp = node["Steer_comp"].as<int>();
-                Option.R_road = node["R_road"].as<int>();
-                Option.Kappa_filter = node["Kappa_filter"].as<int>();
+                Option.Steer_comp = node["Steer_comp"].as<double>();
+                Option.R_road = node["R_road"].as<double>();
+                Option.Kappa_filter = node["Kappa_filter"].as<double>();
             }
 
 

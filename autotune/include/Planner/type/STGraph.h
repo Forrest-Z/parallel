@@ -39,6 +39,8 @@ namespace nox::app
     public:
         std::vector<STPoint> trajectory;
 
+        bool is_static = false;
+
     public:
         type::Range EstimateAtTime(double t) const;
     };

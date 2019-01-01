@@ -41,8 +41,8 @@ namespace nox::parameter
 
         struct
         {
-            int Max;
-            int Min;
+            double Max;
+            double Min;
             double Ratio;
             double Offset;
         } Steering;
@@ -84,8 +84,8 @@ namespace nox::parameter
                 const Node & tmp = node["Steering"];
                 const Node & node = tmp;
 
-                Steering.Max = node["Max"].as<int>();
-                Steering.Min = node["Min"].as<int>();
+                Steering.Max = node["Max"].as<double>();
+                Steering.Min = node["Min"].as<double>();
                 Steering.Ratio = node["Ratio"].as<double>();
                 Steering.Offset = node["Offset"].as<double>();
             }

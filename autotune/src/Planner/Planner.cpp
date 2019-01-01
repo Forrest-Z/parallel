@@ -4,9 +4,11 @@
 #include <Planner/.PlannerModule.h>
 #include <Planner/rule/StopLine.h>
 #include <Planner/rule/Passable.h>
+#include <Planner/rule/PullOver.h>
 #include <nox>
 #include <iostream>
 #include "../../../.param/template/Parameter.h"
+#include <any>
 
 using namespace nox::app;
 USING_NAMESPACE_NOX;
@@ -35,7 +37,8 @@ void Planner::InitializeDeciders()
     auto guideDecider = New<DecisionMaker>();
     guideDecider
         ->AddRule<rule::StopLine>()
-        ->AddRule<rule::Passable>();
+        ->AddRule<rule::Passable>()
+        ->AddRule<rule::PullOver>();
 
     _deciders.push_back(guideDecider);
 }

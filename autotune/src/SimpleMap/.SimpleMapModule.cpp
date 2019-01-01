@@ -28,9 +28,7 @@ void SimpleMapModule::OnRun()
 {
     bool status = true;
     
-    nav_msgs::Odometry vehicle_state_in;
-    
-    if(!mailboxes.vehicle_state.IsFresh())
+    if(not mailboxes.vehicle_state.IsFresh())
     {
         status = false;
         
@@ -38,14 +36,16 @@ void SimpleMapModule::OnRun()
         Onvehicle_stateFail( simple_map_out );
         ProcessOutput( simple_map_out );
     }
-    else
-        vehicle_state_in = mailboxes.vehicle_state.Get();
 
     if(status)
     {
         
         optional<nox_msgs::Trajectory> simple_map_out;
-        Process( vehicle_state_in,  simple_map_out );
+        Process( 
+            
+            mailboxes.vehicle_state.Get(), 
+            simple_map_out 
+        );
         ProcessOutput( simple_map_out );
     }
 }
@@ -61,7 +61,7 @@ void SimpleMapModule::InitMailbox()
 {
     
     mailboxes.vehicle_state.Subscribe({"vehicle_state"});
-    mailboxes.vehicle_state.SetValidity(1000);
+    mailboxes.vehicle_state.SetValidity(Millisecond(1000));
     
     mailboxes.simple_map.Advertise({"simple_map"});
 }

@@ -19,9 +19,9 @@ namespace nox::app::rule
          * @param limit 一个正值，同时代表增幅和减幅限制（负值认为不限制）
          * @param init_data 初始化值
          */
-        Clipping(double interval, double limit, double init_data = 0);
+        Clipping(type::Time interval, double limit, double init_data = 0);
 
-        Clipping(double interval, double increase_limt, double decrease_limit, double init_data);
+        Clipping(type::Time interval, double increase_limt, double decrease_limit, double init_data);
 
         double Apply(double raw) override;
 

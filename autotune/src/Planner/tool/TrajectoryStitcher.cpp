@@ -29,7 +29,15 @@ Trajectory TrajectoryStitcher::ComputeTrajectory(Position position, double theta
 
     for(double s : vs)
     {
-        result.Add(point.MoveByDistance(s));
+        auto tp = point.MoveByDistance(s);
+        if(point.v == 0)
+        {
+            if(result.Empty())
+                tp.t = 0;
+            else
+                tp.t = result.Back().t;
+        }
+        result.Add(tp);
     }
 
     return result;
@@ -70,8 +78,8 @@ Result<bool> TrajectoryStitcher::Check(const Trajectory &trajectory, const Vehic
     if(speed_diff > param.threshold.replan.speed_diff)
         return Result(false, "Vehicle's speed is too different from the matched point on the trajectory.");
 
-    double angle_diff = abs(vehicle.pose.theta - nearest_point.pose.theta);
-    if(angle_diff > 80.0 / 180.0 * M_PI)
+    double angle_diff = abs(Radian(vehicle.pose.theta - nearest_point.pose.theta).Warp(Angle::Degree));
+    if(angle_diff > 80.0)
         return Result(false, "Vehicle's heading is too different from the matched point on the trajectory.");
 
 

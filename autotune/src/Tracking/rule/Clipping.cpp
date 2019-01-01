@@ -22,14 +22,14 @@ namespace nox::app::rule
         return _last_data;
     }
 
-    Clipping::Clipping(double interval, double limit, double init_data)
-        : _interval(interval), _last_data(init_data), _increase_limit(limit), _decrease_limit(limit)
+    Clipping::Clipping(type::Time interval, double limit, double init_data)
+        : _interval(interval.Get<Second>()), _last_data(init_data), _increase_limit(limit), _decrease_limit(limit)
     {
         _timer.Start();
     }
 
-    Clipping::Clipping(double interval, double increase_limt, double decrease_limit, double init_data)
-        : _interval(interval), _last_data(init_data), _increase_limit(increase_limt), _decrease_limit(decrease_limit)
+    Clipping::Clipping(type::Time interval, double increase_limt, double decrease_limit, double init_data)
+        : _interval(interval.Get<Second>()), _last_data(init_data), _increase_limit(increase_limt), _decrease_limit(decrease_limit)
     {
         _timer.Start();
     }

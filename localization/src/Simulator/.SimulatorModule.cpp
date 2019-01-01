@@ -28,7 +28,6 @@ void SimulatorModule::OnRun()
 {
     bool status = true;
     
-    
     if(status)
     {
         
@@ -38,7 +37,10 @@ void SimulatorModule::OnRun()
         optional<nox_msgs::Chassis> chassis_out;
         optional<nox_msgs::Location> localization_out;
         optional<nox_msgs::DrivingCommand> driving_out;
-        Process(  vehicle_state_out, Localization_out, GPSDataLCM_out, chassis_out, localization_out, driving_out );
+        Process( 
+             
+            vehicle_state_out, Localization_out, GPSDataLCM_out, chassis_out, localization_out, driving_out 
+        );
         ProcessOutput( vehicle_state_out, Localization_out, GPSDataLCM_out, chassis_out, localization_out, driving_out );
     }
 }

@@ -10,10 +10,11 @@ namespace nox::app::rule
             auto frenet = referenceLine.CalculateFrenet(planning_start_point.pose);
             double ds = referenceLine.Length() - frenet.s - planning_start_point.v * 8;
 
-            if(ds < 40.0)
+            referenceLine.Kill();
+
+            if(ds < 50.0)
             {
                 referenceLine.AddCost(ReferenceLine::Definite, 1);
-                referenceLine.Kill();
                 Logger::D("Rule") << "Passable rule kill reference line";
             }
             else

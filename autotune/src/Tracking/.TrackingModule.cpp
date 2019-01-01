@@ -8,7 +8,7 @@ LaunchModule(Tracking);
 void TrackingModule::OnStart()
 {
     /// 配置节点
-    SetFrequency( 20.000000 );
+    SetFrequency( 40.000000 );
     Viewer::Instance()->SetRender(New< None >());
     Viewer::Instance()->SetName(Module::GetNodeName());
 
@@ -28,15 +28,8 @@ void TrackingModule::OnRun()
 {
     bool status = true;
     
-    optional<nox_msgs::Trajectory> trajectory_in;
-    nav_msgs::Odometry vehicle_state_in;
-    nox_msgs::Chassis chassis_in;
-    
-    if(!mailboxes.trajectory.IsFresh()) {} 
-    else
-        trajectory_in = mailboxes.trajectory.Get();
 
-    if(!mailboxes.vehicle_state.IsFresh())
+    if(not mailboxes.vehicle_state.IsFresh())
     {
         status = false;
         
@@ -44,10 +37,8 @@ void TrackingModule::OnRun()
         Onvehicle_stateFail( driving_out );
         ProcessOutput( driving_out );
     }
-    else
-        vehicle_state_in = mailboxes.vehicle_state.Get();
 
-    if(!mailboxes.chassis.IsFresh())
+    if(not mailboxes.chassis.IsFresh())
     {
         status = false;
         
@@ -55,14 +46,18 @@ void TrackingModule::OnRun()
         OnchassisFail( driving_out );
         ProcessOutput( driving_out );
     }
-    else
-        chassis_in = mailboxes.chassis.Get();
 
     if(status)
     {
         
         optional<nox_msgs::DrivingCommand> driving_out;
-        Process( trajectory_in, vehicle_state_in, chassis_in,  driving_out );
+        Process( 
+            
+            mailboxes.trajectory.IsFresh() ? mailboxes.trajectory.Get() : optional<nox_msgs::Trajectory>(),
+            mailboxes.vehicle_state.Get(),
+            mailboxes.chassis.Get(), 
+            driving_out 
+        );
         ProcessOutput( driving_out );
     }
 }
@@ -78,11 +73,11 @@ void TrackingModule::InitMailbox()
 {
     
     mailboxes.trajectory.Subscribe({"trajectory"});
-    mailboxes.trajectory.SetValidity(1000);
+    mailboxes.trajectory.SetValidity(Millisecond(1000));
     mailboxes.vehicle_state.Subscribe({"vehicle_state"});
-    mailboxes.vehicle_state.SetValidity(1000);
+    mailboxes.vehicle_state.SetValidity(Millisecond(1000));
     mailboxes.chassis.Subscribe({"chassis"});
-    mailboxes.chassis.SetValidity(1000);
+    mailboxes.chassis.SetValidity(Millisecond(1000));
     
     mailboxes.driving.Advertise({"driving"});
 }

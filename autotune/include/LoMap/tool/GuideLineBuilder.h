@@ -11,6 +11,8 @@ namespace nox::app
     class GuideLineBuilder
     {
     public:
+        static void BuildPathUsingCubic(const ControlLine & controlLine, type::DiscretePath & path, double density = 0.3);
+
         static void BuildPathUsingCubic(const ControlLine & controlLine, GuideLine & guideLine, double density = 0.3);
 
         static void BuildPathUsingCC_Dubins(const ControlLine & controlLine, GuideLine & guideLine);
